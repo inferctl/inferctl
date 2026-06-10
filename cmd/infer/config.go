@@ -19,6 +19,7 @@ func newConfigCommand(jsonFlag *bool) *cobra.Command {
 	}
 	cmd.AddCommand(newConfigShowCommand(jsonFlag))
 	cmd.AddCommand(newConfigValidateCommand(jsonFlag))
+	cmd.AddCommand(newConfigExplainCommand(jsonFlag))
 	return cmd
 }
 
