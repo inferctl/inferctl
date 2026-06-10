@@ -45,6 +45,7 @@ func newRootCommand() *cobra.Command {
 	root.AddCommand(newModelsCommand(&jsonFlag))
 	root.AddCommand(newModelCommand(&jsonFlag))
 	root.AddCommand(newDoctorCommand(&jsonFlag))
+	root.AddCommand(newRouteCommand(&jsonFlag))
 	return root
 }
 
