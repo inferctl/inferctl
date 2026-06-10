@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -16,6 +17,11 @@ const toolVersion = "0.1.0"
 
 func main() {
 	if err := newRootCommand().Execute(); err != nil {
+		var ee exitError
+		if errors.As(err, &ee) {
+			os.Exit(int(ee))
+		}
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
@@ -34,6 +40,7 @@ func newRootCommand() *cobra.Command {
 	}
 	root.PersistentFlags().BoolVar(&jsonFlag, "json", false, "emit JSON envelope")
 	root.AddCommand(newCapabilitiesCommand(&jsonFlag))
+	root.AddCommand(newConfigCommand(&jsonFlag))
 	return root
 }
 
@@ -90,4 +97,46 @@ func envMap() map[string]string {
 		}
 	}
 	return out
+}
+
+func writeData(cmd *cobra.Command, jsonFlag bool, data any, human func() error) error {
+	mode := render.SelectMode(render.Options{JSONFlag: jsonFlag, Env: envMap()})
+	if mode == render.ModeJSON {
+		start := time.Now()
+		env, err := envelope.New(toolVersion, data, envelope.Options{
+			StartedAt:  start,
+			FinishedAt: time.Now(),
+			Env:        envMap(),
+		})
+		if err != nil {
+			return err
+		}
+		return render.WriteJSON(cmd.OutOrStdout(), env)
+	}
+	return human()
+}
+
+func writeError(cmd *cobra.Command, jsonFlag bool, errObj envelope.Error) error {
+	mode := render.SelectMode(render.Options{JSONFlag: jsonFlag, Env: envMap()})
+	if mode == render.ModeJSON {
+		start := time.Now()
+		env, err := envelope.New[any](toolVersion, nil, envelope.Options{
+			StartedAt:  start,
+			FinishedAt: time.Now(),
+			Env:        envMap(),
+			Errors:     []envelope.Error{errObj},
+		})
+		if err != nil {
+			return err
+		}
+		if err := render.WriteJSON(cmd.OutOrStdout(), env); err != nil {
+			return err
+		}
+	} else {
+		fmt.Fprintln(cmd.ErrOrStderr(), errObj.Message)
+		if errObj.DidYouMean != nil {
+			fmt.Fprintf(cmd.ErrOrStderr(), "try: %s\n", *errObj.DidYouMean)
+		}
+	}
+	return exitError(errObj.ExitCode)
 }
