@@ -1,0 +1,21 @@
+constraints:
+  - Build only repo-deliverable v0.1 implementation work under /Users/dave/p/inferctl/inferctl.
+  - Exclude Guideboard outreach, lawyer review, name availability sweep, public visibility changes, and public release actions; those are user-owned gates.
+  - Implement from the finalized v0.1 spec docs in /Users/dave/p/inferctl/v0.1 and the embedded skills/make-cli/SKILL.md.
+  - Do not read inference_router.py or consult FF source during implementation.
+  - Do not copy FF code structure, variable names, comments, tests, or commit-message references.
+  - If behavior is ambiguous, update the relevant v0.1 spec doc first, then implement from the clarified spec.
+  - JSON envelope output is opt-in only via --json or INFERCTL_FORMAT=json; non-TTY output remains human text.
+  - Capabilities golden pins envelope.data only; envelope shape is tested separately.
+  - config validate is the only v0.1 verb that emits data on failure.
+  - Route latency estimates and LatencyStats remain null/zero in v0.1 because no inference stats are collected.
+preferences:
+  - Keep Go structs, generated schemas, capabilities golden, and docs synchronized through tests or go generate.
+  - Use deterministic internal testserver fixtures instead of real local backend services for tests and demos.
+  - Keep human-rendered output readable but avoid byte-for-byte human text contracts.
+  - Preserve existing user work in the git tree; inspect status before edits.
+excluded_work:
+  - Guideboard email or other outreach.
+  - Attorney scheduling or legal analysis.
+  - Registry/name availability sweeps.
+  - Public release, public repo visibility change, or public publishing.
