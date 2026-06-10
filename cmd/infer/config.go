@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Ozhiaki/inferctl/internal/config"
 	"github.com/Ozhiaki/inferctl/internal/envelope"
+	"github.com/Ozhiaki/inferctl/internal/render"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +18,7 @@ func newConfigCommand(jsonFlag *bool) *cobra.Command {
 		Short: "Inspect inferctl configuration",
 	}
 	cmd.AddCommand(newConfigShowCommand(jsonFlag))
+	cmd.AddCommand(newConfigValidateCommand(jsonFlag))
 	return cmd
 }
 
@@ -53,6 +56,53 @@ func newConfigShowCommand(jsonFlag *bool) *cobra.Command {
 	cmd.Flags().StringVar(&section, "section", "", "top-level section to show")
 	cmd.Flags().StringVar(&key, "key", "", "dotted config key to show")
 	cmd.Flags().BoolVar(&noProvenance, "no-provenance", false, "omit provenance map")
+	return cmd
+}
+
+func newConfigValidateCommand(jsonFlag *bool) *cobra.Command {
+	var strict bool
+	cmd := &cobra.Command{
+		Use:   "validate",
+		Short: "Validate config and report findings",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			result, err := (config.Loader{}).Load(config.LoadOptions{})
+			if err != nil {
+				return writeError(cmd, *jsonFlag, configLoadError(err))
+			}
+			data := config.Validate(result, strict)
+			if data.Passed {
+				return writeData(cmd, *jsonFlag, data, func() error {
+					fmt.Fprintf(cmd.OutOrStdout(), "config passed: %d error(s), %d warning(s)\n", data.Summary.Errors, data.Summary.Warnings)
+					return nil
+				})
+			}
+			errObj := validationFailedError(data)
+			mode := render.SelectMode(render.Options{JSONFlag: *jsonFlag, Env: envMap()})
+			if mode == render.ModeJSON {
+				start := time.Now()
+				env, err := envelope.New(toolVersion, data, envelope.Options{
+					StartedAt:  start,
+					FinishedAt: time.Now(),
+					Env:        envMap(),
+					Errors:     []envelope.Error{errObj},
+				})
+				if err != nil {
+					return err
+				}
+				if err := render.WriteJSON(cmd.OutOrStdout(), env); err != nil {
+					return err
+				}
+			} else {
+				fmt.Fprintln(cmd.ErrOrStderr(), errObj.Message)
+				for _, finding := range data.Findings {
+					fmt.Fprintf(cmd.OutOrStdout(), "%s %s: %s\n", finding.Severity, finding.Key, finding.Message)
+				}
+			}
+			return exitError(1)
+		},
+	}
+	cmd.Flags().BoolVar(&strict, "strict", false, "treat warnings as validation failure")
 	return cmd
 }
 
@@ -202,6 +252,29 @@ func invalidArg(arg, given, expected string, validSet []string) envelope.Error {
 			"given":     given,
 			"expected":  expected,
 			"valid_set": validSet,
+		},
+	}
+}
+
+func validationFailedError(data config.ValidationResult) envelope.Error {
+	first := ""
+	for _, finding := range data.Findings {
+		if finding.Severity == "error" || first == "" {
+			first = finding.Key
+		}
+		if finding.Severity == "error" {
+			break
+		}
+	}
+	return envelope.Error{
+		Code:      "E_CONFIG_VALIDATION_FAILED",
+		Message:   fmt.Sprintf("config validation found %d error(s) and %d warning(s)", data.Summary.Errors, data.Summary.Warnings),
+		ExitCode:  1,
+		Retryable: false,
+		Details: map[string]any{
+			"errors":          data.Summary.Errors,
+			"warnings":        data.Summary.Warnings,
+			"first_error_key": first,
 		},
 	}
 }
