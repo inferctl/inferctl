@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP="$(mktemp -d)"
+cleanup() {
+  rm -rf "$TMP"
+}
+trap cleanup EXIT
+
+cd "$ROOT"
+go build -o "$TMP/infer" ./cmd/infer
+
+"$TMP/infer" capabilities --json | jq .data >"$TMP/capabilities.golden.json"
+diff -u internal/contract/capabilities.golden.json "$TMP/capabilities.golden.json"
+
+find testdata/contract -name '*.golden.json' -print0 | sort -z | while IFS= read -r -d '' file; do
+  jq empty "$file"
+done
+
+go test ./internal/contract -run 'TestVerbGoldens'

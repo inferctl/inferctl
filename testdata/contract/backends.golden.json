@@ -1,0 +1,18 @@
+{
+  "backends": [
+    {
+      "name": "ollama",
+      "kind": "ollama",
+      "base_url": "http://127.0.0.1:11434",
+      "reachable": true,
+      "latency_ms": 1,
+      "version": "fixture",
+      "default": true,
+      "models_installed_count": 1,
+      "models_loaded_count": 1,
+      "backoff": null
+    }
+  ],
+  "total_count": 1,
+  "reachable_count": 1
+}

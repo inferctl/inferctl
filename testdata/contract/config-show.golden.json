@@ -1,0 +1,15 @@
+{
+  "source_paths": {
+    "selected": "/tmp/inferctl/config.toml",
+    "selected_by": "env",
+    "candidates": []
+  },
+  "effective_config": {
+    "meta": {
+      "schema_version": "0.1"
+    }
+  },
+  "provenance": {
+    "meta.schema_version": "file"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "source_path": "/tmp/inferctl/config.toml",
+  "findings": [],
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "info": 0
+  },
+  "passed": true
+}

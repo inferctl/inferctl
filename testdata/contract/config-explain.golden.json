@@ -1,0 +1,20 @@
+{
+  "format": "toml",
+  "annotated_source": "# inferctl config\n",
+  "keys": [
+    {
+      "key": "profile.mode",
+      "type": "enum string",
+      "required": true,
+      "default": null,
+      "description": "Profile enforcement mode. v0.1 recognizes all values but enforces warn semantics.",
+      "valid_set": [
+        "strict",
+        "warn",
+        "advisory"
+      ],
+      "example": "warn"
+    }
+  ],
+  "schema_version": "0.1"
+}

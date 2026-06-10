@@ -1,0 +1,29 @@
+{
+  "task": "code",
+  "input": {
+    "prompt_chars": 0,
+    "estimated_tokens": 0,
+    "source": "none"
+  },
+  "decision": {
+    "selected_model": "qwen3:8b",
+    "selected_backend": "ollama",
+    "is_fallback": false,
+    "fallback_index": null,
+    "ready": true,
+    "estimated_first_token_ms": null,
+    "estimated_total_ms": null,
+    "reason": "primary model is available"
+  },
+  "candidates": [],
+  "constraints": {
+    "profile": "default_local_workstation",
+    "max_context_tokens": 8192,
+    "context_used_tokens": 0,
+    "context_pct": 0,
+    "max_concurrent_models": 1,
+    "current_loaded_count": 1,
+    "allow_premium": false,
+    "selected_is_premium": null
+  }
+}

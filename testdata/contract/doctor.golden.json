@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "backends_total": 2,
+    "backends_reachable": 1,
+    "models_installed_total": 1,
+    "models_loaded_total": 1,
+    "warnings_total": 2,
+    "errors_total": 0
+  },
+  "backends": [],
+  "loaded_models": [],
+  "routes": [],
+  "system": {
+    "profile": "default_local_workstation",
+    "profile_mode": "warn",
+    "vram_total_bytes": null,
+    "vram_used_bytes": null,
+    "vram_used_pct": null,
+    "vram_source": null,
+    "max_concurrent_models": 1,
+    "allow_premium": false,
+    "goos": "linux",
+    "goarch": "amd64"
+  },
+  "warnings": [],
+  "recommended_action": {
+    "command": "infer backends --filter llamacpp --json",
+    "rationale": "Surfaces backend reachability and model counts",
+    "alternatives": []
+  }
+}

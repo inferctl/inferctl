@@ -1,0 +1,34 @@
+{
+  "name": "qwen3:8b",
+  "backends": [
+    {
+      "backend": "ollama",
+      "installed": true,
+      "loaded": true,
+      "size_bytes": 1,
+      "digest": null
+    }
+  ],
+  "capabilities": {
+    "supports_tools": false,
+    "supports_vision": false,
+    "supports_json_mode": false,
+    "context_window": null,
+    "embedding_dimensions": null,
+    "source": "heuristic"
+  },
+  "latency_stats": {
+    "samples": 0,
+    "first_token_ms_p50": null,
+    "first_token_ms_p95": null,
+    "tokens_per_second_p50": null,
+    "last_observed_iso": null
+  },
+  "routing": {
+    "primary_for_tasks": [
+      "code"
+    ],
+    "fallback_for_tasks": [],
+    "fallback_chain": []
+  }
+}

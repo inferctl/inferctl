@@ -1,0 +1,22 @@
+{
+  "tool_version": "0.1.0",
+  "build": {
+    "commit": "unknown",
+    "date_iso": "unknown",
+    "go_version": "go1.x",
+    "os": "linux",
+    "arch": "amd64"
+  },
+  "dependencies": {
+    "cobra": "v1.10.2",
+    "go-toml/v2": "v2.3.1"
+  },
+  "contract_version": "0.1",
+  "schema_version": "0.1",
+  "update": {
+    "checked": false,
+    "latest_known": null,
+    "update_available": null,
+    "checked_at_iso": null
+  }
+}

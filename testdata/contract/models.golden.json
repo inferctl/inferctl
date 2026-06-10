@@ -1,0 +1,13 @@
+{
+  "models": [
+    {
+      "name": "qwen3:8b",
+      "backend": "ollama",
+      "size_bytes": 1,
+      "digest": null,
+      "installed_at_iso": null
+    }
+  ],
+  "total_count": 1,
+  "loaded_count": 1
+}

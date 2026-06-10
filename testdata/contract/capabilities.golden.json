@@ -1,0 +1,5 @@
+{
+  "tool": "inferctl",
+  "binary": "infer",
+  "contract_version": "0.1"
+}
