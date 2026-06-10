@@ -41,6 +41,9 @@ func newRootCommand() *cobra.Command {
 	root.PersistentFlags().BoolVar(&jsonFlag, "json", false, "emit JSON envelope")
 	root.AddCommand(newCapabilitiesCommand(&jsonFlag))
 	root.AddCommand(newConfigCommand(&jsonFlag))
+	root.AddCommand(newBackendsCommand(&jsonFlag))
+	root.AddCommand(newModelsCommand(&jsonFlag))
+	root.AddCommand(newModelCommand(&jsonFlag))
 	return root
 }
 
