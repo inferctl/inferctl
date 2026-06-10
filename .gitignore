@@ -1,0 +1,40 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/inferctl
+/infer
+/dist/
+/build/
+/bin/
+
+# Test & coverage
+*.test
+*.out
+coverage.html
+coverage.txt
+coverage.lcov
+
+# Go workspace
+go.work
+go.work.sum
+
+# Dependency vendoring (uncomment if used)
+# vendor/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
