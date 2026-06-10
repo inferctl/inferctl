@@ -44,6 +44,7 @@ func newRootCommand() *cobra.Command {
 	root.AddCommand(newBackendsCommand(&jsonFlag))
 	root.AddCommand(newModelsCommand(&jsonFlag))
 	root.AddCommand(newModelCommand(&jsonFlag))
+	root.AddCommand(newDoctorCommand(&jsonFlag))
 	return root
 }
 
@@ -103,6 +104,10 @@ func envMap() map[string]string {
 }
 
 func writeData(cmd *cobra.Command, jsonFlag bool, data any, human func() error) error {
+	return writeDataWithDiagnostics(cmd, jsonFlag, data, nil, nil, human)
+}
+
+func writeDataWithDiagnostics(cmd *cobra.Command, jsonFlag bool, data any, warnings []envelope.Warning, commands []envelope.Command, human func() error) error {
 	mode := render.SelectMode(render.Options{JSONFlag: jsonFlag, Env: envMap()})
 	if mode == render.ModeJSON {
 		start := time.Now()
@@ -110,6 +115,8 @@ func writeData(cmd *cobra.Command, jsonFlag bool, data any, human func() error) 
 			StartedAt:  start,
 			FinishedAt: time.Now(),
 			Env:        envMap(),
+			Warnings:   warnings,
+			Commands:   commands,
 		})
 		if err != nil {
 			return err

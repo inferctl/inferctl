@@ -194,8 +194,12 @@ func configuredBackends(result *config.Result, filter, kind string) ([]backendEn
 	}
 	var entries []backendEntry
 	var configured []string
-	for name, cfg := range result.Config.Backends {
+	for name := range result.Config.Backends {
 		configured = append(configured, name)
+	}
+	slices.Sort(configured)
+	for _, name := range configured {
+		cfg := result.Config.Backends[name]
 		if filter != "" && name != filter {
 			continue
 		}
