@@ -1,34 +1,87 @@
 # inferctl
 
-**Explain your local LLM stack.**
+Explain your local LLM stack.
 
-No license granted yet; private evaluation only.
+`inferctl` is a private-evaluation CLI for inspecting local inference backends,
+loaded models, and routing decisions. It is designed for agent use first:
+every command has opt-in JSON envelopes via `--json`, stable error codes, and
+copy-pasteable follow-up commands.
 
-Local inference control plane. Introspection, capability detection, readiness, routing, fallback, and VRAM hygiene across multiple local backends (Ollama, llama.cpp, LM Studio, MLX, vLLM, and friends).
+No license is granted yet; private evaluation only.
 
-*kubectl for your local LLM stack.*
+## What It Does
 
-## Status
+- Diagnoses backend health with `infer doctor`.
+- Lists configured backends and models without running inference.
+- Explains route selection with `infer route <task>`.
+- Shows, validates, and explains the v0.1 config format.
+- Emits a machine-readable contract with `infer capabilities --json`.
 
-Pre-implementation. Planning complete; no code yet. Private repo.
+v0.1 supports read-only adapters for Ollama, llama.cpp, and unauthenticated
+OpenAI-compatible `/v1/models` servers. Remote authenticated backends, warmup,
+release, lock management, and live inference execution are intentionally
+deferred.
 
-## What it is
+## Try It Privately
 
-- A control plane for local inference. Knows what's running, what it can do, where new work should route.
-- A single static Go binary.
-- Agent-first by design (see `skills/make-cli/`).
+```sh
+go test ./...
+go build -o bin/infer ./cmd/infer
+bin/infer capabilities --json | jq .data.verbs
+bin/infer config explain
+```
 
-## What it is not
+The demo scripts run against deterministic fixture servers and do not require
+local Ollama or llama.cpp:
 
-- Not an OpenAI-compatible API server. (Ollama, LiteLLM, LocalAI, vLLM already cover that.)
-- Not a unified LLM gateway.
-- Not an agent framework.
+```sh
+examples/demo-1-install-moment.sh
+examples/demo-2-route-explained.sh
+examples/demo-3-agent-loop.sh
+```
 
-## Repo layout
+## Config
 
-- `skills/make-cli/` — design discipline for agent-facing CLIs. Reference material for every verb shipped here.
+Create a TOML config from:
 
-Planning documents and historical handoffs live one directory up, outside the repo.
+```sh
+infer config explain
+```
+
+Then point the CLI at it:
+
+```sh
+INFERCTL_CONFIG=/path/to/config.toml infer doctor --json
+```
+
+The minimum useful config defines `[meta]`, `[profile]`, at least one
+`[backends.<name>]`, and any `[routing.<task>]` entries you want `infer route`
+to resolve.
+
+## Docs
+
+- [Verbs](docs/verbs.md)
+- [Errors](docs/errors.md)
+- [Contract goldens](testdata/contract/README.md)
+
+Regenerate generated docs with:
+
+```sh
+go generate ./internal/contract
+```
+
+## Release Checks
+
+```sh
+scripts/check-contract-goldens.sh
+go test ./...
+go vet ./...
+go build ./...
+go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean
+```
+
+Public release, name availability, and legal review are outside this repo's
+implementation scope.
 
 ## License
 
