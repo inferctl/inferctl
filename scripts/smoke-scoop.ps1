@@ -33,17 +33,28 @@ if ($manifest.architecture -and $manifest.architecture.'64bit') {
 
 $localManifest = Join-Path ([System.IO.Path]::GetTempPath()) "inferctl-local-scoop.json"
 $manifest | ConvertTo-Json -Depth 20 | Set-Content -Path $localManifest -Encoding UTF8
+$appName = [System.IO.Path]::GetFileNameWithoutExtension($localManifest)
 
+scoop uninstall $appName 2>$null | Out-Null
 scoop uninstall inferctl 2>$null | Out-Null
-scoop install $localManifest
 
-$version = infer version --json | ConvertFrom-Json
-if (-not $version.ok) {
-  throw "infer version returned ok=false"
-}
-if ($version.data.binary -ne "infer") {
-  throw "unexpected binary name: $($version.data.binary)"
-}
+try {
+  scoop install $localManifest
 
-scoop uninstall inferctl
+  $version = infer version --json | ConvertFrom-Json
+  if (-not $version.ok) {
+    throw "infer version returned ok=false"
+  }
+  if (-not $version.data.tool_version) {
+    throw "missing tool version"
+  }
+  if ($version.data.build.os -ne "windows") {
+    throw "unexpected build OS: $($version.data.build.os)"
+  }
+  if ($version.data.build.arch -ne "amd64") {
+    throw "unexpected build arch: $($version.data.build.arch)"
+  }
+} finally {
+  scoop uninstall $appName 2>$null | Out-Null
+}
 Write-Host "scoop smoke ok"
