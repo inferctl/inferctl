@@ -13,6 +13,8 @@ const (
 	KindOllama       Kind = "ollama"
 	KindLlamaCPP     Kind = "llama.cpp"
 	KindOpenAICompat Kind = "openai_compat"
+	KindLMStudio     Kind = "lmstudio"
+	KindMLX          Kind = "mlx"
 )
 
 type Fixture struct {
@@ -83,9 +85,7 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 	switch s.Fixture.Kind {
 	case KindOllama:
 		s.handleOllama(w, r)
-	case KindLlamaCPP:
-		s.handleOpenAIModels(w, r)
-	case KindOpenAICompat:
+	case KindLlamaCPP, KindOpenAICompat, KindLMStudio, KindMLX:
 		s.handleOpenAIModels(w, r)
 	default:
 		http.NotFound(w, r)

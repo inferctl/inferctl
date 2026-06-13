@@ -56,7 +56,7 @@ func configKeyCatalog() []inferctl.ConfigKeyDef {
 		keyDef("profile.allow_premium", "bool", true, nil, "Whether future routing may select premium-tagged models.", nil, false),
 		keyDef("profile.mode", "enum string", true, nil, "Profile enforcement mode. v0.1 recognizes all values but enforces warn semantics.", []string{"strict", "warn", "advisory"}, "warn"),
 		keyDef("profile.vram_total_bytes_hint", "int|null", false, nil, "Optional VRAM capacity hint used by doctor when platform probing is unavailable.", nil, 25769803776),
-		keyDef("backends.<name>.kind", "enum string", true, nil, "Backend adapter kind.", []string{"ollama", "llama.cpp", "openai_compat"}, "ollama"),
+		keyDef("backends.<name>.kind", "enum string", true, nil, "Backend adapter kind.", []string{"ollama", "llama.cpp", "openai_compat", "lmstudio", "mlx"}, "ollama"),
 		keyDef("backends.<name>.base_url", "string", true, nil, "URL the backend is reachable at. Must include scheme and port.", nil, "http://127.0.0.1:11434"),
 		keyDef("backends.<name>.default", "bool", false, false, "True for the default backend. Exactly one backend should set true.", nil, true),
 		keyDef("backends.<name>.timeout_ms", "int", false, 2000, "HTTP probe timeout for this backend in milliseconds.", nil, 2000),

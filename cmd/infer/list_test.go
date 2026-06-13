@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/Ozhiaki/inferctl/internal/backends/lmstudio"
+	"github.com/Ozhiaki/inferctl/internal/backends/mlx"
 	"github.com/Ozhiaki/inferctl/internal/testserver"
 )
 
@@ -103,6 +107,74 @@ func TestUnknownBackendAndModelErrors(t *testing.T) {
 	}
 }
 
+func TestLocalBackendAdaptersAreFirstClassKinds(t *testing.T) {
+	lmServer := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindLMStudio,
+		Models: []testserver.Model{{Name: "lmstudio-community/qwen"}},
+	})
+	defer lmServer.Close()
+	mlxServer := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindMLX,
+		Models: []testserver.Model{{Name: "mlx-community/qwen"}},
+	})
+	defer mlxServer.Close()
+	t.Setenv("INFERCTL_CONFIG", writeLocalBackendConfig(t, lmServer.URL, mlxServer.URL))
+
+	stdout, _, err := executeForTest("backends", "--json")
+	if err != nil {
+		t.Fatalf("backends error = %v stdout=%s", err, stdout)
+	}
+	var backendsEnv struct {
+		Data struct {
+			Backends []struct {
+				Name string `json:"name"`
+				Kind string `json:"kind"`
+			} `json:"backends"`
+			ReachableCount int `json:"reachable_count"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &backendsEnv); err != nil {
+		t.Fatalf("unmarshal backends: %v\n%s", err, stdout)
+	}
+	if backendsEnv.Data.ReachableCount != 2 || !hasBackendKind(backendsEnv.Data.Backends, "lmstudio") || !hasBackendKind(backendsEnv.Data.Backends, "mlx") {
+		t.Fatalf("backend kinds = %#v", backendsEnv.Data)
+	}
+
+	stdout, _, err = executeForTest("models", "--json")
+	if err != nil {
+		t.Fatalf("models error = %v stdout=%s", err, stdout)
+	}
+	if !strings.Contains(stdout, "lmstudio-community/qwen") || !strings.Contains(stdout, "mlx-community/qwen") {
+		t.Fatalf("models missing local adapter entries: %s", stdout)
+	}
+}
+
+func TestLocalBackendIdentityProbes(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindLMStudio,
+		Models: []testserver.Model{{Name: "model-a"}},
+	})
+	defer server.Close()
+	if err := lmstudio.New("lm", server.URL, false, time.Second).ProbeIdentity(context.Background()); err != nil {
+		t.Fatalf("lmstudio identity probe: %v", err)
+	}
+	if err := mlx.New("mlx", server.URL, false, time.Second).ProbeIdentity(context.Background()); err != nil {
+		t.Fatalf("mlx identity probe: %v", err)
+	}
+}
+
+func hasBackendKind(backends []struct {
+	Name string `json:"name"`
+	Kind string `json:"kind"`
+}, kind string) bool {
+	for _, backend := range backends {
+		if backend.Kind == kind {
+			return true
+		}
+	}
+	return false
+}
+
 func writeListConfig(t *testing.T, ollamaURL, llamaURL string) string {
 	t.Helper()
 	body := `[meta]
@@ -129,6 +201,40 @@ default = false
 model = "qwen3:8b"
 backend = "ollama"
 fallback = ["coder.gguf"]
+`
+	path := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func writeLocalBackendConfig(t *testing.T, lmURL, mlxURL string) string {
+	t.Helper()
+	body := `[meta]
+schema_version = "0.1"
+
+[profile]
+name = "default_local_workstation"
+max_context_tokens = 8192
+max_concurrent_models = 1
+allow_premium = false
+mode = "warn"
+
+[backends.lmstudio]
+kind = "lmstudio"
+base_url = "` + lmURL + `"
+default = true
+
+[backends.mlx]
+kind = "mlx"
+base_url = "` + mlxURL + `"
+default = false
+
+[routing.code]
+model = "lmstudio-community/qwen"
+backend = "lmstudio"
+fallback = ["mlx-community/qwen"]
 `
 	path := filepath.Join(t.TempDir(), "config.toml")
 	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {

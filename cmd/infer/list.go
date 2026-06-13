@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/Ozhiaki/inferctl/internal/backends/llamacpp"
+	"github.com/Ozhiaki/inferctl/internal/backends/lmstudio"
+	"github.com/Ozhiaki/inferctl/internal/backends/mlx"
 	"github.com/Ozhiaki/inferctl/internal/backends/ollama"
 	"github.com/Ozhiaki/inferctl/internal/backends/openaicompat"
 	"github.com/Ozhiaki/inferctl/internal/config"
@@ -226,6 +228,10 @@ func instantiateBackend(name string, cfg config.BackendConfig) inferctl.Backend 
 	switch cfg.Kind {
 	case "llama.cpp":
 		return llamacpp.New(name, cfg.BaseURL, cfg.Default, timeout)
+	case "lmstudio":
+		return lmstudio.New(name, cfg.BaseURL, cfg.Default, timeout)
+	case "mlx":
+		return mlx.New(name, cfg.BaseURL, cfg.Default, timeout)
 	case "openai_compat":
 		return openaicompat.New(name, cfg.BaseURL, cfg.Default, timeout, openaicompat.Options{
 			AuthHeaderName:  cfg.AuthHeaderName,

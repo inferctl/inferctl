@@ -2,6 +2,28 @@
   "tool": "inferctl",
   "binary": "infer",
   "contract_version": "0.1",
+  "backend_kinds": [
+    {
+      "name": "ollama",
+      "status": "v0.1"
+    },
+    {
+      "name": "llama.cpp",
+      "status": "v0.1"
+    },
+    {
+      "name": "openai_compat",
+      "status": "v0.1"
+    },
+    {
+      "name": "lmstudio",
+      "status": "v0.2"
+    },
+    {
+      "name": "mlx",
+      "status": "v0.2"
+    }
+  ],
   "verbs": [
     {
       "name": "doctor",

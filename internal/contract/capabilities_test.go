@@ -16,6 +16,15 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 	if data["tool"] != "inferctl" {
 		t.Fatalf("tool = %v", data["tool"])
 	}
+	backendKinds, ok := data["backend_kinds"].([]any)
+	if !ok {
+		t.Fatalf("backend_kinds type = %T", data["backend_kinds"])
+	}
+	for _, kind := range []string{"ollama", "llama.cpp", "openai_compat", "lmstudio", "mlx"} {
+		if !mapListContainsName(backendKinds, kind) {
+			t.Fatalf("backend_kinds missing %s", kind)
+		}
+	}
 	verbs, ok := data["verbs"].([]any)
 	if !ok {
 		t.Fatalf("verbs type = %T", data["verbs"])
@@ -45,6 +54,16 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 	if len(emitsDataOnFailure) != 1 || emitsDataOnFailure[0] != "config validate" {
 		t.Fatalf("emits_data_on_failure = %#v", emitsDataOnFailure)
 	}
+}
+
+func mapListContainsName(values []any, name string) bool {
+	for _, raw := range values {
+		value, ok := raw.(map[string]any)
+		if ok && value["name"] == name {
+			return true
+		}
+	}
+	return false
 }
 
 func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {

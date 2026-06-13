@@ -52,8 +52,8 @@ func Validate(result *Result, strict bool) ValidationResult {
 		if backend.Default {
 			defaults++
 		}
-		if backend.Kind != "" && !slices.Contains([]string{"ollama", "llama.cpp", "openai_compat"}, backend.Kind) {
-			findings = append(findings, errorFinding(pos, prefix+"kind", "backend kind is not recognized", map[string]any{"valid_set": []string{"ollama", "llama.cpp", "openai_compat"}}))
+		if backend.Kind != "" && !slices.Contains([]string{"ollama", "llama.cpp", "openai_compat", "lmstudio", "mlx"}, backend.Kind) {
+			findings = append(findings, errorFinding(pos, prefix+"kind", "backend kind is not recognized", map[string]any{"valid_set": []string{"ollama", "llama.cpp", "openai_compat", "lmstudio", "mlx"}}))
 		}
 		if backend.BaseURL != "" {
 			parsed, err := url.Parse(backend.BaseURL)
