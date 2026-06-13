@@ -48,6 +48,7 @@ func newBackendsCommand(jsonFlag *bool) *cobra.Command {
 				info, err := entry.backend.Reachable(context.Background())
 				if err == nil {
 					status.BackendInfo = info
+					status = normalizeBackendStatusForOutput(status)
 					reachable++
 					if !fast {
 						if installed, err := entry.backend.ListInstalledModels(context.Background()); err == nil {

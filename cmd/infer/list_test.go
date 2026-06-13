@@ -85,6 +85,68 @@ func TestBackendsModelsAndModelCommands(t *testing.T) {
 	}
 }
 
+func TestDeterministicOutputMasksBackendLatency(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "qwen3:8b"}},
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeListConfig(t, server.URL, server.URL))
+	t.Setenv("INFERCTL_TEST_DETERMINISTIC", "1")
+
+	stdout, _, err := executeForTest("backends", "--json")
+	if err != nil {
+		t.Fatalf("backends error = %v stdout=%s", err, stdout)
+	}
+	var backendsEnv struct {
+		Data struct {
+			Backends []struct {
+				LatencyMS *int `json:"latency_ms"`
+			} `json:"backends"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &backendsEnv); err != nil {
+		t.Fatal(err)
+	}
+	if !allObservedLatenciesZero(backendsEnv.Data.Backends) {
+		t.Fatalf("backends latency not masked: %#v", backendsEnv.Data.Backends)
+	}
+
+	stdout, _, err = executeForTest("doctor", "--json")
+	if err != nil {
+		t.Fatalf("doctor error = %v stdout=%s", err, stdout)
+	}
+	var doctorEnv struct {
+		Data struct {
+			Backends []struct {
+				LatencyMS *int `json:"latency_ms"`
+			} `json:"backends"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &doctorEnv); err != nil {
+		t.Fatal(err)
+	}
+	if !allObservedLatenciesZero(doctorEnv.Data.Backends) {
+		t.Fatalf("doctor latency not masked: %#v", doctorEnv.Data.Backends)
+	}
+}
+
+func allObservedLatenciesZero(backends []struct {
+	LatencyMS *int `json:"latency_ms"`
+}) bool {
+	observed := false
+	for _, backend := range backends {
+		if backend.LatencyMS == nil {
+			continue
+		}
+		observed = true
+		if *backend.LatencyMS != 0 {
+			return false
+		}
+	}
+	return observed
+}
+
 func TestUnknownBackendAndModelErrors(t *testing.T) {
 	server := testserver.New(testserver.Fixture{Kind: testserver.KindOllama, Models: []testserver.Model{{Name: "qwen3:8b"}}})
 	defer server.Close()

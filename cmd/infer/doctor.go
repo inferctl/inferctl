@@ -122,7 +122,7 @@ func buildDoctorReport(ctx context.Context, cfg config.Config, entries []backend
 			probes = append(probes, probe)
 			continue
 		}
-		probe.status.BackendInfo = info
+		probe.status.BackendInfo = normalizeBackendInfoForOutput(info)
 		if !fast {
 			probe.installed, probe.installedError = entry.backend.ListInstalledModels(ctx)
 			if probe.installedError != nil {
