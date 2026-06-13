@@ -453,6 +453,11 @@
           "default": 750
         },
         {
+          "name": "--deliver",
+          "type": "string",
+          "default": null
+        },
+        {
           "name": "--json",
           "type": "bool",
           "default": false

@@ -268,6 +268,7 @@ Probe fixed localhost backend ports and report verified backend candidates.
 - `--format` type=`enum` default=`text`
 - `--kind` type=`enum` default=`<nil>`
 - `--timeout-ms` type=`int` default=`750`
+- `--deliver` type=`string` default=`<nil>`
 - `--json` type=`bool` default=`false`
 
 ### Example

@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -118,6 +120,60 @@ func TestDiscoverOpenAICompatAuthFailureIsTyped(t *testing.T) {
 	}
 	if !strings.Contains(stdout, "E_BACKEND_AUTH_FAILED") {
 		t.Fatalf("unexpected auth failure: %s", stdout)
+	}
+}
+
+func TestDiscoverDeliverWritesArtifactWithoutHidingJSON(t *testing.T) {
+	server := testserver.New(testserver.Fixture{Kind: testserver.KindOllama, Version: "0.20.5"})
+	defer server.Close()
+	t.Setenv("INFERCTL_TEST_DISCOVERY_PORTS", strconv.Itoa(serverPort(t, server.URL)))
+	path := filepath.Join(t.TempDir(), "discover.patch.toml")
+
+	stdout, _, err := executeForTest("discover", "--kind", "ollama", "--deliver", path, "--json")
+	if err != nil {
+		t.Fatalf("discover deliver error = %v stdout=%s", err, stdout)
+	}
+	var env struct {
+		Data     discoveryReport  `json:"data"`
+		Commands []map[string]any `json:"commands"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, stdout)
+	}
+	if env.Data.Delivery == nil || !env.Data.Delivery.Written || env.Data.Delivery.Path == nil || *env.Data.Delivery.Path != path {
+		t.Fatalf("delivery metadata = %#v", env.Data.Delivery)
+	}
+	if len(env.Commands) != 0 {
+		t.Fatalf("delivery metadata must not be smuggled through commands: %#v", env.Commands)
+	}
+	artifact, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(artifact), `[backends.ollama]`) || !strings.Contains(string(artifact), server.URL) {
+		t.Fatalf("artifact = %s", artifact)
+	}
+}
+
+func TestDiscoverTOMLPipesIntoConfigPatchFromStdin(t *testing.T) {
+	server := testserver.New(testserver.Fixture{Kind: testserver.KindOllama, Version: "0.20.5"})
+	defer server.Close()
+	t.Setenv("INFERCTL_TEST_DISCOVERY_PORTS", strconv.Itoa(serverPort(t, server.URL)))
+	patch, _, err := executeForTest("discover", "--kind", "ollama", "--format", "toml")
+	if err != nil {
+		t.Fatalf("discover toml error = %v patch=%s", err, patch)
+	}
+	path := writeTempConfig(t)
+	stdout, _, err := executeForTestWithInput(patch, "config", "patch", "--from-stdin", "--path", path, "--json")
+	if err != nil {
+		t.Fatalf("config patch from discover failed: %v stdout=%s patch=%s", err, stdout, patch)
+	}
+	updated, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(updated), `base_url = "`+server.URL+`"`) {
+		t.Fatalf("updated config missing discovered URL:\n%s", updated)
 	}
 }
 

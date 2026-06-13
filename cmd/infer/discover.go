@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Ozhiaki/inferctl/internal/config"
 	"github.com/Ozhiaki/inferctl/internal/envelope"
 	"github.com/spf13/cobra"
 )
@@ -18,7 +21,16 @@ type discoveryReport struct {
 	Summary    discoverySummary     `json:"summary"`
 	Scan       discoveryScan        `json:"scan"`
 	Candidates []discoveryCandidate `json:"candidates"`
-	Delivery   any                  `json:"delivery"`
+	Delivery   *deliveryMetadata    `json:"delivery"`
+}
+
+type deliveryMetadata struct {
+	Mode          string   `json:"mode"`
+	Format        string   `json:"format"`
+	Written       bool     `json:"written"`
+	Path          *string  `json:"path"`
+	ArtifactPaths []string `json:"artifact_paths"`
+	Bytes         int      `json:"bytes"`
 }
 
 type discoverySummary struct {
@@ -53,6 +65,7 @@ func newDiscoverCommand(jsonFlag *bool) *cobra.Command {
 	var format string
 	var kind string
 	var timeoutMS int
+	var deliverPath string
 	cmd := &cobra.Command{
 		Use:   "discover",
 		Short: "Discover supported local inference backends",
@@ -71,13 +84,16 @@ func newDiscoverCommand(jsonFlag *bool) *cobra.Command {
 			if errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
+			if deliverPath != "" {
+				delivery, errObj := deliverDiscoveryArtifact(report, deliverPath)
+				if errObj != nil {
+					return writeError(cmd, *jsonFlag, *errObj)
+				}
+				report.Delivery = delivery
+			}
 			return writeData(cmd, *jsonFlag || format == "json", report, func() error {
 				if format == "toml" {
-					for _, candidate := range report.Candidates {
-						if candidate.ConfigPatch != nil {
-							fmt.Fprint(cmd.OutOrStdout(), *candidate.ConfigPatch)
-						}
-					}
+					fmt.Fprint(cmd.OutOrStdout(), discoveryConfigPatch(report))
 					return nil
 				}
 				for _, candidate := range report.Candidates {
@@ -90,6 +106,7 @@ func newDiscoverCommand(jsonFlag *bool) *cobra.Command {
 	cmd.Flags().StringVar(&format, "format", "text", "output format: text, json, or toml")
 	cmd.Flags().StringVar(&kind, "kind", "", "backend kind to probe")
 	cmd.Flags().IntVar(&timeoutMS, "timeout-ms", 750, "per-probe timeout in milliseconds")
+	cmd.Flags().StringVar(&deliverPath, "deliver", "", "write a TOML config patch artifact to this path")
 	return cmd
 }
 
@@ -102,7 +119,6 @@ func runDiscovery(ctx context.Context, kind string, timeoutMS int) (discoveryRep
 			TimeoutMS: timeoutMS,
 		},
 		Candidates: []discoveryCandidate{},
-		Delivery:   nil,
 	}
 	client := &http.Client{Timeout: time.Duration(timeoutMS) * time.Millisecond}
 	for _, port := range ports {
@@ -257,6 +273,38 @@ func openAIDiscoveryCandidate(kind, baseURL string, port int, models int) discov
 func configPatchForCandidate(candidate discoveryCandidate, defaultBackend bool) string {
 	return fmt.Sprintf("[backends.%s]\nkind = %q\nbase_url = %q\ndefault = %t\n\n",
 		candidate.NameHint, candidate.Kind, candidate.BaseURL, defaultBackend)
+}
+
+func discoveryConfigPatch(report discoveryReport) string {
+	var b strings.Builder
+	for _, candidate := range report.Candidates {
+		if candidate.ConfigPatch != nil {
+			b.WriteString(*candidate.ConfigPatch)
+		}
+	}
+	return b.String()
+}
+
+func deliverDiscoveryArtifact(report discoveryReport, path string) (*deliveryMetadata, *envelope.Error) {
+	artifact := discoveryConfigPatch(report)
+	if dir := filepath.Dir(path); dir != "." {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			errObj := configWriteError("E_CONFIG_WRITE_FAILED", "could not create delivery directory for "+path, config.FileErrorDetails(err))
+			return nil, &errObj
+		}
+	}
+	if err := config.AtomicWriteFile(path, []byte(artifact), 0o600); err != nil {
+		errObj := configWriteError("E_CONFIG_WRITE_FAILED", "could not write delivery artifact to "+path, config.FileErrorDetails(err))
+		return nil, &errObj
+	}
+	return &deliveryMetadata{
+		Mode:          "artifact",
+		Format:        "toml",
+		Written:       true,
+		Path:          &path,
+		ArtifactPaths: []string{path},
+		Bytes:         len([]byte(artifact)),
+	}, nil
 }
 
 func safeBackendName(kind string) string {
