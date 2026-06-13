@@ -255,6 +255,27 @@ Merge a TOML fragment into config without supporting deletions.
 infer config patch --json
 ```
 
+## `infer discover`
+
+Probe fixed localhost backend ports and report verified backend candidates.
+
+- JSON data schema: `#/schemas/discovery_report`
+- Exit codes: `0`, `1`, `3`, `4`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--format` type=`enum` default=`text`
+- `--kind` type=`enum` default=`<nil>`
+- `--timeout-ms` type=`int` default=`750`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+infer discover --json
+```
+
 ## `infer capabilities`
 
 Emit the machine-readable CLI contract.

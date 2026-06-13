@@ -1,0 +1,9 @@
+{
+  "mode": "localhost_fixed_ports",
+  "summary": {
+    "probed_count": 1,
+    "reachable_count": 0,
+    "verified_count": 0,
+    "patchable_count": 0
+  }
+}

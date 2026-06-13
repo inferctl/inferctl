@@ -1,0 +1,10 @@
+{
+  "kind": "ollama",
+  "summary": {
+    "probed_count": 1,
+    "reachable_count": 1,
+    "verified_count": 1,
+    "patchable_count": 1
+  },
+  "verified": true
+}
