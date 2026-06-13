@@ -21,11 +21,19 @@ examples/demo-2-route-explained.sh
 examples/demo-3-agent-loop.sh
 git tag v0.1.0-rc.1
 go run github.com/goreleaser/goreleaser/v2@latest release --clean --skip=publish
+scripts/check-release-archives.sh
 ./dist/infer_darwin_arm64_v8.0/infer version --json | jq '.data.tool_version'
 ```
 
 If validating on a different host architecture, smoke-test the matching binary
 under `dist/infer_<os>_<arch>*/infer`.
+
+On Windows, validate Scoop installation from the generated local manifest:
+
+```powershell
+go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish
+.\scripts\smoke-scoop.ps1
+```
 
 ## Publish After External Gates Clear
 

@@ -9,6 +9,11 @@
       "description": "Agent-facing workflows for setup, config mutation, discovery, triage, routing, auth, and model-family quirks."
     },
     {
+      "name": "install",
+      "path": "docs/install.md",
+      "description": "Archive and Scoop installation guidance, including PATH hints."
+    },
+    {
       "name": "verbs",
       "path": "docs/verbs.md",
       "description": "Generated CLI verb contract."

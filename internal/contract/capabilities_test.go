@@ -27,6 +27,9 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 	if !mapListContainsPath(docs, "docs/agent-guide.md") {
 		t.Fatal("capabilities docs missing docs/agent-guide.md")
 	}
+	if !mapListContainsPath(docs, "docs/install.md") {
+		t.Fatal("capabilities docs missing docs/install.md")
+	}
 	examples, ok := data["examples"].(map[string]any)
 	if !ok || examples["packaging"] != "source_only" {
 		t.Fatalf("examples packaging = %#v", data["examples"])
@@ -108,6 +111,30 @@ func TestAgentGuideCoversRequiredWorkflows(t *testing.T) {
 	readme := readString(t, "../../README.md")
 	if !strings.Contains(readme, "(docs/agent-guide.md)") {
 		t.Fatal("README does not link docs/agent-guide.md")
+	}
+}
+
+func TestPackagingDocsAndScriptsMatchExamplesDecision(t *testing.T) {
+	install := readString(t, "../../docs/install.md")
+	required := []string{
+		"export PATH",
+		"SetEnvironmentVariable(\"Path\"",
+		"scripts\\smoke-scoop.ps1",
+		"examples/` scripts remain source-only checkout artifacts",
+		"intentionally not packaged",
+	}
+	for _, text := range required {
+		if !strings.Contains(install, text) {
+			t.Fatalf("install docs missing %q", text)
+		}
+	}
+	checkArchives := readString(t, "../../scripts/check-release-archives.sh")
+	if !strings.Contains(checkArchives, "docs/agent-guide.md") || !strings.Contains(checkArchives, "docs/install.md") || !strings.Contains(checkArchives, "examples/") {
+		t.Fatal("archive checker does not enforce docs/examples packaging decision")
+	}
+	scoopSmoke := readString(t, "../../scripts/smoke-scoop.ps1")
+	if !strings.Contains(scoopSmoke, "scoop install") || !strings.Contains(scoopSmoke, "infer version --json") {
+		t.Fatal("Scoop smoke script does not install and verify infer")
 	}
 }
 

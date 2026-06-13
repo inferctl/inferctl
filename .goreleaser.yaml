@@ -15,6 +15,7 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
     goarch:
       - amd64
       - arm64
@@ -29,13 +30,37 @@ archives:
       - infer
     formats:
       - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
     name_template: >-
       {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
     files:
       - README.md
       - CHANGELOG.md
       - LICENSE_PENDING.md
+      - docs/install.md
+      - docs/agent-guide.md
+      - docs/verbs.md
+      - docs/errors.md
       - testdata/contract/README.md
+
+scoops:
+  - name: inferctl
+    ids:
+      - infer
+    repository:
+      owner: Ozhiaki
+      name: scoop-bucket
+    directory: bucket
+    homepage: https://github.com/Ozhiaki/inferctl
+    description: Agent-oriented CLI for inspecting local inference backends and routing decisions.
+    license: LicenseRef-Proprietary
+    url_template: "https://github.com/Ozhiaki/inferctl/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    skip_upload: true
+    post_install:
+      - Write-Host "inferctl installs the 'infer' command. Run 'infer version --json' to verify the shim is on PATH."
 
 checksum:
   name_template: checksums.txt
