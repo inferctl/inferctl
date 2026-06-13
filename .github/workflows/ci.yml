@@ -58,7 +58,11 @@ jobs:
 
       - name: Snapshot release for Windows packaging
         if: runner.os == 'Windows'
-        run: go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --snapshot --clean --skip=publish
 
       - name: Scoop smoke
         if: runner.os == 'Windows'
