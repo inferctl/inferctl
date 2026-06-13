@@ -2,6 +2,32 @@
   "tool": "inferctl",
   "binary": "infer",
   "contract_version": "0.1",
+  "docs": [
+    {
+      "name": "agent_guide",
+      "path": "docs/agent-guide.md",
+      "description": "Agent-facing workflows for setup, config mutation, discovery, triage, routing, auth, and model-family quirks."
+    },
+    {
+      "name": "verbs",
+      "path": "docs/verbs.md",
+      "description": "Generated CLI verb contract."
+    },
+    {
+      "name": "errors",
+      "path": "docs/errors.md",
+      "description": "Generated error and warning catalog."
+    }
+  ],
+  "examples": {
+    "packaging": "source_only",
+    "decision": "v0.2 examples are source checkout scripts, not release-package artifacts; packaged examples are deferred until distribution artifacts do not require Go on the target machine.",
+    "paths": [
+      "examples/demo-1-install-moment.sh",
+      "examples/demo-2-route-explained.sh",
+      "examples/demo-3-agent-loop.sh"
+    ]
+  },
   "backend_kinds": [
     {
       "name": "ollama",

@@ -20,6 +20,17 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 	if !ok {
 		t.Fatalf("backend_kinds type = %T", data["backend_kinds"])
 	}
+	docs, ok := data["docs"].([]any)
+	if !ok {
+		t.Fatalf("docs type = %T", data["docs"])
+	}
+	if !mapListContainsPath(docs, "docs/agent-guide.md") {
+		t.Fatal("capabilities docs missing docs/agent-guide.md")
+	}
+	examples, ok := data["examples"].(map[string]any)
+	if !ok || examples["packaging"] != "source_only" {
+		t.Fatalf("examples packaging = %#v", data["examples"])
+	}
 	for _, kind := range []string{"ollama", "llama.cpp", "openai_compat", "lmstudio", "mlx"} {
 		if !mapListContainsName(backendKinds, kind) {
 			t.Fatalf("backend_kinds missing %s", kind)
@@ -64,6 +75,40 @@ func mapListContainsName(values []any, name string) bool {
 		}
 	}
 	return false
+}
+
+func mapListContainsPath(values []any, path string) bool {
+	for _, raw := range values {
+		value, ok := raw.(map[string]any)
+		if ok && value["path"] == path {
+			return true
+		}
+	}
+	return false
+}
+
+func TestAgentGuideCoversRequiredWorkflows(t *testing.T) {
+	guide := readString(t, "../../docs/agent-guide.md")
+	required := []string{
+		"triage` does not run discovery inline",
+		"openai_compat",
+		"remote_allowed = true",
+		"E_BACKEND_AUTH_FAILED",
+		"E_BACKEND_REMOTE_NOT_ALLOWED",
+		"source-only checkout artifacts",
+		"Delivery metadata belongs in `data.delivery`",
+		"LM Studio",
+		"MLX",
+	}
+	for _, text := range required {
+		if !strings.Contains(guide, text) {
+			t.Fatalf("agent guide missing %q", text)
+		}
+	}
+	readme := readString(t, "../../README.md")
+	if !strings.Contains(readme, "(docs/agent-guide.md)") {
+		t.Fatal("README does not link docs/agent-guide.md")
+	}
 }
 
 func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {

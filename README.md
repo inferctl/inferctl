@@ -62,6 +62,7 @@ to resolve.
 
 - [Verbs](docs/verbs.md)
 - [Errors](docs/errors.md)
+- [Agent guide](docs/agent-guide.md)
 - [Contract goldens](testdata/contract/README.md)
 
 Regenerate generated docs with:
