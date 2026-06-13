@@ -35,10 +35,6 @@ go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --s
 .\scripts\smoke-scoop.ps1
 ```
 
-For v0.2, also follow `docs/v0.2-handoff.md` after tagging an RC. It makes the
-post-tag Esiban dogfood/conformance pass explicit and describes the notes file
-to create before promoting the RC.
-
 ## Publish After External Gates Clear
 
 After the external gates clear, use a fresh reviewed commit and tag:
