@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const toolVersion = "0.1.0"
+var toolVersion = "0.2.0"
 
 func main() {
 	if err := newRootCommand().Execute(); err != nil {
