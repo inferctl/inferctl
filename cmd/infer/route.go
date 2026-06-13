@@ -88,6 +88,9 @@ func newRouteCommand(jsonFlag *bool) *cobra.Command {
 			if backendsErr != nil {
 				return writeError(cmd, *jsonFlag, *backendsErr)
 			}
+			if errObj := firstFatalBackendReadError(context.Background(), entries); errObj != nil {
+				return writeError(cmd, *jsonFlag, *errObj)
+			}
 			report, warnings, commands, noRoute := buildRouteReport(context.Background(), result.Config, args[0], routeCfg, entries, input)
 			if noRoute != nil {
 				return writeError(cmd, *jsonFlag, *noRoute)

@@ -91,6 +91,9 @@ func newDoctorCommand(jsonFlag *bool) *cobra.Command {
 			if errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
+			if errObj := firstFatalBackendReadError(context.Background(), entries); errObj != nil {
+				return writeError(cmd, *jsonFlag, *errObj)
+			}
 			report, warnings, commands := buildDoctorReport(context.Background(), result.Config, entries, fast)
 			report.Warnings = warnings
 			report.Summary.WarningsTotal = len(warnings)

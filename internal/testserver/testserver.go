@@ -18,14 +18,16 @@ const (
 )
 
 type Fixture struct {
-	Kind        Kind
-	Version     string
-	Models      []Model
-	Loaded      []LoadedModel
-	Latency     time.Duration
-	Unreachable bool
-	Malformed   map[string]bool
-	Backoff     Backoff
+	Kind            Kind
+	Version         string
+	Models          []Model
+	Loaded          []LoadedModel
+	Latency         time.Duration
+	Unreachable     bool
+	Malformed       map[string]bool
+	Backoff         Backoff
+	AuthHeaderName  string
+	AuthHeaderValue string
 }
 
 type Model struct {
@@ -79,6 +81,10 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 	}
 	if s.Fixture.Malformed != nil && s.Fixture.Malformed[r.URL.Path] {
 		w.Write([]byte(`not-json`))
+		return
+	}
+	if s.Fixture.AuthHeaderName != "" && r.Header.Get(s.Fixture.AuthHeaderName) != s.Fixture.AuthHeaderValue {
+		http.Error(w, "auth required", http.StatusUnauthorized)
 		return
 	}
 

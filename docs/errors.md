@@ -6,6 +6,8 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 
 | Code | Status | Exit | Retryable | Message | Details |
 |---|---:|---:|---:|---|---|
+| `E_BACKEND_AUTH_FAILED` | v0.2 | 3 | false | backend '<backend>' authentication failed | `#/schemas/error_details/E_BACKEND_AUTH_FAILED` |
+| `E_BACKEND_REMOTE_NOT_ALLOWED` | v0.2 | 3 | false | backend '<backend>' remote endpoint requires remote_allowed=true | `#/schemas/error_details/E_BACKEND_REMOTE_NOT_ALLOWED` |
 | `E_BACKEND_TIMEOUT` | v0.1 | 4 | true | all configured backends timed out | `#/schemas/error_details/E_BACKEND_TIMEOUT` |
 | `E_BINARY_INTERNAL` | v0.1 | 3 | false | internal error: <short_description> | `#/schemas/error_details/E_BINARY_INTERNAL` |
 | `E_CONFIG_INVALID` | v0.1 | 3 | false | config file at <path> failed to parse | `#/schemas/error_details/E_CONFIG_INVALID` |

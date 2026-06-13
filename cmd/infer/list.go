@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -58,6 +59,8 @@ func newBackendsCommand(jsonFlag *bool) *cobra.Command {
 							status.ModelsLoadedCount = &n
 						}
 					}
+				} else if errObj := backendReadError(entry, err); errObj != nil {
+					return writeError(cmd, *jsonFlag, *errObj)
 				}
 				statuses = append(statuses, status)
 			}
@@ -99,6 +102,9 @@ func newModelsCommand(jsonFlag *bool) *cobra.Command {
 				if loadedOnly {
 					loadedModels, err := entry.backend.ListLoadedModels(context.Background())
 					if err != nil {
+						if errObj := backendReadError(entry, err); errObj != nil {
+							return writeError(cmd, *jsonFlag, *errObj)
+						}
 						continue
 					}
 					loadedCount += len(loadedModels)
@@ -110,6 +116,9 @@ func newModelsCommand(jsonFlag *bool) *cobra.Command {
 				if installed {
 					installedModels, err := entry.backend.ListInstalledModels(context.Background())
 					if err != nil {
+						if errObj := backendReadError(entry, err); errObj != nil {
+							return writeError(cmd, *jsonFlag, *errObj)
+						}
 						continue
 					}
 					models = append(models, installedModels...)
@@ -162,6 +171,9 @@ func newModelCommand(jsonFlag *bool) *cobra.Command {
 			if errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
+			if errObj := firstFatalBackendReadError(context.Background(), entries); errObj != nil {
+				return writeError(cmd, *jsonFlag, *errObj)
+			}
 			detail, found := inspectModel(context.Background(), result.Config, entries, name, noProbe)
 			if !found {
 				return writeError(cmd, *jsonFlag, envelope.Error{
@@ -208,6 +220,9 @@ func configuredBackends(result *config.Result, filter, kind string) ([]backendEn
 		if kind != "" && cfg.Kind != kind {
 			continue
 		}
+		if cfg.Kind == "openai_compat" && !cfg.RemoteAllowed && openaicompatRemoteURL(cfg.BaseURL) {
+			return nil, backendConfigError(name, "E_BACKEND_REMOTE_NOT_ALLOWED", "backend '"+name+"' uses a remote openai_compat URL without remote_allowed=true")
+		}
 		entries = append(entries, backendEntry{name: name, kind: cfg.Kind, backend: instantiateBackend(name, cfg)})
 	}
 	if filter != "" && len(entries) == 0 {
@@ -221,6 +236,43 @@ func configuredBackends(result *config.Result, filter, kind string) ([]backendEn
 		}
 	}
 	return entries, nil
+}
+
+func firstFatalBackendReadError(ctx context.Context, entries []backendEntry) *envelope.Error {
+	for _, entry := range entries {
+		if _, err := entry.backend.Reachable(ctx); err != nil {
+			if errObj := backendReadError(entry, err); errObj != nil {
+				return errObj
+			}
+		}
+	}
+	return nil
+}
+
+func backendReadError(entry backendEntry, err error) *envelope.Error {
+	switch {
+	case errors.Is(err, openaicompat.ErrAuthFailed):
+		return backendConfigError(entry.name, "E_BACKEND_AUTH_FAILED", "backend '"+entry.name+"' authentication failed")
+	case errors.Is(err, openaicompat.ErrRemoteNotAllowed):
+		return backendConfigError(entry.name, "E_BACKEND_REMOTE_NOT_ALLOWED", "backend '"+entry.name+"' remote endpoint requires remote_allowed=true")
+	default:
+		return nil
+	}
+}
+
+func backendConfigError(backend, code, message string) *envelope.Error {
+	return &envelope.Error{
+		Code:       code,
+		Message:    message,
+		DidYouMean: stringPtr("infer config show --key backends." + backend + " --json"),
+		ExitCode:   3,
+		Retryable:  false,
+		Details:    map[string]any{"backend": backend},
+	}
+}
+
+func openaicompatRemoteURL(raw string) bool {
+	return openaicompat.RemoteURL(raw)
 }
 
 func instantiateBackend(name string, cfg config.BackendConfig) inferctl.Backend {

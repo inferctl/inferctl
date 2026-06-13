@@ -721,6 +721,20 @@
       "message_template": "all configured backends timed out",
       "details_schema_ref": "#/schemas/error_details/E_BACKEND_TIMEOUT"
     },
+    "E_BACKEND_AUTH_FAILED": {
+      "status": "v0.2",
+      "exit_code": 3,
+      "retryable": false,
+      "message_template": "backend '<backend>' authentication failed",
+      "details_schema_ref": "#/schemas/error_details/E_BACKEND_AUTH_FAILED"
+    },
+    "E_BACKEND_REMOTE_NOT_ALLOWED": {
+      "status": "v0.2",
+      "exit_code": 3,
+      "retryable": false,
+      "message_template": "backend '<backend>' remote endpoint requires remote_allowed=true",
+      "details_schema_ref": "#/schemas/error_details/E_BACKEND_REMOTE_NOT_ALLOWED"
+    },
     "E_NO_ROUTE_AVAILABLE": {
       "status": "v0.1",
       "exit_code": 4,

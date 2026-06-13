@@ -61,24 +61,6 @@ func Validate(result *Result, strict bool) ValidationResult {
 				findings = append(findings, errorFinding(pos, prefix+"base_url", "value must be a valid URL with scheme and host", map[string]any{}))
 			}
 		}
-		if backend.Kind == "openai_compat" {
-			var unsupported []string
-			if backend.AuthHeaderName != nil {
-				unsupported = append(unsupported, "auth_header_name")
-			}
-			if backend.AuthHeaderValue != nil {
-				unsupported = append(unsupported, "auth_header_value")
-			}
-			if backend.RemoteAllowed {
-				unsupported = append(unsupported, "remote_allowed")
-			}
-			if len(unsupported) > 0 {
-				findings = append(findings, warning(pos, prefix+"kind", "openai_compat uses v0.1-unsupported option(s)", map[string]any{
-					"code":                "W_BACKEND_KIND_UNSUPPORTED",
-					"unsupported_options": unsupported,
-				}))
-			}
-		}
 	}
 	if len(cfg.Backends) > 0 && defaults != 1 {
 		findings = append(findings, derivedError("backends.*.default", "exactly one backend must set default=true", map[string]any{"default_count": defaults}))

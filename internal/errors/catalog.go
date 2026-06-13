@@ -15,6 +15,8 @@ const (
 	ENoBackendsConfigured         = "E_NO_BACKENDS_CONFIGURED"
 	EConfigWriteFailed            = "E_CONFIG_WRITE_FAILED"
 	EConfigPatchDeleteUnsupported = "E_CONFIG_PATCH_DELETE_UNSUPPORTED"
+	EBackendAuthFailed            = "E_BACKEND_AUTH_FAILED"
+	EBackendRemoteNotAllowed      = "E_BACKEND_REMOTE_NOT_ALLOWED"
 	EBackendTimeout               = "E_BACKEND_TIMEOUT"
 	ENoRouteAvailable             = "E_NO_ROUTE_AVAILABLE"
 	EBinaryInternal               = "E_BINARY_INTERNAL"
@@ -51,6 +53,8 @@ var ActiveErrorCodes = []string{
 	ENoBackendsConfigured,
 	EConfigWriteFailed,
 	EConfigPatchDeleteUnsupported,
+	EBackendAuthFailed,
+	EBackendRemoteNotAllowed,
 	EBackendTimeout,
 	ENoRouteAvailable,
 	EBinaryInternal,

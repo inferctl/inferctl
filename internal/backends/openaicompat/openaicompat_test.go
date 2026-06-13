@@ -39,22 +39,41 @@ func TestOpenAICompatModelsAndLoadedUnsupported(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatUnsupportedOptions(t *testing.T) {
+func TestOpenAICompatAuthHeaderAndRemoteOptions(t *testing.T) {
 	headerName := "Authorization"
-	headerValue := "Bearer token"
-	backend := New("remote", "http://127.0.0.1:1234", false, time.Second, Options{
+	headerValue := "fixture-" + "auth-" + "value"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(headerName) != headerValue {
+			http.Error(w, "auth required", http.StatusUnauthorized)
+			return
+		}
+		w.Write([]byte(`{"data":[{"id":"qwen3:8b"}]}`))
+	}))
+	defer server.Close()
+
+	backend := New("remote", server.URL, false, time.Second, Options{
 		AuthHeaderName:  &headerName,
 		AuthHeaderValue: &headerValue,
 		RemoteAllowed:   true,
 	})
-	got := backend.UnsupportedOptions()
-	want := map[string]bool{"auth_header_name": true, "auth_header_value": true, "remote_allowed": true}
-	if len(got) != len(want) {
-		t.Fatalf("unsupported = %#v", got)
+	if unsupported := backend.UnsupportedOptions(); len(unsupported) != 0 {
+		t.Fatalf("unsupported = %#v", unsupported)
 	}
-	for _, name := range got {
-		if !want[name] {
-			t.Fatalf("unexpected unsupported option %q in %#v", name, got)
-		}
+	models, err := backend.ListInstalledModels(context.Background())
+	if err != nil {
+		t.Fatalf("ListInstalledModels() error = %v", err)
+	}
+	if len(models) != 1 || models[0].Name != "qwen3:8b" {
+		t.Fatalf("models = %#v", models)
+	}
+
+	noAuth := New("remote", server.URL, false, time.Second, Options{})
+	if _, err := noAuth.ListInstalledModels(context.Background()); !errors.Is(err, ErrAuthFailed) {
+		t.Fatalf("no-auth error = %v", err)
+	}
+
+	remote := New("remote", "https://example.com", false, time.Second, Options{})
+	if _, err := remote.ListInstalledModels(context.Background()); !errors.Is(err, ErrRemoteNotAllowed) {
+		t.Fatalf("remote-not-allowed error = %v", err)
 	}
 }

@@ -11,6 +11,7 @@ import (
 type HTTPClient struct {
 	BaseURL string
 	Client  *http.Client
+	Headers map[string]string
 }
 
 func NewHTTPClient(baseURL string, timeout time.Duration) HTTPClient {
@@ -20,11 +21,20 @@ func NewHTTPClient(baseURL string, timeout time.Duration) HTTPClient {
 	}
 }
 
+func NewHTTPClientWithHeaders(baseURL string, timeout time.Duration, headers map[string]string) HTTPClient {
+	client := NewHTTPClient(baseURL, timeout)
+	client.Headers = headers
+	return client
+}
+
 func (c HTTPClient) GetJSON(ctx context.Context, path string, out any) (time.Duration, error) {
 	start := time.Now()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.BaseURL+path, nil)
 	if err != nil {
 		return 0, err
+	}
+	for name, value := range c.Headers {
+		req.Header.Set(name, value)
 	}
 	resp, err := c.Client.Do(req)
 	if err != nil {
@@ -32,12 +42,21 @@ func (c HTTPClient) GetJSON(ctx context.Context, path string, out any) (time.Dur
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return 0, fmt.Errorf("GET %s returned HTTP %d", path, resp.StatusCode)
+		return 0, StatusError{Path: path, StatusCode: resp.StatusCode}
 	}
 	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
 		return 0, err
 	}
 	return time.Since(start), nil
+}
+
+type StatusError struct {
+	Path       string
+	StatusCode int
+}
+
+func (e StatusError) Error() string {
+	return fmt.Sprintf("GET %s returned HTTP %d", e.Path, e.StatusCode)
 }
 
 func trimTrailingSlash(s string) string {
