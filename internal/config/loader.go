@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -13,9 +14,10 @@ import (
 )
 
 type Loader struct {
-	Env        map[string]string
-	WorkingDir string
-	HomeDir    string
+	Env         map[string]string
+	WorkingDir  string
+	HomeDir     string
+	RuntimeGOOS string
 }
 
 type LoadOptions struct {
@@ -139,6 +141,13 @@ func (l Loader) resolve(env map[string]string) (SourcePaths, error) {
 	if home != "" {
 		candidates = append(candidates, struct{ path, by, note string }{filepath.Join(home, ".config", "inferctl", "config.toml"), "xdg_default", filepath.Join(home, ".config", "inferctl", "config.toml")})
 	}
+	if l.goos() == "windows" {
+		if appData := strings.TrimSpace(env["APPDATA"]); appData != "" {
+			candidates = append(candidates, struct{ path, by, note string }{filepath.Join(appData, "inferctl", "config.toml"), "windows_appdata", "%APPDATA%/inferctl/config.toml"})
+		} else {
+			candidates = append(candidates, struct{ path, by, note string }{"", "windows_appdata", "%APPDATA%/inferctl/config.toml (not set)"})
+		}
+	}
 
 	var searched []string
 	for _, c := range candidates {
@@ -169,6 +178,13 @@ func (l Loader) env() map[string]string {
 		}
 	}
 	return out
+}
+
+func (l Loader) goos() string {
+	if l.RuntimeGOOS != "" {
+		return l.RuntimeGOOS
+	}
+	return runtime.GOOS
 }
 
 func applyDefaults(cfg *Config, prov map[string]Provenance) {

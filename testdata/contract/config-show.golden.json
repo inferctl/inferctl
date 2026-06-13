@@ -1,6 +1,6 @@
 {
   "source_paths": {
-    "selected": "/tmp/inferctl/config.toml",
+    "selected": "<config_path>",
     "selected_by": "env",
     "candidates": []
   },
