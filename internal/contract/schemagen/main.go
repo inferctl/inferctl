@@ -171,6 +171,8 @@ func exampleForVerb(name string) string {
 		return "infer model qwen3:8b --json"
 	case "route":
 		return "infer route code --prompt \"summarize this\" --json"
+	case "triage":
+		return "infer triage --json"
 	case "config show":
 		return "infer config show --json"
 	case "config validate":

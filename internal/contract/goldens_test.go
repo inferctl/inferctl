@@ -26,6 +26,8 @@ func TestVerbGoldens(t *testing.T) {
 		"model.golden.json",
 		"models.golden.json",
 		"route.golden.json",
+		"triage.clean.golden.json",
+		"triage.errors.golden.json",
 		"version.golden.json",
 	}
 	dir := filepath.Join("..", "..", "testdata", "contract")

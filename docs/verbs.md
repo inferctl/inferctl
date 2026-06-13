@@ -276,6 +276,29 @@ Probe fixed localhost backend ports and report verified backend candidates.
 infer discover --json
 ```
 
+## `infer triage`
+
+Rank deterministic diagnostic next actions from config validation, doctor output, or prior JSON envelopes.
+
+- Mega-command: `TRIAGE`
+- JSON data schema: `#/schemas/triage_report`
+- Exit codes: `0`, `1`, `3`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--input-file` type=`string` default=`<nil>`
+- `--backend` type=`string` default=`<nil>`
+- `--severity` type=`enum` default=`<nil>`
+- `--limit` type=`int` default=`0`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+infer triage --json
+```
+
 ## `infer capabilities`
 
 Emit the machine-readable CLI contract.

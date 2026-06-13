@@ -1,0 +1,61 @@
+{
+  "items": [
+    {
+      "rank": 1,
+      "severity": "error",
+      "code": "E_CONFIG_VALIDATION_FAILED",
+      "subject": "meta.schema_version",
+      "message": "missing required key",
+      "source": "config.validate",
+      "backend": null,
+      "command": {
+        "label": "Explain config key 'meta.schema_version'",
+        "command": "infer config explain --key meta.schema_version --json",
+        "rationale": "Shows the expected type, allowed values, and examples for this config key",
+        "available_in_version": null
+      },
+      "details": {
+        "kind": "missing_required"
+      }
+    },
+    {
+      "rank": 2,
+      "severity": "warning",
+      "code": "W_BACKEND_UNREACHABLE",
+      "subject": "ollama",
+      "message": "backend 'ollama' is unreachable",
+      "source": "doctor",
+      "backend": "ollama",
+      "command": {
+        "label": "Inspect backend 'ollama'",
+        "command": "infer backends --filter ollama --json",
+        "rationale": "Surfaces backend reachability and model counts",
+        "available_in_version": null
+      },
+      "details": {
+        "backend": "ollama",
+        "error": "GET /api/version returned HTTP 503"
+      }
+    },
+    {
+      "rank": 3,
+      "severity": "warning",
+      "code": "W_MODEL_NOT_INSTALLED",
+      "subject": "ollama",
+      "message": "primary model 'qwen3:8b' is not installed on a reachable backend",
+      "source": "doctor",
+      "backend": "ollama",
+      "command": {
+        "label": "Inspect model 'qwen3:8b'",
+        "command": "infer model qwen3:8b --json",
+        "rationale": "Shows placements, capabilities, loading state, and routing usage",
+        "available_in_version": null
+      },
+      "details": {
+        "backend": "ollama",
+        "model": "qwen3:8b",
+        "task": "code"
+      }
+    }
+  ]
+}

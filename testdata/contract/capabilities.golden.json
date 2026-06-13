@@ -468,6 +468,50 @@
       "emits_data_on_failure": false
     },
     {
+      "name": "triage",
+      "summary": "Rank deterministic diagnostic next actions from config validation, doctor output, or prior JSON envelopes.",
+      "mega_command": "TRIAGE",
+      "flags": [
+        {
+          "name": "--input-file",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--backend",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--severity",
+          "type": "enum",
+          "values": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "default": null
+        },
+        {
+          "name": "--limit",
+          "type": "int",
+          "default": 0
+        },
+        {
+          "name": "--json",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "exit_codes": [
+        0,
+        1,
+        3
+      ],
+      "output_schema_ref": "#/schemas/triage_report",
+      "emits_data_on_failure": false
+    },
+    {
       "name": "capabilities",
       "summary": "Emit the machine-readable CLI contract.",
       "mega_command": "CAPABILITIES",
@@ -647,6 +691,10 @@
     "discovery_report": {
       "$ref": "#/generated/discovery_report",
       "title": "DiscoveryReport"
+    },
+    "triage_report": {
+      "$ref": "#/generated/triage_report",
+      "title": "TriageReport"
     },
     "version_info": {
       "$ref": "#/generated/version_info",
