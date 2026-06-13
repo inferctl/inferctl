@@ -1,0 +1,8 @@
+{
+  "changed_keys": [
+    "backends.ollama.auth_header_name",
+    "backends.ollama.auth_header_value"
+  ],
+  "dry_run": true,
+  "written": false
+}

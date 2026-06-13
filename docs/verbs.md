@@ -119,7 +119,7 @@ infer route code --prompt "summarize this" --json
 
 ## `infer config`
 
-Namespace for config show, validate, and explain. Not directly invokable.
+Namespace for config show, validate, explain, init, set, and patch. Not directly invokable.
 
 Namespace only; use one of its subcommands.
 
@@ -181,6 +181,78 @@ Print annotated default config and machine-readable key definitions.
 
 ```sh
 infer config explain --key profile.mode --json
+```
+
+## `infer config init`
+
+Create or print a starter inferctl config.
+
+- JSON data schema: `#/schemas/config_mutation`
+- Exit codes: `0`, `1`, `3`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--path` type=`string` default=`<nil>`
+- `--force` type=`bool` default=`false`
+- `--print` type=`bool` default=`false`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+infer config init --json
+```
+
+## `infer config set`
+
+Set one config key while preserving surrounding TOML comments and ordering.
+
+- JSON data schema: `#/schemas/config_mutation`
+- Exit codes: `0`, `1`, `3`
+- Emits data on failure: `false`
+
+### Args
+
+- `key` required=true
+- `value` required=true
+
+### Flags
+
+- `--path` type=`string` default=`<nil>`
+- `--type` type=`enum` default=`<nil>`
+- `--dry-run` type=`bool` default=`false`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+infer config set --json
+```
+
+## `infer config patch`
+
+Merge a TOML fragment into config without supporting deletions.
+
+- JSON data schema: `#/schemas/config_mutation`
+- Exit codes: `0`, `1`, `3`
+- Emits data on failure: `false`
+
+### Args
+
+- `toml-fragment` required=false
+
+### Flags
+
+- `--path` type=`string` default=`<nil>`
+- `--from-stdin` type=`bool` default=`false`
+- `--dry-run` type=`bool` default=`false`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+infer config patch --json
 ```
 
 ## `infer capabilities`

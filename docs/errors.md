@@ -10,9 +10,10 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 | `E_BINARY_INTERNAL` | v0.1 | 3 | false | internal error: <short_description> | `#/schemas/error_details/E_BINARY_INTERNAL` |
 | `E_CONFIG_INVALID` | v0.1 | 3 | false | config file at <path> failed to parse | `#/schemas/error_details/E_CONFIG_INVALID` |
 | `E_CONFIG_MISSING` | v0.1 | 3 | false | no config file found | `#/schemas/error_details/E_CONFIG_MISSING` |
+| `E_CONFIG_PATCH_DELETE_UNSUPPORTED` | v0.2 | 1 | false | config patch deletion is not supported | `#/schemas/error_details/E_CONFIG_PATCH_DELETE_UNSUPPORTED` |
 | `E_CONFIG_UNREADABLE` | v0.1 | 3 | false | config file at <path> could not be read: <reason> | `#/schemas/error_details/E_CONFIG_UNREADABLE` |
 | `E_CONFIG_VALIDATION_FAILED` | v0.1 | 1 | false | config validation found <n> error(s) and <m> warning(s) | `#/schemas/error_details/E_CONFIG_VALIDATION_FAILED` |
-| `E_CONFIG_WRITE_FAILED` | reserved | 3 | false | could not write config to <path>: <reason> | `#/schemas/error_details/E_CONFIG_WRITE_FAILED` |
+| `E_CONFIG_WRITE_FAILED` | v0.2 | 3 | false | could not write config to <path>: <reason> | `#/schemas/error_details/E_CONFIG_WRITE_FAILED` |
 | `E_INCOMPATIBLE_FLAGS` | v0.1 | 1 | false | flags <flag_a> and <flag_b> cannot be used together | `#/schemas/error_details/E_INCOMPATIBLE_FLAGS` |
 | `E_INVALID_ARG` | v0.1 | 1 | false | invalid value for <arg_name>: '<given>' (expected: <description>) | `#/schemas/error_details/E_INVALID_ARG` |
 | `E_MISSING_ARG` | v0.1 | 1 | false | verb '<verb>' requires <arg_name> | `#/schemas/error_details/E_MISSING_ARG` |

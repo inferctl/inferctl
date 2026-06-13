@@ -23,7 +23,8 @@ func TestCatalogMatchesCapabilitiesGolden(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, code := range ActiveErrorCodes {
-		if caps.ErrorCodes[code].Status != "v0.1" {
+		status := caps.ErrorCodes[code].Status
+		if status != "v0.1" && status != "v0.2" {
 			t.Fatalf("active error code %s missing or non-active in capabilities", code)
 		}
 	}
@@ -36,9 +37,6 @@ func TestCatalogMatchesCapabilitiesGolden(t *testing.T) {
 		if caps.WarningCodes[code].Status != "v0.1" {
 			t.Fatalf("active warning code %s missing or non-active in capabilities", code)
 		}
-	}
-	if _, emitted := index(ActiveErrorCodes)[EConfigWriteFailed]; emitted {
-		t.Fatal("E_CONFIG_WRITE_FAILED must remain reserved and non-active in v0.1")
 	}
 }
 

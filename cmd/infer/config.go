@@ -20,6 +20,9 @@ func newConfigCommand(jsonFlag *bool) *cobra.Command {
 	cmd.AddCommand(newConfigShowCommand(jsonFlag))
 	cmd.AddCommand(newConfigValidateCommand(jsonFlag))
 	cmd.AddCommand(newConfigExplainCommand(jsonFlag))
+	cmd.AddCommand(newConfigInitCommand(jsonFlag))
+	cmd.AddCommand(newConfigSetCommand(jsonFlag))
+	cmd.AddCommand(newConfigPatchCommand(jsonFlag))
 	return cmd
 }
 
@@ -237,6 +240,20 @@ func configLoadError(err error) envelope.Error {
 		Message:    message,
 		DidYouMean: did,
 		ExitCode:   exit,
+		Retryable:  false,
+		Details:    details,
+	}
+}
+
+func configWriteError(code, message string, details map[string]any) envelope.Error {
+	if details == nil {
+		details = map[string]any{}
+	}
+	return envelope.Error{
+		Code:       code,
+		Message:    message,
+		DidYouMean: stringPtr("infer config validate --json"),
+		ExitCode:   3,
 		Retryable:  false,
 		Details:    details,
 	}
