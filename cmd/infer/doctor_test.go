@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/Ozhiaki/inferctl/internal/testserver"
+	"github.com/Ozhiaki/inferctl/pkg/inferctl"
 )
 
 func TestDoctorCleanReport(t *testing.T) {
@@ -83,11 +84,13 @@ func TestDoctorDegradedBackendStillExitsZero(t *testing.T) {
 	if len(env.Commands) < 2 || !strings.HasPrefix(env.Commands[0].Command, "infer backends --filter llamacpp") {
 		t.Fatalf("commands not ranked as expected: %#v", env.Commands)
 	}
+	assertNoFutureDoctorCommands(t, env.Data.RecommendedAction, env.Commands)
+	assertJSONSubsetGolden(t, "doctor.recommended_action.no_future_verbs.golden.json", env.Data.RecommendedAction)
 	assertWarningCode(t, env.Warnings, "W_BACKEND_UNREACHABLE")
 	assertWarningCode(t, env.Warnings, "W_FALLBACK_USED")
 }
 
-func TestDoctorFallbackAndFutureWarmupCommand(t *testing.T) {
+func TestDoctorFallbackRecommendsCurrentVerbsOnly(t *testing.T) {
 	server := testserver.New(testserver.Fixture{
 		Kind:   testserver.KindOllama,
 		Models: []testserver.Model{{Name: "fallback:8b"}},
@@ -116,15 +119,7 @@ func TestDoctorFallbackAndFutureWarmupCommand(t *testing.T) {
 	if len(env.Data.Routes) != 1 || !env.Data.Routes[0].IsFallback || env.Data.Routes[0].Ready {
 		t.Fatalf("route summary = %#v", env.Data.Routes)
 	}
-	foundFuture := false
-	for _, command := range env.Commands {
-		if strings.HasPrefix(command.Command, "infer warmup ") && command.AvailableInVersion != nil && *command.AvailableInVersion == "0.5" {
-			foundFuture = true
-		}
-	}
-	if !foundFuture {
-		t.Fatalf("missing future warmup command: %#v", env.Commands)
-	}
+	assertNoFutureDoctorCommands(t, env.Data.RecommendedAction, env.Commands)
 }
 
 func TestDoctorNoBackendsErrors(t *testing.T) {
@@ -149,6 +144,42 @@ func assertWarningCode(t *testing.T, warnings []struct {
 		}
 	}
 	t.Fatalf("missing warning %s in %#v", code, warnings)
+}
+
+func assertNoFutureDoctorCommands(t *testing.T, action *inferctl.RecommendedAction, commands []struct {
+	Command            string  `json:"command"`
+	AvailableInVersion *string `json:"available_in_version"`
+}) {
+	t.Helper()
+	seen := map[string]bool{}
+	for _, command := range commands {
+		if strings.HasPrefix(command.Command, "infer warmup ") || strings.HasPrefix(command.Command, "infer release-idle") {
+			t.Fatalf("doctor emitted future command: %#v", command)
+		}
+		if command.AvailableInVersion != nil {
+			t.Fatalf("doctor command should not require a future version: %#v", command)
+		}
+		if seen[command.Command] {
+			t.Fatalf("duplicate command: %s in %#v", command.Command, commands)
+		}
+		seen[command.Command] = true
+	}
+	if action == nil {
+		return
+	}
+	if strings.HasPrefix(action.Command, "infer warmup ") || strings.HasPrefix(action.Command, "infer release-idle") {
+		t.Fatalf("doctor recommended future command: %#v", action)
+	}
+	seen = map[string]bool{action.Command: true}
+	for _, alt := range action.Alternatives {
+		if strings.HasPrefix(alt.Command, "infer warmup ") || strings.HasPrefix(alt.Command, "infer release-idle") {
+			t.Fatalf("doctor alternative recommended future command: %#v", action)
+		}
+		if seen[alt.Command] {
+			t.Fatalf("duplicate recommended action command: %#v", action)
+		}
+		seen[alt.Command] = true
+	}
 }
 
 type doctorConfigOptions struct {

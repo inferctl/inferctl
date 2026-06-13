@@ -17,8 +17,9 @@ func TestConfigValidateClean(t *testing.T) {
 	var env struct {
 		OK   bool `json:"ok"`
 		Data struct {
-			Passed  bool `json:"passed"`
-			Summary struct {
+			Passed   bool  `json:"passed"`
+			Findings []any `json:"findings"`
+			Summary  struct {
 				Errors   int `json:"errors"`
 				Warnings int `json:"warnings"`
 			} `json:"summary"`
@@ -30,6 +31,7 @@ func TestConfigValidateClean(t *testing.T) {
 	if !env.OK || !env.Data.Passed || env.Data.Summary.Errors != 0 || env.Data.Summary.Warnings != 0 {
 		t.Fatalf("unexpected envelope = %#v", env)
 	}
+	assertJSONSubsetGolden(t, "config_validate.clean.golden.json", map[string]any{"findings": env.Data.Findings})
 }
 
 func TestConfigValidateWarningOnlyAndStrict(t *testing.T) {

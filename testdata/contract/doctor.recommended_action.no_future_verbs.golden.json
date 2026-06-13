@@ -1,0 +1,10 @@
+{
+  "command": "infer backends --filter llamacpp --json",
+  "rationale": "Surfaces backend reachability and model counts",
+  "alternatives": [
+    {
+      "command": "infer route code --json",
+      "rationale": "Shows all candidates considered and constraint checks"
+    }
+  ]
+}

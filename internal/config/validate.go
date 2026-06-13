@@ -22,7 +22,7 @@ type ValidationResult struct {
 }
 
 func Validate(result *Result, strict bool) ValidationResult {
-	var findings []inferctl.Finding
+	findings := []inferctl.Finding{}
 	cfg := result.Config
 	pos := result.Positions
 

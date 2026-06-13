@@ -243,17 +243,27 @@ func configLoadError(err error) envelope.Error {
 }
 
 func invalidArg(arg, given, expected string, validSet []string) envelope.Error {
+	details := map[string]any{
+		"arg":       arg,
+		"given":     given,
+		"expected":  expected,
+		"valid_set": validSet,
+	}
+	var did *string
+	if len(validSet) > 0 {
+		nearest, distance := nearestString(given, validSet)
+		details["nearest"] = nearest
+		details["distance"] = distance
+		suggestion := arg + "=" + nearest
+		did = &suggestion
+	}
 	return envelope.Error{
-		Code:      "E_INVALID_ARG",
-		Message:   fmt.Sprintf("invalid value for %s: %q (expected: %s)", arg, given, expected),
-		ExitCode:  1,
-		Retryable: false,
-		Details: map[string]any{
-			"arg":       arg,
-			"given":     given,
-			"expected":  expected,
-			"valid_set": validSet,
-		},
+		Code:       "E_INVALID_ARG",
+		Message:    fmt.Sprintf("invalid value for %s: %q (expected: %s)", arg, given, expected),
+		DidYouMean: did,
+		ExitCode:   1,
+		Retryable:  false,
+		Details:    details,
 	}
 }
 
@@ -267,11 +277,16 @@ func validationFailedError(data config.ValidationResult) envelope.Error {
 			break
 		}
 	}
+	did := "infer config validate --json"
+	if first != "" {
+		did = "infer config explain --key " + first + " --json"
+	}
 	return envelope.Error{
-		Code:      "E_CONFIG_VALIDATION_FAILED",
-		Message:   fmt.Sprintf("config validation found %d error(s) and %d warning(s)", data.Summary.Errors, data.Summary.Warnings),
-		ExitCode:  1,
-		Retryable: false,
+		Code:       "E_CONFIG_VALIDATION_FAILED",
+		Message:    fmt.Sprintf("config validation found %d error(s) and %d warning(s)", data.Summary.Errors, data.Summary.Warnings),
+		DidYouMean: &did,
+		ExitCode:   1,
+		Retryable:  false,
 		Details: map[string]any{
 			"errors":          data.Summary.Errors,
 			"warnings":        data.Summary.Warnings,

@@ -291,21 +291,20 @@ func doctorCommands(report doctorReport) []envelope.Command {
 	for _, route := range report.Routes {
 		if !route.Ready && route.Selected != nil {
 			commands = append(commands, envelope.Command{
-				Label:              "Warm model '" + route.Selected.Model + "'",
-				Command:            "infer warmup " + route.Selected.Model,
-				Rationale:          "Loads the selected model before inference",
-				AvailableInVersion: stringPtr("0.5"),
+				Label:     "Inspect selected model '" + route.Selected.Model + "'",
+				Command:   "infer model " + route.Selected.Model + " --json",
+				Rationale: "Shows placements, capabilities, loading state, and routing usage",
 			})
 		}
 	}
 	if report.System.VRAMUsedPct != nil && *report.System.VRAMUsedPct > 80 {
 		commands = append(commands, envelope.Command{
-			Label:              "Release idle models",
-			Command:            "infer release-idle",
-			Rationale:          "Frees VRAM used by idle models",
-			AvailableInVersion: stringPtr("0.5"),
+			Label:     "Inspect loaded models",
+			Command:   "infer models --loaded --json",
+			Rationale: "Shows currently loaded models before any manual cleanup",
 		})
 	}
+	commands = dedupeCommands(commands)
 	if len(commands) > 6 {
 		commands = commands[:6]
 	}
@@ -313,6 +312,7 @@ func doctorCommands(report doctorReport) []envelope.Command {
 }
 
 func recommendedAction(commands []envelope.Command) *inferctl.RecommendedAction {
+	commands = dedupeCommands(commands)
 	if len(commands) == 0 {
 		return nil
 	}
@@ -327,6 +327,19 @@ func recommendedAction(commands []envelope.Command) *inferctl.RecommendedAction 
 		})
 	}
 	return &action
+}
+
+func dedupeCommands(commands []envelope.Command) []envelope.Command {
+	seen := map[string]bool{}
+	out := make([]envelope.Command, 0, len(commands))
+	for _, command := range commands {
+		if seen[command.Command] {
+			continue
+		}
+		seen[command.Command] = true
+		out = append(out, command)
+	}
+	return out
 }
 
 func backendWarning(code, backend, message string, err error) envelope.Warning {

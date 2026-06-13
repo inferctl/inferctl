@@ -115,6 +115,16 @@ func (c *rootCommand) redirectRemovedVerb(args []string) error {
 			newCommand += " --json"
 		}
 		return writeError(c.Command, jsonRequested(args) || *c.json, renamedVerbError("capabilities", newCommand))
+	case "config":
+		subcommand, hasSubcommand := firstPositionalAfter(args[index+1:])
+		if !hasSubcommand || subcommand != "valid" {
+			return nil
+		}
+		newCommand := "infer config validate"
+		if slices.Contains(args, "--json") {
+			newCommand += " --json"
+		}
+		return writeError(c.Command, jsonRequested(args) || *c.json, renamedVerbError("config valid", newCommand))
 	default:
 		return nil
 	}
@@ -373,10 +383,14 @@ func exitCodeName(code int) string {
 		return "success"
 	case 1:
 		return "user_input_error"
+	case 2:
+		return "safety_block"
 	case 3:
 		return "tool_environment_error"
 	case 4:
-		return "runtime_retryable_error"
+		return "transient_failure"
+	case 5:
+		return "conflict"
 	default:
 		return "unknown"
 	}
