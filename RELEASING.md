@@ -28,12 +28,8 @@ scripts/check-release-archives.sh
 If validating on a different host architecture, smoke-test the matching binary
 under `dist/inferctl_<os>_<arch>*/inferctl`.
 
-On Windows, validate Scoop installation from the generated local manifest:
-
-```powershell
-go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish
-.\scripts\smoke-scoop.ps1
-```
+Windows remains source-build only for v0.2.1. Do not treat Windows archive or
+installer validation as a release gate in this private cleanup cycle.
 
 ## Publish After External Gates Clear
 

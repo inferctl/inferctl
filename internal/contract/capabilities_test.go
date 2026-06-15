@@ -118,8 +118,8 @@ func TestPackagingDocsAndScriptsMatchExamplesDecision(t *testing.T) {
 	install := readString(t, "../../docs/install.md")
 	required := []string{
 		"export PATH",
-		"SetEnvironmentVariable(\"Path\"",
-		"scripts\\smoke-scoop.ps1",
+		"go build -o .\\bin\\inferctl.exe .\\cmd\\inferctl",
+		"No Windows installer, Scoop manifest, or PATH mutation workflow is promised in this release.",
 		"examples/` scripts remain source-only checkout artifacts",
 		"intentionally not packaged",
 	}
@@ -131,10 +131,6 @@ func TestPackagingDocsAndScriptsMatchExamplesDecision(t *testing.T) {
 	checkArchives := readString(t, "../../scripts/check-release-archives.sh")
 	if !strings.Contains(checkArchives, "docs/agent-guide.md") || !strings.Contains(checkArchives, "docs/install.md") || !strings.Contains(checkArchives, "examples/") {
 		t.Fatal("archive checker does not enforce docs/examples packaging decision")
-	}
-	scoopSmoke := readString(t, "../../scripts/smoke-scoop.ps1")
-	if !strings.Contains(scoopSmoke, "scoop install") || !strings.Contains(scoopSmoke, "inferctl version --json") {
-		t.Fatal("Scoop smoke script does not install and verify inferctl")
 	}
 }
 

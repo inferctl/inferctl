@@ -56,19 +56,6 @@ jobs:
           examples/demo-2-route-explained.sh
           examples/demo-3-agent-loop.sh
 
-      - name: Snapshot release for Windows packaging
-        if: runner.os == 'Windows'
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --snapshot --clean --skip=publish
-
-      - name: Scoop smoke
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: .\scripts\smoke-scoop.ps1
-
   snapshot:
     runs-on: ubuntu-latest
     steps:

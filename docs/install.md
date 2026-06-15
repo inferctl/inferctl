@@ -6,7 +6,7 @@ inferctl is private-evaluation software. Do not publish or redistribute binaries
 
 Download the archive for your platform, unpack it, and place the extracted directory on `PATH`.
 
-Linux and macOS archives are `tar.gz` files:
+Linux and macOS archives are currently the supported release-archive targets:
 
 ```sh
 mkdir -p "$HOME/.local/inferctl"
@@ -21,34 +21,22 @@ For a persistent shell setup, add the PATH line to your shell profile:
 printf '\nexport PATH="$HOME/.local/inferctl:$PATH"\n' >> "$HOME/.zshrc"
 ```
 
-Windows archives are zip files. Extract the archive to a stable directory, then add that directory to the user PATH:
+## Windows Source Builds
+
+Windows support is best-effort and source-first in v0.2.1. Build the CLI locally rather than depending on a packaged installer:
 
 ```powershell
-Expand-Archive .\inferctl_VERSION_windows_amd64.zip -DestinationPath "$env:LOCALAPPDATA\inferctl" -Force
-[Environment]::SetEnvironmentVariable("Path", "$env:LOCALAPPDATA\inferctl;$env:Path", "User")
-inferctl version --json
+go build -o .\bin\inferctl.exe .\cmd\inferctl
+.\bin\inferctl.exe version --json
 ```
 
-Open a new terminal after changing PATH.
-
-## Scoop
-
-The GoReleaser config generates a Scoop manifest for the `infer` command. During private evaluation, the manifest is generated locally with upload disabled. A public bucket update must wait for the external release gates.
-
-Expected smoke test:
-
-```powershell
-go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean --skip=publish
-.\scripts\smoke-scoop.ps1
-```
-
-The smoke test rewrites the generated manifest to point at the local Windows zip artifact before running `scoop install`.
+No Windows installer, Scoop manifest, or PATH mutation workflow is promised in this release.
 
 ## Packaged Files
 
-Release archives contain:
+Release archives for the supported archive targets contain:
 
-- `infer` or `infer.exe`
+- `inferctl`
 - `README.md`
 - `CHANGELOG.md`
 - `LICENSE_PENDING.md`

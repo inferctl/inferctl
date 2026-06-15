@@ -48,22 +48,6 @@ archives:
       - docs/errors.md
       - testdata/contract/README.md
 
-scoops:
-  - name: inferctl
-    ids:
-      - inferctl
-    repository:
-      owner: Ozhiaki
-      name: scoop-bucket
-    directory: bucket
-    homepage: https://github.com/Ozhiaki/inferctl
-    description: Agent-oriented CLI for inspecting local inference backends and routing decisions.
-    license: LicenseRef-Proprietary
-    url_template: "https://github.com/Ozhiaki/inferctl/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    skip_upload: true
-    post_install:
-      - Write-Host "inferctl installs the 'inferctl' command. Run 'inferctl version --json' to verify it is on PATH."
-
 checksum:
   name_template: checksums.txt
 

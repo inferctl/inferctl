@@ -11,7 +11,7 @@
     {
       "name": "install",
       "path": "docs/install.md",
-      "description": "Archive and Scoop installation guidance, including PATH hints."
+      "description": "Archive and source-build installation guidance, including PATH hints for supported archive targets."
     },
     {
       "name": "verbs",
