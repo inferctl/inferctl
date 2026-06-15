@@ -1,8 +1,9 @@
 # Releasing inferctl
 
-This repo is still private-evaluation only. Do not publish binaries, flip repo
-visibility, or announce a release until the external legal/name/publication gates
-are cleared.
+This repo is still private-evaluation only. v0.2.1 is a private technical
+cleanup release, not the public launch. Do not publish binaries, flip repo
+visibility, or announce a release until the external legal/name/publication
+gates are cleared.
 
 ## Private RC Validation
 
@@ -19,17 +20,22 @@ go build ./...
 examples/demo-1-install-moment.sh
 examples/demo-2-route-explained.sh
 examples/demo-3-agent-loop.sh
-git tag v0.1.0-rc.1
+git tag v0.2.1-rc.1
 go run github.com/goreleaser/goreleaser/v2@latest release --clean --skip=publish
 scripts/check-release-archives.sh
-./dist/inferctl_darwin_arm64_v8.0/inferctl version --json | jq '.data.tool_version'
+tar -xzf dist/inferctl_0.2.1-rc.1_darwin_arm64.tar.gz -C /tmp/inferctl-rc
+/tmp/inferctl-rc/inferctl version --json | jq .data.tool_version
 ```
 
-If validating on a different host architecture, smoke-test the matching binary
-under `dist/inferctl_<os>_<arch>*/inferctl`.
+After archive generation, smoke-test the extracted binary for the host you are
+validating and confirm the reported `tool_version` matches the private tag.
 
 Windows remains source-build only for v0.2.1. Do not treat Windows archive or
 installer validation as a release gate in this private cleanup cycle.
+
+Do not publish broad public `go install github.com/Ozhiaki/inferctl/...@latest`
+instructions until the final public module path is chosen and the repo is ready
+for public module proxy traffic.
 
 ## Publish After External Gates Clear
 
@@ -45,9 +51,9 @@ go build ./...
 examples/demo-1-install-moment.sh
 examples/demo-2-route-explained.sh
 examples/demo-3-agent-loop.sh
-git tag -a v0.1.0 -m "inferctl v0.1.0"
+git tag -a v0.2.1 -m "inferctl v0.2.1"
 git push origin main
-git push origin v0.1.0
+git push origin v0.2.1
 goreleaser release --clean
 ```
 
@@ -59,7 +65,7 @@ that can publish release artifacts. Run it only after the external gates clear.
 For a local-only RC tag:
 
 ```sh
-git tag -d v0.1.0-rc.1
+git tag -d v0.2.1-rc.1
 rm -rf dist/
 ```
 
@@ -67,6 +73,6 @@ For a pushed public tag, delete only after deciding how to communicate the
 replacement release:
 
 ```sh
-git push origin :refs/tags/v0.1.0
-git tag -d v0.1.0
+git push origin :refs/tags/v0.2.1
+git tag -d v0.2.1
 ```

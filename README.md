@@ -22,14 +22,40 @@ OpenAI-compatible `/v1/models` servers. Remote authenticated backends, warmup,
 release, lock management, and live inference execution are intentionally
 deferred.
 
-## Try It Privately
+## Source-First Use
+
+The current v0.2.1 work is a private technical cleanup release. Use a local
+checkout build for day-to-day validation; treat tagged installs and release
+archives as private verification steps rather than public distribution.
+
+### Local Checkout Build
 
 ```sh
 go test ./...
 go build -o bin/inferctl ./cmd/inferctl
+bin/inferctl version --json | jq .data.tool_version
 bin/inferctl capabilities --json | jq .data.verbs
 bin/inferctl config explain
 ```
+
+Local checkout builds are expected to report `tool_version: "dev"` when no tag
+or release ldflags are involved.
+
+### Private Tagged Install
+
+When Dave decides to validate a private tag, use the private-module path rather
+than public proxy docs:
+
+```sh
+export GOPRIVATE=github.com/Ozhiaki/*
+export GONOSUMDB=github.com/Ozhiaki/*
+go install github.com/Ozhiaki/inferctl/cmd/inferctl@v0.2.1
+inferctl version --json | jq .data.tool_version
+```
+
+That flow requires GitHub credentials that can read the private repo. Broad
+public `go install ...@latest` guidance is deferred until the final public
+module-path decision is made.
 
 The demo scripts run against deterministic fixture servers and do not require
 local Ollama or llama.cpp:
@@ -83,7 +109,8 @@ go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean
 ```
 
 Public release, name availability, and legal review are outside this repo's
-implementation scope.
+implementation scope. Homebrew, signed binaries, direct-download installers,
+and public release commands are intentionally out of scope for v0.2.1.
 
 ## License
 
