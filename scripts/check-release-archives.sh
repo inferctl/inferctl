@@ -28,12 +28,20 @@ for archive in "${archives[@]}"; do
     *.zip) listing="$(unzip -Z1 "$archive")" ;;
     *) echo "unsupported archive $archive" >&2; exit 1 ;;
   esac
+  if ! grep -Eq '(^|/)inferctl(\.exe)?$' <<<"$listing"; then
+    echo "$archive missing inferctl binary" >&2
+    exit 1
+  fi
   for path in "${required[@]}"; do
     if ! grep -Eq "(^|/)${path}$" <<<"$listing"; then
       echo "$archive missing $path" >&2
       exit 1
     fi
   done
+  if grep -Eq "(^|/)infer(\.exe)?$" <<<"$listing"; then
+    echo "$archive still contains legacy infer binary" >&2
+    exit 1
+  fi
   if grep -Eq "(^|/)examples/" <<<"$listing"; then
     echo "$archive unexpectedly contains source-only examples" >&2
     exit 1
