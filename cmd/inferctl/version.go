@@ -10,12 +10,8 @@ import (
 	"time"
 
 	"github.com/Ozhiaki/inferctl/internal/envelope"
+	internalversion "github.com/Ozhiaki/inferctl/internal/version"
 	"github.com/spf13/cobra"
-)
-
-var (
-	buildCommit = "unknown"
-	buildDate   = "unknown"
 )
 
 type versionData struct {
@@ -75,7 +71,7 @@ func newVersionCommand(jsonFlag *bool) *cobra.Command {
 func buildVersionData() versionData {
 	commit, date, deps := buildMetadata()
 	return versionData{
-		ToolVersion: toolVersion,
+		ToolVersion: internalversion.Tool(),
 		Build: versionBuild{
 			Commit:    commit,
 			DateISO:   date,
@@ -91,8 +87,8 @@ func buildVersionData() versionData {
 }
 
 func buildMetadata() (string, string, map[string]string) {
-	commit := buildCommit
-	date := buildDate
+	commit := internalversion.Commit()
+	date := internalversion.Date()
 	deps := map[string]string{}
 	if info, ok := debug.ReadBuildInfo(); ok {
 		for _, dep := range info.Deps {
@@ -108,11 +104,11 @@ func buildMetadata() (string, string, map[string]string) {
 		for _, setting := range info.Settings {
 			switch setting.Key {
 			case "vcs.revision":
-				if commit == "unknown" {
+				if commit == "" {
 					commit = setting.Value
 				}
 			case "vcs.time":
-				if date == "unknown" {
+				if date == "" {
 					date = setting.Value
 				}
 			}
@@ -149,7 +145,8 @@ func checkForUpdates() (versionUpdate, *envelope.Warning) {
 	if latest == "" {
 		return versionUpdate{Checked: false}, updateCheckWarning(fmt.Errorf("release response did not include tag_name"))
 	}
-	available := latest != toolVersion && latest != "v"+toolVersion
+	current := internalversion.Tool()
+	available := latest != current && latest != "v"+current
 	checkedAt := time.Now().UTC().Format(time.RFC3339Nano)
 	return versionUpdate{
 		Checked:         true,

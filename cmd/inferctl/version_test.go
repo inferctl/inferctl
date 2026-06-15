@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	internalversion "github.com/Ozhiaki/inferctl/internal/version"
 )
 
 func TestVersionJSONNoCheck(t *testing.T) {
@@ -17,7 +19,7 @@ func TestVersionJSONNoCheck(t *testing.T) {
 	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
 		t.Fatalf("unmarshal: %v\n%s", err, stdout)
 	}
-	if env.Data.ToolVersion != toolVersion || env.Data.ContractVersion != "0.1" || env.Data.SchemaVersion != "0.1" {
+	if env.Data.ToolVersion != internalversion.Tool() || env.Data.ContractVersion != "0.1" || env.Data.SchemaVersion != "0.1" {
 		t.Fatalf("version data = %#v", env.Data)
 	}
 	if env.Data.Build.GoVersion == "" || env.Data.Build.OS == "" || env.Data.Build.Arch == "" {
