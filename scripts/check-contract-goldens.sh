@@ -9,9 +9,9 @@ cleanup() {
 trap cleanup EXIT
 
 cd "$ROOT"
-go build -o "$TMP/infer" ./cmd/infer
+go build -o "$TMP/inferctl" ./cmd/inferctl
 
-"$TMP/infer" capabilities --json | jq .data >"$TMP/capabilities.golden.json"
+"$TMP/inferctl" capabilities --json | jq .data >"$TMP/capabilities.golden.json"
 tr -d '\r' <internal/contract/capabilities.golden.json >"$TMP/capabilities.expected.json"
 tr -d '\r' <"$TMP/capabilities.golden.json" >"$TMP/capabilities.actual.json"
 diff -u "$TMP/capabilities.expected.json" "$TMP/capabilities.actual.json"

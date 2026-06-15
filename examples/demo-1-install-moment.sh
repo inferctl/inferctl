@@ -13,15 +13,15 @@ cleanup() {
 trap cleanup EXIT
 
 cd "$ROOT"
-go build -o "$TMP/infer" ./cmd/infer
+go build -o "$TMP/inferctl" ./cmd/inferctl
 PATH="$TMP:$PATH"
 
 PORT_A=$((19000 + $$ % 1000))
 PORT_B=$((PORT_A + 1))
 
-go run ./cmd/infer-testserver -addr "127.0.0.1:${PORT_A}" -kind ollama -models "fallback:8b" -loaded "fallback:8b" >"$TMP/ollama.log" 2>&1 &
+go run ./cmd/inferctl-testserver -addr "127.0.0.1:${PORT_A}" -kind ollama -models "fallback:8b" -loaded "fallback:8b" >"$TMP/ollama.log" 2>&1 &
 PIDS+=("$!")
-go run ./cmd/infer-testserver -addr "127.0.0.1:${PORT_B}" -kind llama.cpp -models "primary.gguf" -unreachable >"$TMP/llama.log" 2>&1 &
+go run ./cmd/inferctl-testserver -addr "127.0.0.1:${PORT_B}" -kind llama.cpp -models "primary.gguf" -unreachable >"$TMP/llama.log" 2>&1 &
 PIDS+=("$!")
 
 for _ in $(seq 1 80); do
@@ -59,7 +59,7 @@ fallback = ["fallback:8b"]
 EOF
 
 OUT="$TMP/doctor.json"
-INFERCTL_CONFIG="$TMP/config.toml" infer doctor --json >"$OUT"
+INFERCTL_CONFIG="$TMP/config.toml" inferctl doctor --json >"$OUT"
 
 jq -e '.ok == true' "$OUT" >/dev/null
 jq -e '.data.summary.backends_total == 2' "$OUT" >/dev/null

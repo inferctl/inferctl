@@ -74,7 +74,7 @@ func TestRouteNoRouteAvailable(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected no-route error")
 	}
-	if !strings.Contains(stdout, "E_NO_ROUTE_AVAILABLE") || !strings.Contains(stdout, "infer doctor") {
+	if !strings.Contains(stdout, "E_NO_ROUTE_AVAILABLE") || !strings.Contains(stdout, "inferctl doctor") {
 		t.Fatalf("unexpected no-route envelope: %s", stdout)
 	}
 }

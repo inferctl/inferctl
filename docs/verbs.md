@@ -2,7 +2,7 @@
 
 Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go generate ./internal/contract`.
 
-## `infer doctor`
+## `inferctl doctor`
 
 Health, loaded models, and route resolution across configured backends.
 
@@ -20,10 +20,10 @@ Health, loaded models, and route resolution across configured backends.
 ### Example
 
 ```sh
-infer doctor --json
+inferctl doctor --json
 ```
 
-## `infer backends`
+## `inferctl backends`
 
 List configured backends with reachability status.
 
@@ -41,10 +41,10 @@ List configured backends with reachability status.
 ### Example
 
 ```sh
-infer backends --json
+inferctl backends --json
 ```
 
-## `infer models`
+## `inferctl models`
 
 List installed or loaded models across configured backends.
 
@@ -62,10 +62,10 @@ List installed or loaded models across configured backends.
 ### Example
 
 ```sh
-infer models --json
+inferctl models --json
 ```
 
-## `infer model`
+## `inferctl model`
 
 Inspect one model's backend placements, capabilities, stats, and routing usage.
 
@@ -85,10 +85,10 @@ Inspect one model's backend placements, capabilities, stats, and routing usage.
 ### Example
 
 ```sh
-infer model qwen3:8b --json
+inferctl model qwen3:8b --json
 ```
 
-## `infer route`
+## `inferctl route`
 
 Compute and explain a route for a configured task.
 
@@ -114,16 +114,16 @@ Compute and explain a route for a configured task.
 ### Example
 
 ```sh
-infer route code --prompt "summarize this" --json
+inferctl route code --prompt "summarize this" --json
 ```
 
-## `infer config`
+## `inferctl config`
 
 Namespace for config show, validate, explain, init, set, and patch. Not directly invokable.
 
 Namespace only; use one of its subcommands.
 
-## `infer config show`
+## `inferctl config show`
 
 Show the effective config with per-key provenance.
 
@@ -141,10 +141,10 @@ Show the effective config with per-key provenance.
 ### Example
 
 ```sh
-infer config show --json
+inferctl config show --json
 ```
 
-## `infer config validate`
+## `inferctl config validate`
 
 Validate config and return source-position findings.
 
@@ -160,10 +160,10 @@ Validate config and return source-position findings.
 ### Example
 
 ```sh
-infer config validate --json
+inferctl config validate --json
 ```
 
-## `infer config explain`
+## `inferctl config explain`
 
 Print annotated default config and machine-readable key definitions.
 
@@ -180,10 +180,10 @@ Print annotated default config and machine-readable key definitions.
 ### Example
 
 ```sh
-infer config explain --key profile.mode --json
+inferctl config explain --key profile.mode --json
 ```
 
-## `infer config init`
+## `inferctl config init`
 
 Create or print a starter inferctl config.
 
@@ -201,10 +201,10 @@ Create or print a starter inferctl config.
 ### Example
 
 ```sh
-infer config init --json
+inferctl config init --json
 ```
 
-## `infer config set`
+## `inferctl config set`
 
 Set one config key while preserving surrounding TOML comments and ordering.
 
@@ -227,10 +227,10 @@ Set one config key while preserving surrounding TOML comments and ordering.
 ### Example
 
 ```sh
-infer config set --json
+inferctl config set --json
 ```
 
-## `infer config patch`
+## `inferctl config patch`
 
 Merge a TOML fragment into config without supporting deletions.
 
@@ -252,10 +252,10 @@ Merge a TOML fragment into config without supporting deletions.
 ### Example
 
 ```sh
-infer config patch --json
+inferctl config patch --json
 ```
 
-## `infer discover`
+## `inferctl discover`
 
 Probe fixed localhost backend ports and report verified backend candidates.
 
@@ -274,10 +274,10 @@ Probe fixed localhost backend ports and report verified backend candidates.
 ### Example
 
 ```sh
-infer discover --json
+inferctl discover --json
 ```
 
-## `infer triage`
+## `inferctl triage`
 
 Rank deterministic diagnostic next actions from config validation, doctor output, or prior JSON envelopes.
 
@@ -297,10 +297,10 @@ Rank deterministic diagnostic next actions from config validation, doctor output
 ### Example
 
 ```sh
-infer triage --json
+inferctl triage --json
 ```
 
-## `infer capabilities`
+## `inferctl capabilities`
 
 Emit the machine-readable CLI contract.
 
@@ -316,10 +316,10 @@ Emit the machine-readable CLI contract.
 ### Example
 
 ```sh
-infer capabilities --json
+inferctl capabilities --json
 ```
 
-## `infer version`
+## `inferctl version`
 
 Show version, build metadata, and optional update status.
 
@@ -335,6 +335,6 @@ Show version, build metadata, and optional update status.
 ### Example
 
 ```sh
-infer version --json
+inferctl version --json
 ```
 

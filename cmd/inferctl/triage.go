@@ -220,7 +220,7 @@ func triageItemFromFinding(finding inferctl.Finding) triageItem {
 	}
 	command := envelope.Command{
 		Label:     "Explain config key '" + finding.Key + "'",
-		Command:   "infer config explain --key " + finding.Key + " --json",
+		Command:   "inferctl config explain --key " + finding.Key + " --json",
 		Rationale: "Shows the expected type, allowed values, and examples for this config key",
 	}
 	return triageItem{
@@ -276,7 +276,7 @@ func commandForWarning(warning envelope.Warning) *envelope.Command {
 		if backend := stringDetail(warning.Details, "backend"); backend != nil {
 			return &envelope.Command{
 				Label:     "Inspect backend '" + *backend + "'",
-				Command:   "infer backends --filter " + *backend + " --json",
+				Command:   "inferctl backends --filter " + *backend + " --json",
 				Rationale: "Surfaces backend reachability and model counts",
 			}
 		}
@@ -284,7 +284,7 @@ func commandForWarning(warning envelope.Warning) *envelope.Command {
 		if model := stringDetail(warning.Details, "model"); model != nil {
 			return &envelope.Command{
 				Label:     "Inspect model '" + *model + "'",
-				Command:   "infer model " + *model + " --json",
+				Command:   "inferctl model " + *model + " --json",
 				Rationale: "Shows placements, capabilities, loading state, and routing usage",
 			}
 		}
@@ -292,7 +292,7 @@ func commandForWarning(warning envelope.Warning) *envelope.Command {
 		if task := stringDetail(warning.Details, "task"); task != nil {
 			return &envelope.Command{
 				Label:     "Explain route '" + *task + "'",
-				Command:   "infer route " + *task + " --json",
+				Command:   "inferctl route " + *task + " --json",
 				Rationale: "Shows route candidates and constraints",
 			}
 		}

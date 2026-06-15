@@ -24,7 +24,7 @@
   },
   "warnings": [],
   "recommended_action": {
-    "command": "infer backends --filter llamacpp --json",
+    "command": "inferctl backends --filter llamacpp --json",
     "rationale": "Surfaces backend reachability and model counts",
     "alternatives": []
   }

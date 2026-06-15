@@ -41,9 +41,9 @@ scoop uninstall inferctl 2>$null | Out-Null
 try {
   scoop install $localManifest
 
-  $version = infer version --json | ConvertFrom-Json
+  $version = inferctl version --json | ConvertFrom-Json
   if (-not $version.ok) {
-    throw "infer version returned ok=false"
+    throw "inferctl version returned ok=false"
   }
   if (-not $version.data.tool_version) {
     throw "missing tool version"

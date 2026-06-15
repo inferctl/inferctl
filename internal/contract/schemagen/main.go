@@ -77,9 +77,9 @@ func renderErrors(caps capabilities) string {
 			code, info.Status, escapeTable(info.MessageTemplate), info.DetailsSchemaRef))
 	}
 	b.WriteString("\n## Examples\n\n")
-	b.WriteString("- `infer doctr --json` emits `E_UNKNOWN_VERB` with `did_you_mean: \"infer doctor\"`.\n")
-	b.WriteString("- `infer explain code --json` emits `E_VERB_RENAMED` with `did_you_mean: \"infer route code --json --explain\"`.\n")
-	b.WriteString("- `infer version --check --json` emits `W_UPDATE_CHECK_FAILED` if the update endpoint cannot be reached and still exits 0.\n")
+	b.WriteString("- `inferctl doctr --json` emits `E_UNKNOWN_VERB` with `did_you_mean: \"inferctl doctor\"`.\n")
+	b.WriteString("- `inferctl explain code --json` emits `E_VERB_RENAMED` with `did_you_mean: \"inferctl route code --json --explain\"`.\n")
+	b.WriteString("- `inferctl version --check --json` emits `W_UPDATE_CHECK_FAILED` if the update endpoint cannot be reached and still exits 0.\n")
 	return b.String()
 }
 
@@ -88,7 +88,7 @@ func renderVerbs(caps capabilities) string {
 	b.WriteString("# inferctl v0.1 verbs\n\n")
 	b.WriteString("Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go generate ./internal/contract`.\n\n")
 	for _, verb := range caps.Verbs {
-		b.WriteString("## `infer " + verb.Name + "`\n\n")
+		b.WriteString("## `inferctl " + verb.Name + "`\n\n")
 		b.WriteString(verb.Summary + "\n\n")
 		if verb.NamespaceOnly {
 			b.WriteString("Namespace only; use one of its subcommands.\n\n")
@@ -162,29 +162,35 @@ func joinInts(values []int) string {
 func exampleForVerb(name string) string {
 	switch name {
 	case "doctor":
-		return "infer doctor --json"
+		return "inferctl doctor --json"
 	case "backends":
-		return "infer backends --json"
+		return "inferctl backends --json"
 	case "models":
-		return "infer models --json"
+		return "inferctl models --json"
 	case "model":
-		return "infer model qwen3:8b --json"
+		return "inferctl model qwen3:8b --json"
 	case "route":
-		return "infer route code --prompt \"summarize this\" --json"
+		return "inferctl route code --prompt \"summarize this\" --json"
 	case "triage":
-		return "infer triage --json"
+		return "inferctl triage --json"
 	case "config show":
-		return "infer config show --json"
+		return "inferctl config show --json"
 	case "config validate":
-		return "infer config validate --json"
+		return "inferctl config validate --json"
 	case "config explain":
-		return "infer config explain --key profile.mode --json"
+		return "inferctl config explain --key profile.mode --json"
+	case "config init":
+		return "inferctl config init --json"
+	case "config set":
+		return "inferctl config set --json"
+	case "config patch":
+		return "inferctl config patch --json"
 	case "capabilities":
-		return "infer capabilities --json"
+		return "inferctl capabilities --json"
 	case "version":
-		return "infer version --json"
+		return "inferctl version --json"
 	default:
-		return "infer " + name + " --json"
+		return "inferctl " + name + " --json"
 	}
 }
 

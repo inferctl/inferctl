@@ -10,7 +10,7 @@
       "backend": null,
       "command": {
         "label": "Explain config key 'meta.schema_version'",
-        "command": "infer config explain --key meta.schema_version --json",
+        "command": "inferctl config explain --key meta.schema_version --json",
         "rationale": "Shows the expected type, allowed values, and examples for this config key",
         "available_in_version": null
       },
@@ -28,7 +28,7 @@
       "backend": "ollama",
       "command": {
         "label": "Inspect backend 'ollama'",
-        "command": "infer backends --filter ollama --json",
+        "command": "inferctl backends --filter ollama --json",
         "rationale": "Surfaces backend reachability and model counts",
         "available_in_version": null
       },
@@ -47,7 +47,7 @@
       "backend": "ollama",
       "command": {
         "label": "Inspect model 'qwen3:8b'",
-        "command": "infer model qwen3:8b --json",
+        "command": "inferctl model qwen3:8b --json",
         "rationale": "Shows placements, capabilities, loading state, and routing usage",
         "available_in_version": null
       },

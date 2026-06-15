@@ -277,7 +277,7 @@ func doctorCommands(report doctorReport) []envelope.Command {
 		if !backend.Reachable {
 			commands = append(commands, envelope.Command{
 				Label:     "Inspect backend '" + backend.Name + "'",
-				Command:   "infer backends --filter " + backend.Name + " --json",
+				Command:   "inferctl backends --filter " + backend.Name + " --json",
 				Rationale: "Surfaces backend reachability and model counts",
 			})
 		}
@@ -286,7 +286,7 @@ func doctorCommands(report doctorReport) []envelope.Command {
 		if route.IsFallback {
 			commands = append(commands, envelope.Command{
 				Label:     "Full route evaluation for '" + route.Task + "'",
-				Command:   "infer route " + route.Task + " --json",
+				Command:   "inferctl route " + route.Task + " --json",
 				Rationale: "Shows all candidates considered and constraint checks",
 			})
 		}
@@ -295,7 +295,7 @@ func doctorCommands(report doctorReport) []envelope.Command {
 		if !route.Ready && route.Selected != nil {
 			commands = append(commands, envelope.Command{
 				Label:     "Inspect selected model '" + route.Selected.Model + "'",
-				Command:   "infer model " + route.Selected.Model + " --json",
+				Command:   "inferctl model " + route.Selected.Model + " --json",
 				Rationale: "Shows placements, capabilities, loading state, and routing usage",
 			})
 		}
@@ -303,7 +303,7 @@ func doctorCommands(report doctorReport) []envelope.Command {
 	if report.System.VRAMUsedPct != nil && *report.System.VRAMUsedPct > 80 {
 		commands = append(commands, envelope.Command{
 			Label:     "Inspect loaded models",
-			Command:   "infer models --loaded --json",
+			Command:   "inferctl models --loaded --json",
 			Rationale: "Shows currently loaded models before any manual cleanup",
 		})
 	}
@@ -357,7 +357,7 @@ func noBackendsError(result *config.Result) envelope.Error {
 	return envelope.Error{
 		Code:       "E_NO_BACKENDS_CONFIGURED",
 		Message:    "config defines no backends",
-		DidYouMean: stringPtr("infer config explain"),
+		DidYouMean: stringPtr("inferctl config explain"),
 		ExitCode:   3,
 		Retryable:  false,
 		Details:    map[string]any{"path": result.SourcePaths.Selected},

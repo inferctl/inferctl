@@ -11,11 +11,11 @@ No license is granted yet; private evaluation only.
 
 ## What It Does
 
-- Diagnoses backend health with `infer doctor`.
+- Diagnoses backend health with `inferctl doctor`.
 - Lists configured backends and models without running inference.
-- Explains route selection with `infer route <task>`.
+- Explains route selection with `inferctl route <task>`.
 - Shows, validates, and explains the v0.1 config format.
-- Emits a machine-readable contract with `infer capabilities --json`.
+- Emits a machine-readable contract with `inferctl capabilities --json`.
 
 v0.1 supports read-only adapters for Ollama, llama.cpp, and unauthenticated
 OpenAI-compatible `/v1/models` servers. Remote authenticated backends, warmup,
@@ -26,9 +26,9 @@ deferred.
 
 ```sh
 go test ./...
-go build -o bin/infer ./cmd/infer
-bin/infer capabilities --json | jq .data.verbs
-bin/infer config explain
+go build -o bin/inferctl ./cmd/inferctl
+bin/inferctl capabilities --json | jq .data.verbs
+bin/inferctl config explain
 ```
 
 The demo scripts run against deterministic fixture servers and do not require
@@ -45,17 +45,17 @@ examples/demo-3-agent-loop.sh
 Create a TOML config from:
 
 ```sh
-infer config explain
+inferctl config explain
 ```
 
 Then point the CLI at it:
 
 ```sh
-INFERCTL_CONFIG=/path/to/config.toml infer doctor --json
+INFERCTL_CONFIG=/path/to/config.toml inferctl doctor --json
 ```
 
 The minimum useful config defines `[meta]`, `[profile]`, at least one
-`[backends.<name>]`, and any `[routing.<task>]` entries you want `infer route`
+`[backends.<name>]`, and any `[routing.<task>]` entries you want `inferctl route`
 to resolve.
 
 ## Docs

@@ -58,12 +58,12 @@ func (c *rootCommand) Execute() error {
 func newRootCommand() *rootCommand {
 	var jsonFlag bool
 	base := &cobra.Command{
-		Use:           "infer",
+		Use:           "inferctl",
 		Short:         "Explain your local LLM stack",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprintln(cmd.ErrOrStderr(), "infer: no verb specified")
+			fmt.Fprintln(cmd.ErrOrStderr(), "inferctl: no verb specified")
 			return exitError(1)
 		},
 	}
@@ -97,7 +97,7 @@ func (c *rootCommand) redirectRemovedVerb(args []string) error {
 	switch verb {
 	case "explain":
 		tail := append([]string{}, args[index+1:]...)
-		newCommand := "infer route"
+		newCommand := "inferctl route"
 		if len(tail) == 0 {
 			newCommand += " <task>"
 		} else {
@@ -112,7 +112,7 @@ func (c *rootCommand) redirectRemovedVerb(args []string) error {
 		if !hasModel {
 			return nil
 		}
-		newCommand := "infer model " + model
+		newCommand := "inferctl model " + model
 		if slices.Contains(args, "--json") {
 			newCommand += " --json"
 		}
@@ -122,7 +122,7 @@ func (c *rootCommand) redirectRemovedVerb(args []string) error {
 		if !hasSubcommand || subcommand != "valid" {
 			return nil
 		}
-		newCommand := "infer config validate"
+		newCommand := "inferctl config validate"
 		if slices.Contains(args, "--json") {
 			newCommand += " --json"
 		}
@@ -168,7 +168,7 @@ func newCapabilitiesCommand(jsonFlag *bool) *cobra.Command {
 				}
 				return render.WriteJSON(cmd.OutOrStdout(), env)
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "infer capabilities")
+			fmt.Fprintln(cmd.OutOrStdout(), "inferctl capabilities")
 			fmt.Fprintf(cmd.OutOrStdout(), "tool: %s\n", data["tool"])
 			fmt.Fprintf(cmd.OutOrStdout(), "binary: %s\n", data["binary"])
 			fmt.Fprintf(cmd.OutOrStdout(), "contract: %s\n", data["contract_version"])
@@ -290,11 +290,11 @@ func unknownVerbError(verb string) envelope.Error {
 	var nearestValue any
 	var distanceValue any
 	if distance <= 2 {
-		did = "infer " + nearest
+		did = "inferctl " + nearest
 		nearestValue = nearest
 		distanceValue = distance
 	} else {
-		did = "infer --help"
+		did = "inferctl --help"
 		nearestValue = nil
 		distanceValue = nil
 	}

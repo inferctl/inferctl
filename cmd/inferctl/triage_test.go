@@ -97,7 +97,7 @@ func TestTriageAcceptsPriorEnvelopeInputFile(t *testing.T) {
   "ok": false,
   "data": {"findings": [{"severity": "error", "key": "profile.mode", "message": "bad mode", "details": {}}]},
   "warnings": [{"code": "W_MODEL_NOT_INSTALLED", "message": "model missing", "details": {"task": "code", "model": "qwen3:8b", "backend": "ollama"}}],
-  "commands": [{"label": "Inspect model", "command": "infer model qwen3:8b --json", "rationale": "from input"}],
+  "commands": [{"label": "Inspect model", "command": "inferctl model qwen3:8b --json", "rationale": "from input"}],
   "errors": []
 }`
 	path := filepath.Join(t.TempDir(), "envelope.json")

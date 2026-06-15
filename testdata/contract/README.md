@@ -2,7 +2,7 @@
 
 This directory stores reviewable JSON examples for every v0.1 verb data shape.
 The capabilities data golden is enforced byte-for-byte against
-`infer capabilities --json | jq .data` by `scripts/check-contract-goldens.sh`.
+`inferctl capabilities --json | jq .data` by `scripts/check-contract-goldens.sh`.
 
 To refresh generated goldens:
 

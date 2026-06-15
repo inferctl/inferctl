@@ -12,7 +12,7 @@ Linux and macOS archives are `tar.gz` files:
 mkdir -p "$HOME/.local/inferctl"
 tar -xzf inferctl_VERSION_linux_amd64.tar.gz -C "$HOME/.local/inferctl"
 export PATH="$HOME/.local/inferctl:$PATH"
-infer version --json
+inferctl version --json
 ```
 
 For a persistent shell setup, add the PATH line to your shell profile:
@@ -26,7 +26,7 @@ Windows archives are zip files. Extract the archive to a stable directory, then 
 ```powershell
 Expand-Archive .\inferctl_VERSION_windows_amd64.zip -DestinationPath "$env:LOCALAPPDATA\inferctl" -Force
 [Environment]::SetEnvironmentVariable("Path", "$env:LOCALAPPDATA\inferctl;$env:Path", "User")
-infer version --json
+inferctl version --json
 ```
 
 Open a new terminal after changing PATH.

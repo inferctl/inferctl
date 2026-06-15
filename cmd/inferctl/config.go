@@ -218,11 +218,11 @@ func configLoadError(err error) envelope.Error {
 	switch loadErr.Code {
 	case "E_CONFIG_MISSING":
 		message = "no config file found"
-		did = stringPtr("infer config explain")
+		did = stringPtr("inferctl config explain")
 		details["searched_paths"] = loadErr.Searched
 	case "E_CONFIG_INVALID":
 		message = "config file at " + loadErr.Path + " failed to parse"
-		did = stringPtr("infer config validate")
+		did = stringPtr("inferctl config validate")
 		details["path"] = loadErr.Path
 		details["parse_error"] = loadErr.Reason
 		details["line"] = loadErr.Line
@@ -252,7 +252,7 @@ func configWriteError(code, message string, details map[string]any) envelope.Err
 	return envelope.Error{
 		Code:       code,
 		Message:    message,
-		DidYouMean: stringPtr("infer config validate --json"),
+		DidYouMean: stringPtr("inferctl config validate --json"),
 		ExitCode:   3,
 		Retryable:  false,
 		Details:    details,
@@ -294,9 +294,9 @@ func validationFailedError(data config.ValidationResult) envelope.Error {
 			break
 		}
 	}
-	did := "infer config validate --json"
+	did := "inferctl config validate --json"
 	if first != "" {
-		did = "infer config explain --key " + first + " --json"
+		did = "inferctl config explain --key " + first + " --json"
 	}
 	return envelope.Error{
 		Code:       "E_CONFIG_VALIDATION_FAILED",

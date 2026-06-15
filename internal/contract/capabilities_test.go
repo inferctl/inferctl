@@ -133,8 +133,8 @@ func TestPackagingDocsAndScriptsMatchExamplesDecision(t *testing.T) {
 		t.Fatal("archive checker does not enforce docs/examples packaging decision")
 	}
 	scoopSmoke := readString(t, "../../scripts/smoke-scoop.ps1")
-	if !strings.Contains(scoopSmoke, "scoop install") || !strings.Contains(scoopSmoke, "infer version --json") {
-		t.Fatal("Scoop smoke script does not install and verify infer")
+	if !strings.Contains(scoopSmoke, "scoop install") || !strings.Contains(scoopSmoke, "inferctl version --json") {
+		t.Fatal("Scoop smoke script does not install and verify inferctl")
 	}
 }
 
@@ -166,7 +166,7 @@ func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {
 		}
 	}
 	for _, verb := range caps.Verbs {
-		if !strings.Contains(verbsDoc, "## `infer "+verb.Name+"`") {
+		if !strings.Contains(verbsDoc, "## `inferctl "+verb.Name+"`") {
 			t.Fatalf("docs/verbs.md missing verb %s", verb.Name)
 		}
 	}

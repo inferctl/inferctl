@@ -81,7 +81,7 @@ func TestDoctorDegradedBackendStillExitsZero(t *testing.T) {
 	if env.Data.Summary.BackendsReachable != 1 || env.Data.RecommendedAction == nil {
 		t.Fatalf("doctor degraded data = %#v action=%#v", env.Data.Summary, env.Data.RecommendedAction)
 	}
-	if len(env.Commands) < 2 || !strings.HasPrefix(env.Commands[0].Command, "infer backends --filter llamacpp") {
+	if len(env.Commands) < 2 || !strings.HasPrefix(env.Commands[0].Command, "inferctl backends --filter llamacpp") {
 		t.Fatalf("commands not ranked as expected: %#v", env.Commands)
 	}
 	assertNoFutureDoctorCommands(t, env.Data.RecommendedAction, env.Commands)
@@ -129,7 +129,7 @@ func TestDoctorNoBackendsErrors(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected no-backends error")
 	}
-	if !strings.Contains(stdout, "E_NO_BACKENDS_CONFIGURED") || !strings.Contains(stdout, "infer config explain") {
+	if !strings.Contains(stdout, "E_NO_BACKENDS_CONFIGURED") || !strings.Contains(stdout, "inferctl config explain") {
 		t.Fatalf("unexpected no-backends envelope: %s", stdout)
 	}
 }

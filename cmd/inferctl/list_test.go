@@ -156,7 +156,7 @@ func TestUnknownBackendAndModelErrors(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected unknown backend error")
 	}
-	if !strings.Contains(stdout, "E_UNKNOWN_BACKEND") || !strings.Contains(stdout, "infer backends") {
+	if !strings.Contains(stdout, "E_UNKNOWN_BACKEND") || !strings.Contains(stdout, "inferctl backends") {
 		t.Fatalf("unexpected backend error envelope: %s", stdout)
 	}
 
@@ -164,7 +164,7 @@ func TestUnknownBackendAndModelErrors(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected unknown model error")
 	}
-	if !strings.Contains(stdout, "E_UNKNOWN_MODEL") || !strings.Contains(stdout, "infer models") {
+	if !strings.Contains(stdout, "E_UNKNOWN_MODEL") || !strings.Contains(stdout, "inferctl models") {
 		t.Fatalf("unexpected model error envelope: %s", stdout)
 	}
 }

@@ -154,7 +154,7 @@ func newModelCommand(jsonFlag *bool) *cobra.Command {
 				return writeError(cmd, *jsonFlag, envelope.Error{
 					Code:       "E_MISSING_ARG",
 					Message:    "verb 'model' requires model_name",
-					DidYouMean: stringPtr("infer model <model_name>"),
+					DidYouMean: stringPtr("inferctl model <model_name>"),
 					ExitCode:   1,
 					Retryable:  false,
 					Details:    map[string]any{"verb": "model", "missing": "model_name"},
@@ -180,7 +180,7 @@ func newModelCommand(jsonFlag *bool) *cobra.Command {
 				return writeError(cmd, *jsonFlag, envelope.Error{
 					Code:       "E_UNKNOWN_MODEL",
 					Message:    "model '" + name + "' not found on any reachable backend",
-					DidYouMean: stringPtr("infer models"),
+					DidYouMean: stringPtr("inferctl models"),
 					ExitCode:   1,
 					Retryable:  false,
 					Details:    map[string]any{"given": name, "nearest": nil, "searched_backends": backendNames(entries)},
@@ -201,7 +201,7 @@ func configuredBackends(result *config.Result, filter, kind string) ([]backendEn
 		return nil, &envelope.Error{
 			Code:       "E_NO_BACKENDS_CONFIGURED",
 			Message:    "config defines no backends",
-			DidYouMean: stringPtr("infer config explain"),
+			DidYouMean: stringPtr("inferctl config explain"),
 			ExitCode:   3,
 			Retryable:  false,
 			Details:    map[string]any{"path": result.SourcePaths.Selected},
@@ -230,7 +230,7 @@ func configuredBackends(result *config.Result, filter, kind string) ([]backendEn
 		return nil, &envelope.Error{
 			Code:       "E_UNKNOWN_BACKEND",
 			Message:    "no backend named '" + filter + "' in config",
-			DidYouMean: stringPtr("infer backends"),
+			DidYouMean: stringPtr("inferctl backends"),
 			ExitCode:   1,
 			Retryable:  false,
 			Details:    map[string]any{"given": filter, "configured": configured, "nearest": nil},
@@ -265,7 +265,7 @@ func backendConfigError(backend, code, message string) *envelope.Error {
 	return &envelope.Error{
 		Code:       code,
 		Message:    message,
-		DidYouMean: stringPtr("infer config show --key backends." + backend + " --json"),
+		DidYouMean: stringPtr("inferctl config show --key backends." + backend + " --json"),
 		ExitCode:   3,
 		Retryable:  false,
 		Details:    map[string]any{"backend": backend},

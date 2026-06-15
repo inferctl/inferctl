@@ -9,9 +9,9 @@ cleanup() {
 trap cleanup EXIT
 
 cd "$ROOT"
-go build -o "$TMP/infer" ./cmd/infer
+go build -o "$TMP/inferctl" ./cmd/inferctl
 
-"$TMP/infer" capabilities --json | jq .data >internal/contract/capabilities.golden.json
+"$TMP/inferctl" capabilities --json | jq .data >internal/contract/capabilities.golden.json
 cp internal/contract/capabilities.golden.json testdata/contract/capabilities.golden.json
 
 echo "Updated contract goldens. Review git diff before committing."

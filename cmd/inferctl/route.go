@@ -48,7 +48,7 @@ func newRouteCommand(jsonFlag *bool) *cobra.Command {
 				return writeError(cmd, *jsonFlag, envelope.Error{
 					Code:       "E_MISSING_ARG",
 					Message:    "verb 'route' requires task",
-					DidYouMean: stringPtr("infer route <task>"),
+					DidYouMean: stringPtr("inferctl route <task>"),
 					ExitCode:   1,
 					Retryable:  false,
 					Details:    map[string]any{"verb": "route", "missing": "task"},
@@ -347,7 +347,7 @@ func routeCommands(report routeReport) []envelope.Command {
 			if candidate.Role == "primary" && candidate.Backend != nil && candidate.UnavailabilityReason != nil && *candidate.UnavailabilityReason == "backend_unreachable" {
 				commands = append(commands, envelope.Command{
 					Label:     "Inspect the primary backend",
-					Command:   "infer backends --filter " + *candidate.Backend + " --json",
+					Command:   "inferctl backends --filter " + *candidate.Backend + " --json",
 					Rationale: "See when the primary becomes available again",
 				})
 				break
@@ -357,13 +357,13 @@ func routeCommands(report routeReport) []envelope.Command {
 	if report.Constraints.ContextPct >= 90 {
 		commands = append(commands, envelope.Command{
 			Label:     "Inspect context limit",
-			Command:   "infer config show --key profile.max_context_tokens --json",
+			Command:   "inferctl config show --key profile.max_context_tokens --json",
 			Rationale: "Compare the prompt estimate with the configured context budget",
 		})
 	}
 	commands = append(commands, envelope.Command{
 		Label:     "Inspect selected model",
-		Command:   "infer model " + report.Decision.SelectedModel + " --json",
+		Command:   "inferctl model " + report.Decision.SelectedModel + " --json",
 		Rationale: "Show placements, capabilities, and routing usage for the selected model",
 	})
 	if len(commands) > 6 {
@@ -385,7 +385,7 @@ func unknownTaskError(task string, cfg config.Config) envelope.Error {
 		tasks = append(tasks, name)
 	}
 	slices.Sort(tasks)
-	did := "infer config show --section routing"
+	did := "inferctl config show --section routing"
 	return envelope.Error{
 		Code:       "E_UNKNOWN_TASK",
 		Message:    "no routing rule for task '" + task + "'",
@@ -408,7 +408,7 @@ func noRouteAvailableError(task string, candidates []inferctl.RouteCandidate) *e
 	return &envelope.Error{
 		Code:       "E_NO_ROUTE_AVAILABLE",
 		Message:    "no candidate model for task '" + task + "' is reachable",
-		DidYouMean: stringPtr("infer doctor"),
+		DidYouMean: stringPtr("inferctl doctor"),
 		ExitCode:   4,
 		Retryable:  true,
 		Details:    map[string]any{"task": task, "candidates_considered": considered},

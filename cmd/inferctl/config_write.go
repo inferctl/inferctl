@@ -137,7 +137,7 @@ func newConfigPatchCommand(jsonFlag *bool) *cobra.Command {
 				return writeError(cmd, *jsonFlag, envelope.Error{
 					Code:       "E_MISSING_ARG",
 					Message:    "verb 'config patch' requires a TOML fragment or --from-stdin",
-					DidYouMean: stringPtr("infer config patch --from-stdin"),
+					DidYouMean: stringPtr("inferctl config patch --from-stdin"),
 					ExitCode:   1,
 					Retryable:  false,
 					Details:    map[string]any{"verb": "config patch", "missing": "toml-fragment"},

@@ -49,6 +49,6 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 
 ## Examples
 
-- `infer doctr --json` emits `E_UNKNOWN_VERB` with `did_you_mean: "infer doctor"`.
-- `infer explain code --json` emits `E_VERB_RENAMED` with `did_you_mean: "infer route code --json --explain"`.
-- `infer version --check --json` emits `W_UPDATE_CHECK_FAILED` if the update endpoint cannot be reached and still exits 0.
+- `inferctl doctr --json` emits `E_UNKNOWN_VERB` with `did_you_mean: "inferctl doctor"`.
+- `inferctl explain code --json` emits `E_VERB_RENAMED` with `did_you_mean: "inferctl route code --json --explain"`.
+- `inferctl version --check --json` emits `W_UPDATE_CHECK_FAILED` if the update endpoint cannot be reached and still exits 0.

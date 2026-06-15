@@ -1,6 +1,6 @@
 {
   "tool": "inferctl",
-  "binary": "infer",
+  "binary": "inferctl",
   "contract_version": "0.1",
   "docs": [
     {

@@ -10,12 +10,12 @@ import (
 )
 
 func TestInferCapabilitiesMatchesDataGolden(t *testing.T) {
-	cmd := exec.Command("go", "run", "./cmd/infer", "capabilities", "--json")
+	cmd := exec.Command("go", "run", "./cmd/inferctl", "capabilities", "--json")
 	cmd.Dir = "../.."
 	cmd.Env = append(cmd.Environ(), "INFERCTL_TEST_DETERMINISTIC=1")
 	out, err := cmd.Output()
 	if err != nil {
-		t.Fatalf("infer capabilities --json failed: %v", err)
+		t.Fatalf("inferctl capabilities --json failed: %v", err)
 	}
 	var envelope struct {
 		Data map[string]any `json:"data"`

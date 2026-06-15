@@ -24,7 +24,7 @@ func TestUnknownVerbJSON(t *testing.T) {
 	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
 		t.Fatalf("unmarshal: %v\n%s", err, stdout)
 	}
-	if len(env.Errors) != 1 || env.Errors[0].Code != "E_UNKNOWN_VERB" || env.Errors[0].DidYouMean != "infer doctor" {
+	if len(env.Errors) != 1 || env.Errors[0].Code != "E_UNKNOWN_VERB" || env.Errors[0].DidYouMean != "inferctl doctor" {
 		t.Fatalf("unexpected envelope: %#v", env.Errors)
 	}
 }
@@ -34,7 +34,7 @@ func TestRenamedVerbJSON(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected renamed explain error")
 	}
-	if !strings.Contains(stdout, "E_VERB_RENAMED") || !strings.Contains(stdout, "infer route code --json --explain") {
+	if !strings.Contains(stdout, "E_VERB_RENAMED") || !strings.Contains(stdout, "inferctl route code --json --explain") {
 		t.Fatalf("unexpected explain redirect: %s", stdout)
 	}
 
@@ -42,7 +42,7 @@ func TestRenamedVerbJSON(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected renamed capabilities error")
 	}
-	if !strings.Contains(stdout, "E_VERB_RENAMED") || !strings.Contains(stdout, "infer model qwen3:8b --json") {
+	if !strings.Contains(stdout, "E_VERB_RENAMED") || !strings.Contains(stdout, "inferctl model qwen3:8b --json") {
 		t.Fatalf("unexpected capabilities redirect: %s", stdout)
 	}
 
@@ -50,7 +50,7 @@ func TestRenamedVerbJSON(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected renamed config valid error")
 	}
-	if !strings.Contains(stdout, "E_VERB_RENAMED") || !strings.Contains(stdout, "infer config validate --json") {
+	if !strings.Contains(stdout, "E_VERB_RENAMED") || !strings.Contains(stdout, "inferctl config validate --json") {
 		t.Fatalf("unexpected config valid redirect: %s", stdout)
 	}
 }
@@ -60,7 +60,7 @@ func TestUnknownFlagJSON(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected unknown flag error")
 	}
-	if !strings.Contains(stdout, "E_UNKNOWN_FLAG") || !strings.Contains(stdout, "infer doctor --help") {
+	if !strings.Contains(stdout, "E_UNKNOWN_FLAG") || !strings.Contains(stdout, "inferctl doctor --help") {
 		t.Fatalf("unexpected unknown flag envelope: %s", stdout)
 	}
 }
@@ -71,7 +71,7 @@ func TestHumanErrorRenderingIncludesCatalogMetadata(t *testing.T) {
 		t.Fatal("expected human unknown verb error")
 	}
 	if !strings.Contains(stderr, "error: unknown verb 'doctr'") ||
-		!strings.Contains(stderr, "try: infer doctor") ||
+		!strings.Contains(stderr, "try: inferctl doctor") ||
 		!strings.Contains(stderr, "exit: 1 (user_input_error, retryable: false)") {
 		t.Fatalf("stderr missing catalog metadata:\n%s", stderr)
 	}
@@ -108,7 +108,7 @@ func TestValidationErrorSuggestsConfigExplainKey(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected validation error")
 	}
-	if !strings.Contains(stdout, `"did_you_mean":"infer config explain --key meta.schema_version --json"`) {
+	if !strings.Contains(stdout, `"did_you_mean":"inferctl config explain --key meta.schema_version --json"`) {
 		t.Fatalf("validation did_you_mean missing: %s", stdout)
 	}
 }
