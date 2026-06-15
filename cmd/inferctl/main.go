@@ -12,10 +12,9 @@ import (
 	"github.com/Ozhiaki/inferctl/internal/contract"
 	"github.com/Ozhiaki/inferctl/internal/envelope"
 	"github.com/Ozhiaki/inferctl/internal/render"
+	internalversion "github.com/Ozhiaki/inferctl/internal/version"
 	"github.com/spf13/cobra"
 )
-
-var toolVersion = "0.2.0"
 
 func main() {
 	if err := newRootCommand().Execute(); err != nil {
@@ -158,7 +157,7 @@ func newCapabilitiesCommand(jsonFlag *bool) *cobra.Command {
 					return err
 				}
 				start := time.Now()
-				env, err := envelope.New(toolVersion, json.RawMessage(raw), envelope.Options{
+				env, err := envelope.New(resolvedToolVersion(), json.RawMessage(raw), envelope.Options{
 					StartedAt:  start,
 					FinishedAt: time.Now(),
 					Env:        envMap(),
@@ -196,6 +195,10 @@ func envMap() map[string]string {
 	return out
 }
 
+func resolvedToolVersion() string {
+	return internalversion.Tool()
+}
+
 func writeData(cmd *cobra.Command, jsonFlag bool, data any, human func() error) error {
 	return writeDataWithDiagnostics(cmd, jsonFlag, data, nil, nil, human)
 }
@@ -204,7 +207,7 @@ func writeDataWithDiagnostics(cmd *cobra.Command, jsonFlag bool, data any, warni
 	mode := render.SelectMode(render.Options{JSONFlag: jsonFlag, Env: envMap()})
 	if mode == render.ModeJSON {
 		start := time.Now()
-		env, err := envelope.New(toolVersion, data, envelope.Options{
+		env, err := envelope.New(resolvedToolVersion(), data, envelope.Options{
 			StartedAt:  start,
 			FinishedAt: time.Now(),
 			Env:        envMap(),
@@ -223,7 +226,7 @@ func writeError(cmd *cobra.Command, jsonFlag bool, errObj envelope.Error) error 
 	mode := render.SelectMode(render.Options{JSONFlag: jsonFlag, Env: envMap()})
 	if mode == render.ModeJSON {
 		start := time.Now()
-		env, err := envelope.New[any](toolVersion, nil, envelope.Options{
+		env, err := envelope.New[any](resolvedToolVersion(), nil, envelope.Options{
 			StartedAt:  start,
 			FinishedAt: time.Now(),
 			Env:        envMap(),

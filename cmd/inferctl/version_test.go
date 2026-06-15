@@ -14,13 +14,17 @@ func TestVersionJSONNoCheck(t *testing.T) {
 		t.Fatalf("version error = %v stdout=%s", err, stdout)
 	}
 	var env struct {
-		Data versionData `json:"data"`
+		ToolVersion string      `json:"tool_version"`
+		Data        versionData `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
 		t.Fatalf("unmarshal: %v\n%s", err, stdout)
 	}
 	if env.Data.ToolVersion != internalversion.Tool() || env.Data.ContractVersion != "0.1" || env.Data.SchemaVersion != "0.1" {
 		t.Fatalf("version data = %#v", env.Data)
+	}
+	if env.ToolVersion != env.Data.ToolVersion {
+		t.Fatalf("top-level tool_version = %q, data.tool_version = %q", env.ToolVersion, env.Data.ToolVersion)
 	}
 	if env.Data.Build.GoVersion == "" || env.Data.Build.OS == "" || env.Data.Build.Arch == "" {
 		t.Fatalf("build metadata incomplete = %#v", env.Data.Build)
@@ -44,12 +48,16 @@ func TestVersionCheckFailureWarnsAndExitsZero(t *testing.T) {
 		t.Fatalf("missing update warning: %s", stdout)
 	}
 	var env struct {
-		Data versionData `json:"data"`
+		ToolVersion string      `json:"tool_version"`
+		Data        versionData `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
 		t.Fatal(err)
 	}
 	if env.Data.Update.Checked {
 		t.Fatalf("failed check should leave checked=false: %#v", env.Data.Update)
+	}
+	if env.ToolVersion != env.Data.ToolVersion {
+		t.Fatalf("top-level tool_version = %q, data.tool_version = %q", env.ToolVersion, env.Data.ToolVersion)
 	}
 }

@@ -85,7 +85,7 @@ func newConfigValidateCommand(jsonFlag *bool) *cobra.Command {
 			mode := render.SelectMode(render.Options{JSONFlag: *jsonFlag, Env: envMap()})
 			if mode == render.ModeJSON {
 				start := time.Now()
-				env, err := envelope.New(toolVersion, data, envelope.Options{
+				env, err := envelope.New(resolvedToolVersion(), data, envelope.Options{
 					StartedAt:  start,
 					FinishedAt: time.Now(),
 					Env:        envMap(),

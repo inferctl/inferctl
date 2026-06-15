@@ -14,7 +14,8 @@ func TestUnknownVerbJSON(t *testing.T) {
 		t.Fatal("expected unknown verb error")
 	}
 	var env struct {
-		Errors []struct {
+		ToolVersion string `json:"tool_version"`
+		Errors      []struct {
 			Code       string `json:"code"`
 			DidYouMean string `json:"did_you_mean"`
 			ExitCode   int    `json:"exit_code"`
@@ -26,6 +27,25 @@ func TestUnknownVerbJSON(t *testing.T) {
 	}
 	if len(env.Errors) != 1 || env.Errors[0].Code != "E_UNKNOWN_VERB" || env.Errors[0].DidYouMean != "inferctl doctor" {
 		t.Fatalf("unexpected envelope: %#v", env.Errors)
+	}
+	if env.ToolVersion != resolvedToolVersion() {
+		t.Fatalf("tool_version = %q, want %q", env.ToolVersion, resolvedToolVersion())
+	}
+}
+
+func TestCapabilitiesJSONUsesResolvedToolVersion(t *testing.T) {
+	stdout, _, err := executeForTest("capabilities", "--json")
+	if err != nil {
+		t.Fatalf("capabilities error = %v stdout=%s", err, stdout)
+	}
+	var env struct {
+		ToolVersion string `json:"tool_version"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, stdout)
+	}
+	if env.ToolVersion != resolvedToolVersion() {
+		t.Fatalf("tool_version = %q, want %q", env.ToolVersion, resolvedToolVersion())
 	}
 }
 
