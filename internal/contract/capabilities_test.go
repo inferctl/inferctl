@@ -124,6 +124,7 @@ func TestPackagingDocsAndScriptsMatchExamplesDecision(t *testing.T) {
 		"No Windows installer, Scoop manifest, zip archive, or PATH mutation workflow",
 		"examples/` scripts remain source-only checkout artifacts",
 		"not packaged",
+		"tool_version: \"0.2.2\"",
 	}
 	for _, text := range required {
 		if !strings.Contains(install, text) {

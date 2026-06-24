@@ -14,11 +14,15 @@ gates are cleared.
   archives, installers, Homebrew formula, or Scoop manifest for any platform.
 - Documented `go install github.com/inferctl/inferctl/cmd/inferctl@latest` as the
   intended public install path.
+- Aligned active README, install, release, public-readiness, agent, and
+  contribution docs with the v0.2.2 Apache-licensed public-readiness posture.
 
 ### Removed
 
 - Removed GoReleaser configuration and release-archive validation from the
   active release path.
+- Removed private-tag `GOPRIVATE` installation guidance from active public
+  installation docs.
 
 ## [0.2.1] - 2026-06-15
 

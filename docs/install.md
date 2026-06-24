@@ -1,13 +1,11 @@
 # Installing inferctl
 
-inferctl is private-evaluation software. Public installation is source-built
-with `go install`; this project does not currently publish release binaries,
+inferctl is installed from source with the Go toolchain. This project does not currently publish release binaries,
 archives, installers, Homebrew formulae, or Scoop manifests for any platform.
 
 ## Public Go Install
 
-After the repo is public, install from the module path on macOS, Linux, or
-Windows:
+Install from the module path on macOS, Linux, or Windows:
 
 ```sh
 go install github.com/inferctl/inferctl/cmd/inferctl@latest
@@ -16,7 +14,7 @@ inferctl version --json | jq .data.tool_version
 
 ## Local Source Builds
 
-Use a local checkout build for private evaluation:
+Use a local checkout build for development and validation:
 
 ```sh
 go build -o ./bin/inferctl ./cmd/inferctl
@@ -25,20 +23,16 @@ go build -o ./bin/inferctl ./cmd/inferctl
 
 Expected result: local source builds normally report `tool_version: "dev"`.
 
-## Private Tagged `go install` Validation
+## Tagged `go install` Validation
 
-When validating a private tag, keep the module fetch scoped to private GitHub access instead of the public module proxy:
+After pushing a public source tag, validate it from a clean shell:
 
 ```sh
-export GOPRIVATE=github.com/inferctl/*
-export GONOSUMDB=github.com/inferctl/*
-go install github.com/inferctl/inferctl/cmd/inferctl@v0.2.1
+go install github.com/inferctl/inferctl/cmd/inferctl@v0.2.2
 inferctl version --json | jq .data.tool_version
 ```
 
-Expected result: tagged private installs should report `tool_version: "0.2.1"`.
-
-Before running that command, verify the shell can read the private repository through `gh auth status`, `.netrc`, or your configured Git credential helper.
+Expected result: tagged installs should report `tool_version: "0.2.2"`.
 
 ## Windows
 

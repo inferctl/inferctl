@@ -1,12 +1,13 @@
 # Public-Readiness Decision Memo
 
-This memo records the decisions intentionally deferred after the private
-`v0.2.1` cleanup release.
+This memo records the v0.2.2 public-readiness posture.
 
 ## Current Posture
 
-- Repo status: private-evaluation only.
-- License status: no public license grant yet.
+- Repo/module: `github.com/inferctl/inferctl`.
+- Command package: `cmd/inferctl`.
+- Binary and shell command: `inferctl`.
+- License status: Apache License 2.0 (`LICENSE` and `NOTICE`).
 - Default install posture: Go toolchain install only.
 - Remote CI posture: manual-only via `workflow_dispatch`.
 - Archive posture: no release archives for any platform.
@@ -15,22 +16,20 @@ This memo records the decisions intentionally deferred after the private
 ## Decisions Deferred On Purpose
 
 - Confirm `go install github.com/inferctl/inferctl/cmd/inferctl@latest` works
-  once the repo is public.
-- Whether repo visibility, announcement, and legal gates are ready.
+  from a clean public shell before announcement.
+- Whether announcement timing and any external legal/name gates are ready.
 - Whether a lighter automatic CI workflow is justified before public launch.
 
 ## Non-Goals For v0.2.2
 
-- No public distribution rollout.
 - No signing or notarization work.
 - No Homebrew tap or formula work.
 - No release archives or prebuilt binaries for any platform.
 - No Windows installer reintroduction.
-- No license grant or repo visibility change.
 
 ## Default Next-Step Recommendation
 
-Keep v0.2.2 as a narrow polish release:
+Keep v0.2.2 as a narrow public-readiness release:
 
 - maintain changelog and docs consistency,
 - keep `infer-testserver` as an explicitly documented internal helper name,

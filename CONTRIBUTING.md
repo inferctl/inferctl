@@ -1,7 +1,7 @@
 # Contributing to inferctl
 
-`inferctl` is in private evaluation. External PRs are welcome but please open
-an issue first to discuss scope — the design surface is still tight.
+External PRs are welcome. Please open an issue first for broad design or
+behavior changes; the command contract is intentionally tight.
 
 ## Development
 

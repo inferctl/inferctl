@@ -4,7 +4,14 @@ This guide is for agents that need repeatable local-model routing decisions with
 
 ## Setup
 
-Build from a source checkout during private evaluation:
+Install the public command with the Go toolchain:
+
+```sh
+go install github.com/inferctl/inferctl/cmd/inferctl@latest
+inferctl capabilities --json
+```
+
+For development, build from a source checkout:
 
 ```sh
 go build -o bin/inferctl ./cmd/inferctl

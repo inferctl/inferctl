@@ -2,13 +2,12 @@
 
 Explain your local LLM stack.
 
-`inferctl` is a private-evaluation CLI for inspecting local inference backends,
-loaded models, and routing decisions. It is designed for agent use first:
-every command has opt-in JSON envelopes via `--json`, stable error codes, and
-copy-pasteable follow-up commands.
+`inferctl` is a CLI for inspecting local inference backends, loaded models, and
+routing decisions. It is designed for agent use first: every command has opt-in
+JSON envelopes via `--json`, stable error codes, and copy-pasteable follow-up
+commands.
 
-Licensed under Apache 2.0 (see LICENSE and NOTICE). Still in private
-evaluation ahead of public launch.
+Licensed under Apache 2.0 (see LICENSE and NOTICE).
 
 ## What It Does
 
@@ -23,17 +22,21 @@ OpenAI-compatible `/v1/models` servers. Remote authenticated backends, warmup,
 release, lock management, and live inference execution are intentionally
 deferred.
 
-## Source-First Use
+## Install
 
-The current v0.2.1 work is a private technical cleanup release. Use a local
-checkout build for day-to-day validation; public installation will be through
-`go install`, not prebuilt binaries or archives.
+Install from the public module path on macOS, Linux, or Windows:
 
-Remote CI is intentionally manual-only at this stage. Use local verification
-as the default loop, then trigger `.github/workflows/ci.yml` with
-`workflow_dispatch` only when you specifically want a hosted re-run.
+```sh
+go install github.com/inferctl/inferctl/cmd/inferctl@latest
+inferctl version --json | jq .data.tool_version
+```
+
+No release binaries, Homebrew formula, Scoop manifest, installer, or archive
+builds are published for v0.2.2.
 
 ### Local Checkout Build
+
+Use a local checkout for development and validation:
 
 ```sh
 go test ./...
@@ -46,28 +49,9 @@ bin/inferctl config explain
 Local checkout builds are expected to report `tool_version: "dev"` when no tag
 or release ldflags are involved.
 
-### Public Go Install
-
-After publication, the intended install command for macOS, Linux, and Windows is:
-
-```sh
-go install github.com/inferctl/inferctl/cmd/inferctl@latest
-```
-
-### Private Tagged Install
-
-When Dave decides to validate a private tag, use the private-module path:
-
-```sh
-export GOPRIVATE=github.com/inferctl/*
-export GONOSUMDB=github.com/inferctl/*
-go install github.com/inferctl/inferctl/cmd/inferctl@v0.2.1
-inferctl version --json | jq .data.tool_version
-```
-
-That flow requires GitHub credentials that can read the private repo. Broad
-public `go install ...@latest` guidance depends on the repo being ready for
-public module proxy traffic.
+Remote CI is intentionally manual-only at this stage. Use local verification
+as the default loop, then trigger `.github/workflows/ci.yml` with
+`workflow_dispatch` only when you specifically want a hosted re-run.
 
 The demo scripts run against deterministic fixture servers and do not require
 local Ollama or llama.cpp:
@@ -127,7 +111,7 @@ go build ./...
 Public release, name availability, and legal review are outside this repo's
 implementation scope. Homebrew, signed binaries, direct-download installers,
 release archives, and public binary builds are intentionally out of scope for
-v0.2.1.
+v0.2.2.
 
 ## License
 
