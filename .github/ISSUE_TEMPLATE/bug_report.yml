@@ -1,0 +1,77 @@
+name: Bug report
+description: Something's broken
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. `inferctl version --json` and
+        `inferctl doctor --json` outputs make triage much faster.
+
+  - type: textarea
+    id: version
+    attributes:
+      label: inferctl version
+      description: Output of `inferctl version --json`
+      render: json
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS and arch
+      description: e.g. macOS 14.5 arm64, Ubuntu 24.04 amd64, Windows 11 amd64
+      placeholder: macOS 14.5 arm64
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: backends
+    attributes:
+      label: Backends configured
+      options:
+        - label: Ollama
+        - label: llama.cpp
+        - label: LM Studio
+        - label: MLX
+        - label: OpenAI-compatible (unauthenticated)
+        - label: None / unsure
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command run
+      description: Exact command (with flags). Redact any sensitive paths.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: What happened. Paste full output if short; attach a file if long.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you thought would happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: doctor output (optional but very helpful)
+      description: Output of `inferctl doctor --json`
+      render: json
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Logs, related issues, recent changes to your stack.

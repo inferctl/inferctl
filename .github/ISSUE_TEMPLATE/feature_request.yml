@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a new capability or change
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Lead with the problem, not the solution. The strongest requests
+        describe the friction; the implementation tends to design itself once
+        the friction is clear.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that inferctl makes hard or impossible?
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How are you working around this today (if at all)?
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach (optional)
+      description: If you have a concrete idea, share it. If not, leave blank.
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope check
+      description: |
+        Does this fit inferctl's "explain your stack, don't run inference"
+        posture? If you're not sure, say so — we'll figure it out together.

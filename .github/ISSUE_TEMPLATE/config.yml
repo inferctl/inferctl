@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/inferctl/inferctl/security/policy
+    about: Do not file security issues publicly. See SECURITY.md.
+  - name: Question or discussion
+    url: https://github.com/inferctl/inferctl/discussions
+    about: General questions, ideas, and use-case discussion live in Discussions.
