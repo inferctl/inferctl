@@ -117,20 +117,22 @@ func TestAgentGuideCoversRequiredWorkflows(t *testing.T) {
 func TestPackagingDocsAndScriptsMatchExamplesDecision(t *testing.T) {
 	install := readString(t, "../../docs/install.md")
 	required := []string{
-		"export PATH",
-		"go build -o .\\bin\\inferctl.exe .\\cmd\\inferctl",
-		"No Windows installer, Scoop manifest, or PATH mutation workflow is promised in this release.",
+		"go install github.com/inferctl/inferctl/cmd/inferctl@latest",
+		"does not currently publish release binaries",
+		"release binaries",
+		"archives, installers, Homebrew formulae, or Scoop manifests",
+		"No Windows installer, Scoop manifest, zip archive, or PATH mutation workflow",
 		"examples/` scripts remain source-only checkout artifacts",
-		"intentionally not packaged",
+		"not packaged",
 	}
 	for _, text := range required {
 		if !strings.Contains(install, text) {
 			t.Fatalf("install docs missing %q", text)
 		}
 	}
-	checkArchives := readString(t, "../../scripts/check-release-archives.sh")
-	if !strings.Contains(checkArchives, "docs/agent-guide.md") || !strings.Contains(checkArchives, "docs/install.md") || !strings.Contains(checkArchives, "examples/") {
-		t.Fatal("archive checker does not enforce docs/examples packaging decision")
+	caps := readString(t, "capabilities.golden.json")
+	if !strings.Contains(caps, "Go toolchain installation guidance") || !strings.Contains(caps, "Go-install-only launch posture") {
+		t.Fatal("capabilities metadata does not describe Go-install-only packaging decision")
 	}
 }
 

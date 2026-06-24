@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/Ozhiaki/inferctl/internal/backends"
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/internal/backends"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 type Backend struct {

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Ozhiaki/inferctl/internal/testserver"
+	"github.com/inferctl/inferctl/internal/testserver"
 )
 
 func TestRoutePrimarySuccess(t *testing.T) {

@@ -1,6 +1,6 @@
 package openai
 
-import "github.com/Ozhiaki/inferctl/pkg/inferctl"
+import "github.com/inferctl/inferctl/pkg/inferctl"
 
 type ModelsResponse struct {
 	Data []struct {

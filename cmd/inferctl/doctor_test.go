@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Ozhiaki/inferctl/internal/testserver"
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/internal/testserver"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 func TestDoctorCleanReport(t *testing.T) {
@@ -153,7 +153,7 @@ func assertNoFutureDoctorCommands(t *testing.T, action *inferctl.RecommendedActi
 	t.Helper()
 	seen := map[string]bool{}
 	for _, command := range commands {
-		if strings.HasPrefix(command.Command, "infer warmup ") || strings.HasPrefix(command.Command, "infer release-idle") {
+		if strings.HasPrefix(command.Command, "inferctl warmup ") || strings.HasPrefix(command.Command, "inferctl release-idle") {
 			t.Fatalf("doctor emitted future command: %#v", command)
 		}
 		if command.AvailableInVersion != nil {
@@ -167,12 +167,12 @@ func assertNoFutureDoctorCommands(t *testing.T, action *inferctl.RecommendedActi
 	if action == nil {
 		return
 	}
-	if strings.HasPrefix(action.Command, "infer warmup ") || strings.HasPrefix(action.Command, "infer release-idle") {
+	if strings.HasPrefix(action.Command, "inferctl warmup ") || strings.HasPrefix(action.Command, "inferctl release-idle") {
 		t.Fatalf("doctor recommended future command: %#v", action)
 	}
 	seen = map[string]bool{action.Command: true}
 	for _, alt := range action.Alternatives {
-		if strings.HasPrefix(alt.Command, "infer warmup ") || strings.HasPrefix(alt.Command, "infer release-idle") {
+		if strings.HasPrefix(alt.Command, "inferctl warmup ") || strings.HasPrefix(alt.Command, "inferctl release-idle") {
 			t.Fatalf("doctor alternative recommended future command: %#v", action)
 		}
 		if seen[alt.Command] {

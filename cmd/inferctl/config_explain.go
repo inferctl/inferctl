@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 	"github.com/spf13/cobra"
 )
 

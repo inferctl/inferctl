@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	internalversion "github.com/Ozhiaki/inferctl/internal/version"
+	internalversion "github.com/inferctl/inferctl/internal/version"
 )
 
 func TestVersionJSONNoCheck(t *testing.T) {

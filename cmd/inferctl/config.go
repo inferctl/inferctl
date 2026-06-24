@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Ozhiaki/inferctl/internal/config"
-	"github.com/Ozhiaki/inferctl/internal/envelope"
-	"github.com/Ozhiaki/inferctl/internal/render"
+	"github.com/inferctl/inferctl/internal/config"
+	"github.com/inferctl/inferctl/internal/envelope"
+	"github.com/inferctl/inferctl/internal/render"
 	"github.com/spf13/cobra"
 )
 

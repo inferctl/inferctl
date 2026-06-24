@@ -1,4 +1,4 @@
-module github.com/Ozhiaki/inferctl
+module github.com/inferctl/inferctl
 
 go 1.26.1
 

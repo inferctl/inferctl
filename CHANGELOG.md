@@ -8,6 +8,47 @@ gates are cleared.
 
 ## [Unreleased]
 
+### Changed
+
+- Adopted a Go-install-only public launch posture: no release binaries,
+  archives, installers, Homebrew formula, or Scoop manifest for any platform.
+- Documented `go install github.com/inferctl/inferctl/cmd/inferctl@latest` as the
+  intended public install path.
+
+### Removed
+
+- Removed GoReleaser configuration and release-archive validation from the
+  active release path.
+
+## [0.2.1] - 2026-06-15
+
+### Added
+
+- `internal/version` so tagged builds and private `go install` validation can
+  report a resolved `tool_version` instead of the default development marker.
+
+### Changed
+
+- Renamed the user-facing CLI and built binary from `infer` to `inferctl`.
+- Threaded the resolved tool version through success and error JSON envelopes.
+- Rewrote the README, install guide, and release workflow around a private
+  source-first evaluation posture rather than public launch instructions.
+- Switched GitHub Actions verification to manual dispatch only to avoid
+  automatic remote runs during private cleanup work.
+- Updated demo scripts to call the existing `infer-testserver` helper
+  correctly after the CLI rename.
+
+### Removed
+
+- Active Scoop manifest support from the release path.
+- Windows installer packaging from the release path.
+
+### Notes
+
+- `v0.2.1` is a private cleanup release, not a public launch.
+- GoReleaser remains in place for private snapshot validation only.
+- Windows remains source-build only in this release.
+
 ## [0.2.0] - 2026-06-13
 
 ### Added

@@ -9,8 +9,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/Ozhiaki/inferctl/internal/envelope"
-	internalversion "github.com/Ozhiaki/inferctl/internal/version"
+	"github.com/inferctl/inferctl/internal/envelope"
+	internalversion "github.com/inferctl/inferctl/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -120,7 +120,7 @@ func buildMetadata() (string, string, map[string]string) {
 func checkForUpdates() (versionUpdate, *envelope.Warning) {
 	endpoint := os.Getenv("INFERCTL_UPDATE_CHECK_URL")
 	if endpoint == "" {
-		endpoint = "https://api.github.com/repos/Ozhiaki/inferctl/releases/latest"
+		endpoint = "https://api.github.com/repos/inferctl/inferctl/releases/latest"
 	}
 	client := http.Client{Timeout: 2 * time.Second}
 	resp, err := client.Get(endpoint)

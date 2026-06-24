@@ -54,25 +54,3 @@ jobs:
           examples/demo-1-install-moment.sh
           examples/demo-2-route-explained.sh
           examples/demo-3-agent-loop.sh
-
-  snapshot:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Snapshot release
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --snapshot --clean
-
-      - name: Archive contents
-        run: scripts/check-release-archives.sh

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Ozhiaki/inferctl/internal/testserver"
+	"github.com/inferctl/inferctl/internal/testserver"
 )
 
 func TestTriageCleanMachineReturnsZeroItems(t *testing.T) {

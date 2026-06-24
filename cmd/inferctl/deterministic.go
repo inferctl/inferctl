@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 func deterministicOutputMode() bool {

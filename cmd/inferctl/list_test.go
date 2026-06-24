@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Ozhiaki/inferctl/internal/backends/lmstudio"
-	"github.com/Ozhiaki/inferctl/internal/backends/mlx"
-	"github.com/Ozhiaki/inferctl/internal/testserver"
+	"github.com/inferctl/inferctl/internal/backends/lmstudio"
+	"github.com/inferctl/inferctl/internal/backends/mlx"
+	"github.com/inferctl/inferctl/internal/testserver"
 )
 
 func TestBackendsModelsAndModelCommands(t *testing.T) {

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Ozhiaki/inferctl/internal/contract"
-	"github.com/Ozhiaki/inferctl/internal/envelope"
-	"github.com/Ozhiaki/inferctl/internal/render"
-	internalversion "github.com/Ozhiaki/inferctl/internal/version"
+	"github.com/inferctl/inferctl/internal/contract"
+	"github.com/inferctl/inferctl/internal/envelope"
+	"github.com/inferctl/inferctl/internal/render"
+	internalversion "github.com/inferctl/inferctl/internal/version"
 	"github.com/spf13/cobra"
 )
 

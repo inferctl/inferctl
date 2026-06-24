@@ -7,7 +7,8 @@ loaded models, and routing decisions. It is designed for agent use first:
 every command has opt-in JSON envelopes via `--json`, stable error codes, and
 copy-pasteable follow-up commands.
 
-No license is granted yet; private evaluation only.
+Licensed under Apache 2.0 (see LICENSE and NOTICE). Still in private
+evaluation ahead of public launch.
 
 ## What It Does
 
@@ -25,8 +26,12 @@ deferred.
 ## Source-First Use
 
 The current v0.2.1 work is a private technical cleanup release. Use a local
-checkout build for day-to-day validation; treat tagged installs and release
-archives as private verification steps rather than public distribution.
+checkout build for day-to-day validation; public installation will be through
+`go install`, not prebuilt binaries or archives.
+
+Remote CI is intentionally manual-only at this stage. Use local verification
+as the default loop, then trigger `.github/workflows/ci.yml` with
+`workflow_dispatch` only when you specifically want a hosted re-run.
 
 ### Local Checkout Build
 
@@ -41,21 +46,28 @@ bin/inferctl config explain
 Local checkout builds are expected to report `tool_version: "dev"` when no tag
 or release ldflags are involved.
 
-### Private Tagged Install
+### Public Go Install
 
-When Dave decides to validate a private tag, use the private-module path rather
-than public proxy docs:
+After publication, the intended install command for macOS, Linux, and Windows is:
 
 ```sh
-export GOPRIVATE=github.com/Ozhiaki/*
-export GONOSUMDB=github.com/Ozhiaki/*
-go install github.com/Ozhiaki/inferctl/cmd/inferctl@v0.2.1
+go install github.com/inferctl/inferctl/cmd/inferctl@latest
+```
+
+### Private Tagged Install
+
+When Dave decides to validate a private tag, use the private-module path:
+
+```sh
+export GOPRIVATE=github.com/inferctl/*
+export GONOSUMDB=github.com/inferctl/*
+go install github.com/inferctl/inferctl/cmd/inferctl@v0.2.1
 inferctl version --json | jq .data.tool_version
 ```
 
 That flow requires GitHub credentials that can read the private repo. Broad
-public `go install ...@latest` guidance is deferred until the final public
-module-path decision is made.
+public `go install ...@latest` guidance depends on the repo being ready for
+public module proxy traffic.
 
 The demo scripts run against deterministic fixture servers and do not require
 local Ollama or llama.cpp:
@@ -65,6 +77,10 @@ examples/demo-1-install-moment.sh
 examples/demo-2-route-explained.sh
 examples/demo-3-agent-loop.sh
 ```
+
+The fixture helper intentionally keeps the internal legacy name
+`cmd/infer-testserver`. The product rename applies to the user-facing CLI
+binary, not to this repo-local test utility.
 
 ## Config
 
@@ -90,6 +106,7 @@ to resolve.
 - [Errors](docs/errors.md)
 - [Agent guide](docs/agent-guide.md)
 - [Install](docs/install.md)
+- [Public-readiness memo](docs/public-readiness.md)
 - [Contract goldens](testdata/contract/README.md)
 
 Regenerate generated docs with:
@@ -105,13 +122,16 @@ scripts/check-contract-goldens.sh
 go test ./...
 go vet ./...
 go build ./...
-go run github.com/goreleaser/goreleaser/v2@latest release --snapshot --clean
 ```
 
 Public release, name availability, and legal review are outside this repo's
 implementation scope. Homebrew, signed binaries, direct-download installers,
-and public release commands are intentionally out of scope for v0.2.1.
+release archives, and public binary builds are intentionally out of scope for
+v0.2.1.
 
 ## License
 
-Pending. No public distribution before resolution.
+Apache License 2.0. See [LICENSE](LICENSE).
+
+The inference-router idea that kicked off inferctl came out of tinkering with
+Foxforge. inferctl itself is an independent Go implementation.

@@ -11,7 +11,7 @@
     {
       "name": "install",
       "path": "docs/install.md",
-      "description": "Archive and source-build installation guidance, including PATH hints for supported archive targets."
+      "description": "Go toolchain installation guidance; no release binaries, archives, installers, Homebrew formulae, or Scoop manifests are published for the current launch posture."
     },
     {
       "name": "verbs",
@@ -26,7 +26,7 @@
   ],
   "examples": {
     "packaging": "source_only",
-    "decision": "v0.2 examples are source checkout scripts, not release-package artifacts; packaged examples are deferred until distribution artifacts do not require Go on the target machine.",
+    "decision": "v0.2 examples are source checkout scripts, not release-package artifacts; no packaged examples or release archives are planned for the current Go-install-only launch posture.",
     "paths": [
       "examples/demo-1-install-moment.sh",
       "examples/demo-2-route-explained.sh",

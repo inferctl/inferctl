@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Ozhiaki/inferctl/internal/backends"
-	openaimodels "github.com/Ozhiaki/inferctl/internal/backends/openai"
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/internal/backends"
+	openaimodels "github.com/inferctl/inferctl/internal/backends/openai"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 var ErrNotSupported = errors.New("operation not supported by openai_compat in v0.1")

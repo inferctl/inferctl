@@ -11,7 +11,7 @@ go build -o bin/inferctl ./cmd/inferctl
 bin/inferctl capabilities --json
 ```
 
-The examples in `examples/` are source-only checkout artifacts for v0.2. They are not release-package payloads yet, and they may build `infer` and `infer-testserver` with the local Go toolchain. Packaged examples are deferred until the distribution bead defines release artifacts that do not require Go on the target machine.
+The examples in `examples/` are source-only checkout artifacts for v0.2. They are not release-package payloads, and they may build `inferctl` and `infer-testserver` with the local Go toolchain. Public installation is Go toolchain only for now; no packaged examples or release archives are planned for this launch posture.
 
 ## Config Workflow
 

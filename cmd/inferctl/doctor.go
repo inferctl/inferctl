@@ -7,9 +7,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Ozhiaki/inferctl/internal/config"
-	"github.com/Ozhiaki/inferctl/internal/envelope"
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/internal/config"
+	"github.com/inferctl/inferctl/internal/envelope"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 	"github.com/spf13/cobra"
 )
 

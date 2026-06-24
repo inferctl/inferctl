@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Ozhiaki/inferctl/internal/config"
-	"github.com/Ozhiaki/inferctl/internal/envelope"
+	"github.com/inferctl/inferctl/internal/config"
+	"github.com/inferctl/inferctl/internal/envelope"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 )

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Ozhiaki/inferctl/internal/testserver"
+	"github.com/inferctl/inferctl/internal/testserver"
 )
 
 func TestOpenAICompatAuthFailuresAcrossBackendReadingVerbs(t *testing.T) {

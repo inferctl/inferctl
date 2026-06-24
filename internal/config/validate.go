@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"slices"
 
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 type ValidationSummary struct {

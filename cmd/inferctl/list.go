@@ -7,14 +7,14 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Ozhiaki/inferctl/internal/backends/llamacpp"
-	"github.com/Ozhiaki/inferctl/internal/backends/lmstudio"
-	"github.com/Ozhiaki/inferctl/internal/backends/mlx"
-	"github.com/Ozhiaki/inferctl/internal/backends/ollama"
-	"github.com/Ozhiaki/inferctl/internal/backends/openaicompat"
-	"github.com/Ozhiaki/inferctl/internal/config"
-	"github.com/Ozhiaki/inferctl/internal/envelope"
-	"github.com/Ozhiaki/inferctl/pkg/inferctl"
+	"github.com/inferctl/inferctl/internal/backends/llamacpp"
+	"github.com/inferctl/inferctl/internal/backends/lmstudio"
+	"github.com/inferctl/inferctl/internal/backends/mlx"
+	"github.com/inferctl/inferctl/internal/backends/ollama"
+	"github.com/inferctl/inferctl/internal/backends/openaicompat"
+	"github.com/inferctl/inferctl/internal/config"
+	"github.com/inferctl/inferctl/internal/envelope"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 	"github.com/spf13/cobra"
 )
 
