@@ -179,7 +179,7 @@ Default: writes locally to `$XDG_DATA_HOME/<tool>/feedback.jsonl` (one line per 
   "contract_version": "1",
   "message":       "The 'doctor' command returned exit 3 but no recommended_action.",
   "context": {
-    "cwd":         "/Users/me/p/foo",
+    "cwd":         "$HOME/p/foo",
     "last_argv":   ["<tool>", "doctor", "--json"],
     "last_exit":   3
   }
@@ -209,7 +209,7 @@ $ <tool> feedback "..." --json
 {
   "ok": true,
   "data": {
-    "local_path":     "/Users/me/.local/share/<tool>/feedback.jsonl",
+    "local_path":     "$XDG_DATA_HOME/<tool>/feedback.jsonl",
     "upstream":       {"posted": true, "http_status": 202}
   }
 }

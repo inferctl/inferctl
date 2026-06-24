@@ -21,24 +21,24 @@ gates are cleared.
 
 - Removed GoReleaser configuration and release-archive validation from the
   active release path.
-- Removed private-tag `GOPRIVATE` installation guidance from active public
+- Removed non-public module installation guidance from active public
   installation docs.
 
 ## [0.2.1] - 2026-06-15
 
 ### Added
 
-- `internal/version` so tagged builds and private `go install` validation can
+- `internal/version` so tagged builds and source install validation can
   report a resolved `tool_version` instead of the default development marker.
 
 ### Changed
 
 - Renamed the user-facing CLI and built binary from `infer` to `inferctl`.
 - Threaded the resolved tool version through success and error JSON envelopes.
-- Rewrote the README, install guide, and release workflow around a private
+- Rewrote the README, install guide, and release workflow around a
   source-first evaluation posture rather than public launch instructions.
 - Switched GitHub Actions verification to manual dispatch only to avoid
-  automatic remote runs during private cleanup work.
+  automatic remote runs during cleanup work.
 - Updated demo scripts to call the existing `infer-testserver` helper
   correctly after the CLI rename.
 
@@ -49,8 +49,8 @@ gates are cleared.
 
 ### Notes
 
-- `v0.2.1` is a private cleanup release, not a public launch.
-- GoReleaser remains in place for private snapshot validation only.
+- `v0.2.1` is a source-first cleanup release, not a public launch.
+- GoReleaser remains in place for snapshot validation only.
 - Windows remains source-build only in this release.
 
 ## [0.2.0] - 2026-06-13
@@ -124,7 +124,7 @@ gates are cleared.
   observations; route latency fields remain null/zero by design.
 - Authenticated and remote OpenAI-compatible backends are deferred.
 - Human output is intentionally readable but not byte-for-byte stable.
-- License remains pending; private evaluation only.
+- License status was not finalized for public distribution.
 
 ### Deferred
 

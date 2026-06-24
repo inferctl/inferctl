@@ -109,7 +109,7 @@ $ <tool> config show --json
     "_provenance": {
       "endpoint":  {"source": "profile",  "profile": "prod"},
       "log_level": {"source": "env",      "env_var": "TOOL_LOG_LEVEL"},
-      "profiles":  {"source": "config",   "path": "/Users/me/.config/<tool>/config.toml", "line": 7}
+      "profiles":  {"source": "config",   "path": "$HOME/.config/<tool>/config.toml", "line": 7}
     }
   },
   "meta": {...}
@@ -269,7 +269,7 @@ Surface the path in `_provenance` and in `config show`:
 
 ```json
 "_provenance": {
-  "_config_file": "/Users/me/.config/<tool>/config.toml"
+  "_config_file": "$HOME/.config/<tool>/config.toml"
 }
 ```
 
