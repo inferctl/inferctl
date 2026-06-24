@@ -38,3 +38,5 @@ go.work.sum
 .env
 .env.local
 .env.*.local
+# br doctor per-run artifacts
+.doctor/
