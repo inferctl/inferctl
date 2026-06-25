@@ -53,9 +53,17 @@ done
 section "private residue"
 
 require_clean_grep "private module and launch-gate residue" \
-  'GOPRIVATE|GONOSUMDB|LICENSE_PENDING|github\.com/Ozhiaki|Makakoons|makakoon|private-tag|private validation|private cleanup|private evaluation|launch-gate|launch gate' \
+  'GOPRIVATE|GONOSUMDB|LICENSE_PENDING|Makakoons|makakoon|private-tag|private validation|private cleanup|private evaluation|launch-gate|launch gate' \
   -- \
   ':(exclude)scripts/check-public-readiness.sh'
+
+if git grep -n -E 'github\.com/Ozhiaki/' -- ':(exclude)scripts/check-public-readiness.sh' \
+  | grep -v 'github.com/Ozhiaki/make-cli' >"$grep_out"; then
+  fail "unexpected Ozhiaki GitHub module or repo references"
+  cat "$grep_out" >&2
+else
+  printf 'ok: Ozhiaki GitHub references are limited to make-cli\n'
+fi
 
 require_clean_grep "developer-local absolute paths" \
   '/Users/dave|/home/dave|/var/folders|/private/var/folders' \

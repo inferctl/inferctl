@@ -23,6 +23,8 @@ gates are cleared.
   active release path.
 - Removed non-public module installation guidance from active public
   installation docs.
+- Moved the reusable `make-cli` skill out of this repository to
+  <https://github.com/Ozhiaki/make-cli>.
 
 ## [0.2.1] - 2026-06-15
 

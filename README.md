@@ -91,6 +91,7 @@ to resolve.
 - [Agent guide](docs/agent-guide.md)
 - [Install](docs/install.md)
 - [Public-readiness memo](docs/public-readiness.md)
+- [Lineage](docs/lineage.md)
 - [Contract goldens](testdata/contract/README.md)
 
 Regenerate generated docs with:
