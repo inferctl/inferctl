@@ -1,0 +1,1190 @@
+{
+  "commands": [],
+  "data": {
+    "backend_kinds": [
+      {
+        "name": "ollama",
+        "status": "v0.1"
+      },
+      {
+        "name": "llama.cpp",
+        "status": "v0.1"
+      },
+      {
+        "name": "openai_compat",
+        "status": "v0.1"
+      },
+      {
+        "name": "lmstudio",
+        "status": "v0.2"
+      },
+      {
+        "name": "mlx",
+        "status": "v0.2"
+      }
+    ],
+    "binary": "inferctl",
+    "config": {
+      "explain_uri": "inferctl config explain --json",
+      "format": "toml",
+      "mutation_verbs": [
+        "config init",
+        "config set",
+        "config patch"
+      ],
+      "precedence": [
+        "flag",
+        "env",
+        "file",
+        "default"
+      ],
+      "schema_uri": "inferctl config schema --json",
+      "search_path": [
+        "$INFERCTL_CONFIG",
+        "./inferctl.toml",
+        "$XDG_CONFIG_HOME/inferctl/config.toml",
+        "$HOME/.config/inferctl/config.toml"
+      ],
+      "show_uri": "inferctl config show --json",
+      "supports_profiles": false,
+      "validate_uri": "inferctl config validate --json"
+    },
+    "contract_version": "0.1",
+    "docs": [
+      {
+        "description": "Agent-facing workflows for setup, config mutation, discovery, triage, routing, auth, and model-family quirks.",
+        "name": "agent_guide",
+        "path": "docs/agent-guide.md"
+      },
+      {
+        "description": "Go toolchain installation guidance; no release binaries, archives, installers, Homebrew formulae, or Scoop manifests are published for the current launch posture.",
+        "name": "install",
+        "path": "docs/install.md"
+      },
+      {
+        "description": "Generated CLI verb contract.",
+        "name": "verbs",
+        "path": "docs/verbs.md"
+      },
+      {
+        "description": "Generated error and warning catalog.",
+        "name": "errors",
+        "path": "docs/errors.md"
+      }
+    ],
+    "env_vars": [
+      {
+        "description": "Override config file path.",
+        "honored": true,
+        "name": "INFERCTL_CONFIG"
+      },
+      {
+        "default": "text",
+        "description": "Default output format; json makes every verb emit the envelope.",
+        "honored": true,
+        "name": "INFERCTL_FORMAT",
+        "values": [
+          "text",
+          "json"
+        ]
+      },
+      {
+        "description": "Override default backend by setting exactly one configured backend default=true.",
+        "honored": true,
+        "name": "INFERCTL_DEFAULT_BACKEND"
+      },
+      {
+        "default": "warn",
+        "description": "Override profile mode; v0.1 enforces warn semantics.",
+        "honored": true,
+        "name": "INFERCTL_PROFILE_MODE",
+        "values": [
+          "strict",
+          "warn",
+          "advisory"
+        ]
+      },
+      {
+        "default": "text",
+        "description": "Select stderr diagnostic log format.",
+        "honored": true,
+        "name": "INFERCTL_LOG_FORMAT",
+        "values": [
+          "text",
+          "json"
+        ]
+      },
+      {
+        "description": "Fix request_id, ts_iso, and elapsed_ms for deterministic tests.",
+        "honored": true,
+        "name": "INFERCTL_TEST_DETERMINISTIC"
+      },
+      {
+        "description": "Suppress ANSI color regardless of TTY.",
+        "honored": true,
+        "name": "NO_COLOR"
+      },
+      {
+        "description": "Suppress ANSI color; does not change output format.",
+        "honored": true,
+        "name": "CI"
+      },
+      {
+        "description": "TERM=dumb suppresses ANSI color.",
+        "honored": true,
+        "name": "TERM"
+      },
+      {
+        "description": "Determinism aid for ts_iso.",
+        "honored": true,
+        "name": "SOURCE_DATE_EPOCH"
+      }
+    ],
+    "envelope_version": "0.1",
+    "error_codes": {
+      "E_BACKEND_AUTH_FAILED": {
+        "details_schema_ref": "#/schemas/error_details/E_BACKEND_AUTH_FAILED",
+        "exit_code": 3,
+        "message_template": "backend '<backend>' authentication failed",
+        "retryable": false,
+        "status": "v0.2"
+      },
+      "E_BACKEND_REMOTE_NOT_ALLOWED": {
+        "details_schema_ref": "#/schemas/error_details/E_BACKEND_REMOTE_NOT_ALLOWED",
+        "exit_code": 3,
+        "message_template": "backend '<backend>' remote endpoint requires remote_allowed=true",
+        "retryable": false,
+        "status": "v0.2"
+      },
+      "E_BACKEND_TIMEOUT": {
+        "details_schema_ref": "#/schemas/error_details/E_BACKEND_TIMEOUT",
+        "exit_code": 4,
+        "message_template": "all configured backends timed out",
+        "retryable": true,
+        "status": "v0.1"
+      },
+      "E_BINARY_INTERNAL": {
+        "details_schema_ref": "#/schemas/error_details/E_BINARY_INTERNAL",
+        "exit_code": 3,
+        "message_template": "internal error: <short_description>",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_CONFIG_INVALID": {
+        "details_schema_ref": "#/schemas/error_details/E_CONFIG_INVALID",
+        "exit_code": 3,
+        "message_template": "config file at <path> failed to parse",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_CONFIG_KEY_UNKNOWN": {
+        "details_schema_ref": "#/schemas/error_details/E_CONFIG_KEY_UNKNOWN",
+        "exit_code": 1,
+        "message_template": "config key '<key>' is not recognized",
+        "retryable": false,
+        "status": "v0.2"
+      },
+      "E_CONFIG_MISSING": {
+        "details_schema_ref": "#/schemas/error_details/E_CONFIG_MISSING",
+        "exit_code": 3,
+        "message_template": "no config file found",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_CONFIG_PATCH_DELETE_UNSUPPORTED": {
+        "details_schema_ref": "#/schemas/error_details/E_CONFIG_PATCH_DELETE_UNSUPPORTED",
+        "exit_code": 1,
+        "message_template": "config patch deletion is not supported",
+        "retryable": false,
+        "status": "v0.2"
+      },
+      "E_CONFIG_UNREADABLE": {
+        "details_schema_ref": "#/schemas/error_details/E_CONFIG_UNREADABLE",
+        "exit_code": 3,
+        "message_template": "config file at <path> could not be read: <reason>",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_CONFIG_VALIDATION_FAILED": {
+        "details_schema_ref": "#/schemas/error_details/E_CONFIG_VALIDATION_FAILED",
+        "exit_code": 1,
+        "message_template": "config validation found <n> error(s) and <m> warning(s)",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_CONFIG_WRITE_FAILED": {
+        "details_schema_ref": "#/schemas/error_details/E_CONFIG_WRITE_FAILED",
+        "exit_code": 3,
+        "message_template": "could not write config to <path>: <reason>",
+        "retryable": false,
+        "status": "v0.2"
+      },
+      "E_INCOMPATIBLE_FLAGS": {
+        "details_schema_ref": "#/schemas/error_details/E_INCOMPATIBLE_FLAGS",
+        "exit_code": 1,
+        "message_template": "flags <flag_a> and <flag_b> cannot be used together",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_INVALID_ARG": {
+        "details_schema_ref": "#/schemas/error_details/E_INVALID_ARG",
+        "exit_code": 1,
+        "message_template": "invalid value for <arg_name>: '<given>' (expected: <description>)",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_MISSING_ARG": {
+        "details_schema_ref": "#/schemas/error_details/E_MISSING_ARG",
+        "exit_code": 1,
+        "message_template": "verb '<verb>' requires <arg_name>",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_NO_BACKENDS_CONFIGURED": {
+        "details_schema_ref": "#/schemas/error_details/E_NO_BACKENDS_CONFIGURED",
+        "exit_code": 3,
+        "message_template": "config at <path> defines no backends",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_NO_ROUTE_AVAILABLE": {
+        "details_schema_ref": "#/schemas/error_details/E_NO_ROUTE_AVAILABLE",
+        "exit_code": 4,
+        "message_template": "no candidate model for task '<task>' is reachable",
+        "retryable": true,
+        "status": "v0.1"
+      },
+      "E_UNKNOWN_BACKEND": {
+        "details_schema_ref": "#/schemas/error_details/E_UNKNOWN_BACKEND",
+        "exit_code": 1,
+        "message_template": "no backend named '<backend>' in config",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_UNKNOWN_FLAG": {
+        "details_schema_ref": "#/schemas/error_details/E_UNKNOWN_FLAG",
+        "exit_code": 1,
+        "message_template": "unknown flag '<flag>' for verb '<verb>'",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_UNKNOWN_MODEL": {
+        "details_schema_ref": "#/schemas/error_details/E_UNKNOWN_MODEL",
+        "exit_code": 1,
+        "message_template": "model '<model>' not found on any reachable backend",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_UNKNOWN_TASK": {
+        "details_schema_ref": "#/schemas/error_details/E_UNKNOWN_TASK",
+        "exit_code": 1,
+        "message_template": "no routing rule for task '<task>'",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_UNKNOWN_VERB": {
+        "details_schema_ref": "#/schemas/error_details/E_UNKNOWN_VERB",
+        "exit_code": 1,
+        "message_template": "unknown verb '<verb>'",
+        "retryable": false,
+        "status": "v0.1"
+      },
+      "E_VERB_RENAMED": {
+        "details_schema_ref": "#/schemas/error_details/E_VERB_RENAMED",
+        "exit_code": 1,
+        "message_template": "verb '<old>' has been renamed; use '<new>'",
+        "retryable": false,
+        "status": "v0.1"
+      }
+    },
+    "examples": {
+      "decision": "v0.2 examples are source checkout scripts, not release-package artifacts; no packaged examples or release archives are planned for the current Go-install-only launch posture.",
+      "packaging": "source_only",
+      "paths": [
+        "examples/demo-1-install-moment.sh",
+        "examples/demo-2-route-explained.sh",
+        "examples/demo-3-agent-loop.sh"
+      ]
+    },
+    "exit_codes": {
+      "0": {
+        "meaning": "Verb completed; data is valid.",
+        "name": "success",
+        "retryable": false
+      },
+      "1": {
+        "meaning": "Bad invocation, invalid argument, or validation-style failure.",
+        "name": "user_input_error",
+        "retryable": false
+      },
+      "2": {
+        "meaning": "Destructive operation refused for missing confirmation or safer alternative.",
+        "name": "safety_block",
+        "retryable": false
+      },
+      "3": {
+        "meaning": "Tool environment, config, filesystem, or internal state is invalid.",
+        "name": "tool_environment_error",
+        "retryable": false
+      },
+      "4": {
+        "meaning": "Operation may succeed on retry without user changes.",
+        "name": "transient_failure",
+        "retryable": true
+      },
+      "5": {
+        "meaning": "Persistent conflict that requires intervention.",
+        "name": "conflict",
+        "retryable": false
+      }
+    },
+    "features": [
+      "json_envelope",
+      "stderr_error_mirror",
+      "did_you_mean",
+      "contract_goldens",
+      "deterministic_test_mode",
+      "config_provenance",
+      "config_mutation",
+      "config_schema",
+      "from_stdin",
+      "delivery_artifacts",
+      "schema_export",
+      "robot_docs_command",
+      "mega_command_capabilities",
+      "mega_command_diagnose",
+      "mega_command_plan",
+      "mega_command_triage"
+    ],
+    "global_flags": {
+      "--help": {
+        "default": false,
+        "description": "Show terse human help with exit-code and automation guidance.",
+        "type": "bool"
+      },
+      "--json": {
+        "default": false,
+        "description": "Emit the universal JSON envelope on stdout.",
+        "type": "bool"
+      }
+    },
+    "known_non_goals": [
+      "No model-quality benchmarking.",
+      "No inference execution API in v0.2.",
+      "No release binaries, archives, installers, Homebrew formula, or Scoop manifest for the current Go-install-only launch posture.",
+      "No automatic remote backend use unless config explicitly opts in with remote_allowed=true."
+    ],
+    "limits": {
+      "discovery": {
+        "default_ports": [
+          1234,
+          8080,
+          8081,
+          8090,
+          11434
+        ],
+        "default_timeout_ms": 750,
+        "minimum_timeout_ms": 100,
+        "mode": "localhost_fixed_ports"
+      },
+      "triage": {
+        "default_limit": 0,
+        "limit_zero_means": "unbounded"
+      }
+    },
+    "robot_docs_uri": "inferctl robot-docs guide",
+    "schemas": {
+      "backend_list": {
+        "$ref": "#/generated/backend_list",
+        "title": "BackendList"
+      },
+      "capabilities_manifest": {
+        "$ref": "#/generated/capabilities_manifest",
+        "title": "CapabilitiesManifest"
+      },
+      "config_explanation": {
+        "$ref": "#/generated/config_explanation",
+        "title": "ConfigExplanation"
+      },
+      "config_file": {
+        "$ref": "#/generated/config_file",
+        "title": "ConfigFile"
+      },
+      "config_mutation": {
+        "$ref": "#/generated/config_mutation",
+        "title": "ConfigMutation"
+      },
+      "config_validation": {
+        "$ref": "#/generated/config_validation",
+        "title": "ConfigValidation"
+      },
+      "config_view": {
+        "$ref": "#/generated/config_view",
+        "title": "ConfigView"
+      },
+      "discovery_report": {
+        "$ref": "#/generated/discovery_report",
+        "title": "DiscoveryReport"
+      },
+      "doctor_report": {
+        "$ref": "#/generated/doctor_report",
+        "title": "DoctorReport"
+      },
+      "error_details": {
+        "$ref": "#/generated/error_details",
+        "title": "ErrorDetails"
+      },
+      "model_detail": {
+        "$ref": "#/generated/model_detail",
+        "title": "ModelDetail"
+      },
+      "model_list": {
+        "$ref": "#/generated/model_list",
+        "title": "ModelList"
+      },
+      "robot_docs_guide": {
+        "$ref": "#/generated/robot_docs_guide",
+        "title": "RobotDocsGuide"
+      },
+      "route_explanation": {
+        "$ref": "#/generated/route_explanation",
+        "title": "RouteExplanation"
+      },
+      "schema_export": {
+        "$ref": "#/generated/schema_export",
+        "title": "SchemaExport"
+      },
+      "triage_report": {
+        "$ref": "#/generated/triage_report",
+        "title": "TriageReport"
+      },
+      "version_info": {
+        "$ref": "#/generated/version_info",
+        "title": "VersionInfo"
+      },
+      "warning_details": {
+        "$ref": "#/generated/warning_details",
+        "title": "WarningDetails"
+      }
+    },
+    "schemas_uri": "inferctl schema --json",
+    "shared_types": {
+      "BackendInfo": {
+        "$ref": "#/generated/shared/BackendInfo"
+      },
+      "BackendStatus": {
+        "$ref": "#/generated/shared/BackendStatus"
+      },
+      "BackoffState": {
+        "$ref": "#/generated/shared/BackoffState"
+      },
+      "Capabilities": {
+        "$ref": "#/generated/shared/Capabilities"
+      },
+      "ConfigKeyDef": {
+        "$ref": "#/generated/shared/ConfigKeyDef"
+      },
+      "Finding": {
+        "$ref": "#/generated/shared/Finding"
+      },
+      "LatencyStats": {
+        "$ref": "#/generated/shared/LatencyStats"
+      },
+      "LoadedModelInfo": {
+        "$ref": "#/generated/shared/LoadedModelInfo"
+      },
+      "ModelInfo": {
+        "$ref": "#/generated/shared/ModelInfo"
+      },
+      "RecommendedAction": {
+        "$ref": "#/generated/shared/RecommendedAction"
+      },
+      "RouteCandidate": {
+        "$ref": "#/generated/shared/RouteCandidate"
+      },
+      "RouteConstraints": {
+        "$ref": "#/generated/shared/RouteConstraints"
+      },
+      "RouteDecision": {
+        "$ref": "#/generated/shared/RouteDecision"
+      }
+    },
+    "tool": "inferctl",
+    "verbs": [
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          3,
+          4
+        ],
+        "flags": [
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--fast",
+            "type": "bool"
+          },
+          {
+            "default": null,
+            "name": "--backend",
+            "type": "string"
+          }
+        ],
+        "mega_command": "DIAGNOSE",
+        "name": "doctor",
+        "output_schema_ref": "#/schemas/doctor_report",
+        "summary": "Health, loaded models, and route resolution across configured backends."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          3
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--filter",
+            "type": "string"
+          },
+          {
+            "default": null,
+            "name": "--kind",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--fast",
+            "type": "bool"
+          }
+        ],
+        "name": "backends",
+        "output_schema_ref": "#/schemas/backend_list",
+        "summary": "List configured backends with reachability status."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          3
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--backend",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--loaded",
+            "type": "bool"
+          },
+          {
+            "default": true,
+            "name": "--installed",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "models",
+        "output_schema_ref": "#/schemas/model_list",
+        "summary": "List installed or loaded models across configured backends."
+      },
+      {
+        "args": [
+          {
+            "name": "model_name",
+            "required": true
+          }
+        ],
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1,
+          3
+        ],
+        "flags": [
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--no-probe",
+            "type": "bool"
+          }
+        ],
+        "name": "model",
+        "output_schema_ref": "#/schemas/model_detail",
+        "summary": "Inspect one model's backend placements, capabilities, stats, and routing usage."
+      },
+      {
+        "args": [
+          {
+            "name": "task",
+            "required": true
+          }
+        ],
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1,
+          3,
+          4
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--prompt-file",
+            "type": "string"
+          },
+          {
+            "default": null,
+            "name": "--prompt",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--from-stdin",
+            "type": "bool"
+          },
+          {
+            "default": "default",
+            "name": "--prefer",
+            "type": "enum",
+            "values": [
+              "speed",
+              "quality",
+              "default"
+            ]
+          },
+          {
+            "default": true,
+            "name": "--explain",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--quiet",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "mega_command": "PLAN",
+        "name": "route",
+        "output_schema_ref": "#/schemas/route_explanation",
+        "summary": "Compute and explain a route for a configured task."
+      },
+      {
+        "name": "config",
+        "namespace_only": true,
+        "summary": "Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          3
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--section",
+            "type": "string"
+          },
+          {
+            "default": null,
+            "name": "--key",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--no-provenance",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "config show",
+        "output_schema_ref": "#/schemas/config_view",
+        "summary": "Show the effective config with per-key provenance."
+      },
+      {
+        "emits_data_on_failure": true,
+        "exit_codes": [
+          0,
+          1,
+          3
+        ],
+        "flags": [
+          {
+            "default": false,
+            "name": "--strict",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "config validate",
+        "output_schema_ref": "#/schemas/config_validation",
+        "summary": "Validate config and return source-position findings."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0
+        ],
+        "flags": [
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "config schema",
+        "output_schema_ref": "#/schemas/config_file",
+        "summary": "Export the inferctl TOML config JSON Schema."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--key",
+            "type": "string"
+          },
+          {
+            "default": "toml",
+            "name": "--format",
+            "type": "enum",
+            "values": [
+              "toml",
+              "md"
+            ]
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "config explain",
+        "output_schema_ref": "#/schemas/config_explanation",
+        "summary": "Print annotated default config and machine-readable key definitions."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1,
+          3
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--path",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--force",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--print",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "config init",
+        "output_schema_ref": "#/schemas/config_mutation",
+        "summary": "Create or print a starter inferctl config."
+      },
+      {
+        "args": [
+          {
+            "name": "key",
+            "required": true
+          },
+          {
+            "name": "value",
+            "required": true
+          }
+        ],
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1,
+          3
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--path",
+            "type": "string"
+          },
+          {
+            "default": null,
+            "name": "--type",
+            "type": "enum",
+            "values": [
+              "string",
+              "int",
+              "bool",
+              "null",
+              "array"
+            ]
+          },
+          {
+            "default": false,
+            "name": "--dry-run",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "config set",
+        "output_schema_ref": "#/schemas/config_mutation",
+        "summary": "Set one config key while preserving surrounding TOML comments and ordering."
+      },
+      {
+        "args": [
+          {
+            "name": "toml-fragment",
+            "required": false
+          }
+        ],
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1,
+          3
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--path",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--from-stdin",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--dry-run",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "config patch",
+        "output_schema_ref": "#/schemas/config_mutation",
+        "summary": "Merge a TOML fragment into config without supporting deletions."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1,
+          3,
+          4
+        ],
+        "flags": [
+          {
+            "default": "text",
+            "name": "--format",
+            "type": "enum",
+            "values": [
+              "text",
+              "json",
+              "toml"
+            ]
+          },
+          {
+            "default": null,
+            "name": "--kind",
+            "type": "enum",
+            "values": [
+              "ollama",
+              "llama.cpp",
+              "openai_compat",
+              "lmstudio",
+              "mlx"
+            ]
+          },
+          {
+            "default": 750,
+            "name": "--timeout-ms",
+            "type": "int"
+          },
+          {
+            "default": null,
+            "name": "--deliver",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "discover",
+        "output_schema_ref": "#/schemas/discovery_report",
+        "summary": "Probe fixed localhost backend ports and report verified backend candidates."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1,
+          3
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--input-file",
+            "type": "string"
+          },
+          {
+            "default": null,
+            "name": "--backend",
+            "type": "string"
+          },
+          {
+            "default": null,
+            "name": "--severity",
+            "type": "enum",
+            "values": [
+              "error",
+              "warning",
+              "info"
+            ]
+          },
+          {
+            "default": 0,
+            "name": "--limit",
+            "type": "int"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "mega_command": "TRIAGE",
+        "name": "triage",
+        "output_schema_ref": "#/schemas/triage_report",
+        "summary": "Rank deterministic diagnostic next actions from config validation, doctor output, or prior JSON envelopes."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0
+        ],
+        "flags": [
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "mega_command": "CAPABILITIES",
+        "name": "capabilities",
+        "output_schema_ref": "#/schemas/capabilities_manifest",
+        "summary": "Emit the machine-readable CLI contract."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0
+        ],
+        "flags": [
+          {
+            "default": false,
+            "name": "--check",
+            "type": "bool"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "version",
+        "output_schema_ref": "#/schemas/version_info",
+        "summary": "Show version, build metadata, and optional update status."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0,
+          1
+        ],
+        "flags": [
+          {
+            "default": null,
+            "name": "--command",
+            "type": "string"
+          },
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "schema",
+        "output_schema_ref": "#/schemas/schema_export",
+        "summary": "Export JSON schemas for envelopes and verb data."
+      },
+      {
+        "name": "robot-docs",
+        "namespace_only": true,
+        "summary": "Namespace for agent workflow documentation. Not directly invokable."
+      },
+      {
+        "emits_data_on_failure": false,
+        "exit_codes": [
+          0
+        ],
+        "flags": [
+          {
+            "default": false,
+            "name": "--json",
+            "type": "bool"
+          }
+        ],
+        "name": "robot-docs guide",
+        "output_schema_ref": "#/schemas/robot_docs_guide",
+        "summary": "Print the embedded agent workflow guide."
+      }
+    ],
+    "warning_codes": {
+      "W_BACKEND_BACKOFF": {
+        "details_schema_ref": "#/schemas/warning_details/W_BACKEND_BACKOFF",
+        "message_template": "backend '<backend>' is in backoff (<seconds>s remaining)",
+        "status": "v0.1"
+      },
+      "W_BACKEND_DEGRADED": {
+        "details_schema_ref": "#/schemas/warning_details/W_BACKEND_DEGRADED",
+        "message_template": "backend '<backend>' is responding slowly (<ms>ms; threshold <threshold>ms)",
+        "status": "v0.1"
+      },
+      "W_BACKEND_KIND_UNSUPPORTED": {
+        "details_schema_ref": "#/schemas/warning_details/W_BACKEND_KIND_UNSUPPORTED",
+        "message_template": "backend '<backend>' uses kind '<kind>' with v0.1-unsupported option(s): <list>",
+        "status": "v0.1"
+      },
+      "W_BACKEND_UNREACHABLE": {
+        "details_schema_ref": "#/schemas/warning_details/W_BACKEND_UNREACHABLE",
+        "message_template": "backend '<backend>' is unreachable: <reason>",
+        "status": "v0.1"
+      },
+      "W_CONFIG_KEY_DEPRECATED": {
+        "details_schema_ref": "#/schemas/warning_details/W_CONFIG_KEY_DEPRECATED",
+        "message_template": "config key '<old_key>' is deprecated; use '<new_key>' instead",
+        "status": "v0.1"
+      },
+      "W_CONFIG_KEY_UNKNOWN": {
+        "details_schema_ref": "#/schemas/warning_details/W_CONFIG_KEY_UNKNOWN",
+        "message_template": "config key '<key>' is not recognized",
+        "status": "v0.1"
+      },
+      "W_CONFIG_SCHEMA_VERSION_MISMATCH": {
+        "details_schema_ref": "#/schemas/warning_details/W_CONFIG_SCHEMA_VERSION_MISMATCH",
+        "message_template": "config schema_version '<got>' does not match expected '<expected>'",
+        "status": "v0.1"
+      },
+      "W_CONTEXT_NEAR_LIMIT": {
+        "details_schema_ref": "#/schemas/warning_details/W_CONTEXT_NEAR_LIMIT",
+        "message_template": "input is <pct>% of profile max_context_tokens (<used>/<limit>)",
+        "status": "v0.1"
+      },
+      "W_FALLBACK_USED": {
+        "details_schema_ref": "#/schemas/warning_details/W_FALLBACK_USED",
+        "message_template": "routed to fallback '<model>' because primary '<primary>' is <reason>",
+        "status": "v0.1"
+      },
+      "W_MODEL_NOT_INSTALLED": {
+        "details_schema_ref": "#/schemas/warning_details/W_MODEL_NOT_INSTALLED",
+        "message_template": "model '<model>' is referenced by config but not present on any reachable backend",
+        "status": "v0.1"
+      },
+      "W_MODEL_NOT_LOADED": {
+        "details_schema_ref": "#/schemas/warning_details/W_MODEL_NOT_LOADED",
+        "message_template": "model '<model>' is selected but not currently loaded (estimated warmup: <ms>ms)",
+        "status": "v0.1"
+      },
+      "W_PROBE_TIMEOUT": {
+        "details_schema_ref": "#/schemas/warning_details/W_PROBE_TIMEOUT",
+        "message_template": "probe tier '<tier>' timed out; envelope marked degraded",
+        "status": "v0.1"
+      },
+      "W_PROFILE_MODE_NOT_ENFORCED": {
+        "details_schema_ref": "#/schemas/warning_details/W_PROFILE_MODE_NOT_ENFORCED",
+        "message_template": "profile.mode '<mode>' is recognized but v0.1 enforces 'warn' semantics regardless",
+        "status": "v0.1"
+      },
+      "W_UPDATE_CHECK_FAILED": {
+        "details_schema_ref": "#/schemas/warning_details/W_UPDATE_CHECK_FAILED",
+        "message_template": "failed to check for updates: <reason>",
+        "status": "v0.1"
+      }
+    }
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:5fb1c25191902711597154be365e87e0b576c835a29f9dedb73ba1f16961bb30",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZQ96MPPYK3M5MAHKMKGF29",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T15:44:52.374Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625151604-860bf6cc07fc",
+  "warnings": []
+}

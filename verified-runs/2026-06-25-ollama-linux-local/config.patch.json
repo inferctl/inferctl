@@ -1,0 +1,29 @@
+{
+  "commands": [],
+  "data": {
+    "changed_keys": [
+      "backends.ollama.kind",
+      "backends.ollama.base_url",
+      "backends.ollama.default"
+    ],
+    "dry_run": false,
+    "message": "config file updated",
+    "path": "inferctl.toml",
+    "preview": "[meta]\nschema_version = \"0.1\"\n\n[profile]\nname = \"default_local_workstation\"\nmax_context_tokens = 8192\nmax_concurrent_models = 1\nallow_premium = false\nmode = \"warn\"\n\n[backends.ollama]\nkind = \"ollama\"\nbase_url = \"http://127.0.0.1:11434\"\ndefault = true\n\n[routing.code]\nmodel = \"qwen3:8b\"\nbackend = \"ollama\"\nfallback = []\n",
+    "written": true
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:484fdb7750d18707e4521d708470e85815bb843cf1469d314780cb4a9ed9f886",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZQ96PCDF5J1341B4M6C5PT",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T15:44:52.428Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625151604-860bf6cc07fc",
+  "warnings": []
+}

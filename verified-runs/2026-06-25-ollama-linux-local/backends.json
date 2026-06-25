@@ -1,0 +1,35 @@
+{
+  "commands": [],
+  "data": {
+    "backends": [
+      {
+        "backoff": null,
+        "base_url": "http://127.0.0.1:11434",
+        "default": true,
+        "kind": "ollama",
+        "latency_ms": 0,
+        "models_installed_count": 10,
+        "models_loaded_count": 0,
+        "name": "ollama",
+        "reachable": true,
+        "version": "0.20.5"
+      }
+    ],
+    "reachable_count": 1,
+    "total_count": 1
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:cb06a6a7581faa0a4c481e63d0df4d79b46f747682c821e812fc73969360b38e",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZQ96QCJZG6CE2W45TGKJ9X",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T15:44:52.460Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625151604-860bf6cc07fc",
+  "warnings": []
+}

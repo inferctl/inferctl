@@ -1,0 +1,27 @@
+{
+  "commands": [],
+  "data": {
+    "findings": [],
+    "passed": true,
+    "source_path": "inferctl.toml",
+    "summary": {
+      "errors": 0,
+      "info": 0,
+      "warnings": 0
+    }
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:b525dd914245427ac49fee5a6e4380a6b812acaba380e7ac61bf1e879218fa69",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZQ96PRMABQEBRZWZKGB1KE",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T15:44:52.440Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625151604-860bf6cc07fc",
+  "warnings": []
+}

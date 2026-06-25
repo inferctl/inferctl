@@ -1,0 +1,51 @@
+{
+  "commands": [],
+  "data": {
+    "backends": [
+      {
+        "backend": "ollama",
+        "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+        "installed": true,
+        "loaded": false,
+        "size_bytes": 5225388164
+      }
+    ],
+    "capabilities": {
+      "context_window": null,
+      "embedding_dimensions": null,
+      "source": "heuristic",
+      "supports_json_mode": false,
+      "supports_tools": false,
+      "supports_vision": false
+    },
+    "latency_stats": {
+      "first_token_ms_p50": null,
+      "first_token_ms_p95": null,
+      "last_observed_iso": null,
+      "samples": 0,
+      "tokens_per_second_p50": null
+    },
+    "name": "qwen3:8b",
+    "routing": {
+      "fallback_chain": [],
+      "fallback_for_tasks": [],
+      "primary_for_tasks": [
+        "code"
+      ]
+    }
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:cab706570e4fcb12e6c8690fb213420a7120346dfde56247e33940500f1c12f4",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZQ96QRKN607SNZ4YQVFD1A",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T15:44:52.472Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625151604-860bf6cc07fc",
+  "warnings": []
+}

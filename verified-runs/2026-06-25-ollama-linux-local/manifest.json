@@ -1,0 +1,125 @@
+{
+  "run_id": "2026-06-25-ollama-linux-local",
+  "captured_at_utc": "2026-06-25T15:44:52Z",
+  "artifact_status": "publishable_redacted",
+  "inferctl": {
+    "commit": "860bf6cc07fce70d9f750968d8f2034755110f1d",
+    "version": "0.2.2-0.20260625151604-860bf6cc07fc",
+    "contract_version": "0.1",
+    "build_go_version": "go1.26.1",
+    "target_os": "linux",
+    "target_arch": "amd64"
+  },
+  "environment": {
+    "machine_identity": "redacted",
+    "os": "Linux",
+    "arch": "x86_64",
+    "network_scope": "localhost provider endpoint only"
+  },
+  "providers": [
+    {
+      "kind": "ollama",
+      "version": "0.20.5",
+      "endpoint": "http://127.0.0.1:11434",
+      "status": "pass",
+      "verified": true
+    }
+  ],
+  "commands": [
+    {
+      "command": "inferctl version --json",
+      "artifact": "version.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl capabilities --json",
+      "artifact": "capabilities.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --json",
+      "artifact": "discover.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind ollama --json",
+      "artifact": "discover.ollama.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind ollama --format toml",
+      "artifact": "discover.ollama.toml",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config init --path inferctl.toml --json",
+      "artifact": "config.init.write.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind ollama --format toml | inferctl config patch --from-stdin --path inferctl.toml --json",
+      "artifact": "config.patch.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl config validate --json",
+      "artifact": "config.validate.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl doctor --json",
+      "artifact": "doctor.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl backends --json",
+      "artifact": "backends.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl models --json",
+      "artifact": "models.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl model qwen3:8b --json",
+      "artifact": "model.qwen3-8b.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl route code --json",
+      "artifact": "route.code.json",
+      "status": "pass_with_warning"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl triage --json",
+      "artifact": "triage.json",
+      "status": "pass"
+    }
+  ],
+  "observations": {
+    "backends_reachable": 1,
+    "models_installed": 10,
+    "models_loaded_at_doctor_capture": 0,
+    "selected_route_model": "qwen3:8b",
+    "route_warning_codes": [
+      "W_MODEL_NOT_LOADED"
+    ]
+  },
+  "redactions": [
+    {
+      "field": "run directory name",
+      "rule": "use neutral public name instead of private machine hostname"
+    }
+  ],
+  "redaction_review": {
+    "raw_output_field_redactions_applied": false,
+    "notes": "Captured inferctl JSON used localhost URLs and did not contain private hostnames, home paths, Tailscale addresses, tokens, or API key values."
+  },
+  "caveats": [
+    "This run validates an Ollama localhost provider, not remote provider access.",
+    "llama.cpp was not validated because no llama.cpp server process or expected listener was present during the run.",
+    "route code returned W_MODEL_NOT_LOADED because qwen3:8b was installed but not currently loaded; the command still selected a valid available model.",
+    "This is a provider workflow validation, not a model quality benchmark."
+  ]
+}

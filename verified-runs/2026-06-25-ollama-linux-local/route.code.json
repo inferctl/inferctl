@@ -1,0 +1,81 @@
+{
+  "commands": [
+    {
+      "available_in_version": "0.5",
+      "command": "inferctl warmup qwen3:8b",
+      "label": "Warm the selected model",
+      "rationale": "Eliminate first-token latency before issuing the request"
+    },
+    {
+      "available_in_version": null,
+      "command": "inferctl model qwen3:8b --json",
+      "label": "Inspect selected model",
+      "rationale": "Show placements, capabilities, and routing usage for the selected model"
+    }
+  ],
+  "data": {
+    "candidates": [
+      {
+        "available": true,
+        "backend": "ollama",
+        "estimated_first_token_ms": null,
+        "fallback_index": null,
+        "loaded": false,
+        "model": "qwen3:8b",
+        "role": "primary",
+        "unavailability_reason": null
+      }
+    ],
+    "constraints": {
+      "allow_premium": false,
+      "context_pct": 0,
+      "context_used_tokens": 0,
+      "current_loaded_count": 0,
+      "max_concurrent_models": 1,
+      "max_context_tokens": 8192,
+      "profile": "default_local_workstation",
+      "selected_is_premium": null
+    },
+    "decision": {
+      "estimated_first_token_ms": null,
+      "estimated_total_ms": null,
+      "fallback_index": null,
+      "is_fallback": false,
+      "ready": false,
+      "reason": "primary model is available",
+      "selected_backend": "ollama",
+      "selected_model": "qwen3:8b"
+    },
+    "input": {
+      "estimated_tokens": 0,
+      "prompt_chars": 0,
+      "source": "none"
+    },
+    "task": "code"
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:1e5d93696699106e7e5351697a74f2d326ff626cca77a04b50240c62a086d0f0",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZQ96QZAV6CS0MR9081YVE9",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T15:44:52.479Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625151604-860bf6cc07fc",
+  "warnings": [
+    {
+      "code": "W_MODEL_NOT_LOADED",
+      "details": {
+        "backend": "ollama",
+        "estimated_warmup_ms": null,
+        "model": "qwen3:8b",
+        "task": "code"
+      },
+      "message": "selected model 'qwen3:8b' is not loaded"
+    }
+  ]
+}

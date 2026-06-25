@@ -1,0 +1,53 @@
+{
+  "commands": [],
+  "data": {
+    "candidates": [
+      {
+        "auth_required": false,
+        "base_url": "http://127.0.0.1:11434",
+        "confidence": "high",
+        "config_patch": "[backends.ollama]\nkind = \"ollama\"\nbase_url = \"http://127.0.0.1:11434\"\ndefault = false\n\n",
+        "kind": "ollama",
+        "models_count": null,
+        "name_hint": "ollama",
+        "port": 11434,
+        "reachable": true,
+        "verified": true,
+        "version": "0.20.5",
+        "warnings": []
+      }
+    ],
+    "delivery": null,
+    "scan": {
+      "mode": "localhost_fixed_ports",
+      "ports": [
+        1234,
+        8080,
+        8081,
+        8090,
+        11434
+      ],
+      "timeout_ms": 750
+    },
+    "summary": {
+      "patchable_count": 1,
+      "probed_count": 5,
+      "reachable_count": 1,
+      "verified_count": 1
+    }
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:e5b2eafe43cf7ddfe685598f1fea88b019efdfeb680fed13b8333d278da578ca",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZQ96N1617PYD276VHD5AHR",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T15:44:52.385Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625151604-860bf6cc07fc",
+  "warnings": []
+}
