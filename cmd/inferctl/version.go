@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"time"
 
 	"github.com/inferctl/inferctl/internal/envelope"
@@ -147,13 +148,30 @@ func checkForUpdates() (versionUpdate, *envelope.Warning) {
 	}
 	current := internalversion.Tool()
 	available := latest != current && latest != "v"+current
-	checkedAt := time.Now().UTC().Format(time.RFC3339Nano)
+	checkedAt := updateCheckedAtISO()
 	return versionUpdate{
 		Checked:         true,
 		LatestKnown:     &latest,
 		UpdateAvailable: &available,
 		CheckedAtISO:    &checkedAt,
 	}, nil
+}
+
+func updateCheckedAtISO() string {
+	if os.Getenv("INFERCTL_TEST_DETERMINISTIC") == "1" {
+		if raw := os.Getenv("SOURCE_DATE_EPOCH"); raw != "" {
+			if sec, err := strconv.ParseInt(raw, 10, 64); err == nil {
+				return time.Unix(sec, 0).UTC().Format(time.RFC3339Nano)
+			}
+		}
+		return time.Unix(0, 0).UTC().Format(time.RFC3339Nano)
+	}
+	if raw := os.Getenv("SOURCE_DATE_EPOCH"); raw != "" {
+		if sec, err := strconv.ParseInt(raw, 10, 64); err == nil {
+			return time.Unix(sec, 0).UTC().Format(time.RFC3339Nano)
+		}
+	}
+	return time.Now().UTC().Format(time.RFC3339Nano)
 }
 
 func updateCheckWarning(err error) *envelope.Warning {
