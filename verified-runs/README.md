@@ -32,7 +32,7 @@ Before committing a run, verify:
 Example scan:
 
 ```sh
-rg -n -i 'hostname|tailnet|nodekey|/home/|/Users/|Bearer|api[_-]?key|secret|token' verified-runs/<run-id>
+rg -n -i 'hostname|tailnet|nodekey|home directory|user path|Bearer|api[_-]?key|secret|token' verified-runs/<run-id>
 ```
 
 ## Long-Term Plan

@@ -119,4 +119,5 @@ v0.2.2.
 Apache License 2.0. See [LICENSE](LICENSE).
 
 The inference-router idea that kicked off inferctl came out of tinkering with
-Foxforge. inferctl itself is an independent Go implementation.
+[Foxforge](https://github.com/GuideboardLabs/foxforge). inferctl itself is an
+independent Go implementation.
