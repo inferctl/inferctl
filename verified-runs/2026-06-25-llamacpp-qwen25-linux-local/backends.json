@@ -1,0 +1,47 @@
+{
+  "commands": [],
+  "data": {
+    "backends": [
+      {
+        "backoff": null,
+        "base_url": "http://127.0.0.1:8080",
+        "default": true,
+        "kind": "llama.cpp",
+        "latency_ms": 0,
+        "models_installed_count": 1,
+        "models_loaded_count": 1,
+        "name": "llamacpp",
+        "reachable": true,
+        "version": null
+      },
+      {
+        "backoff": null,
+        "base_url": "http://127.0.0.1:11434",
+        "default": false,
+        "kind": "ollama",
+        "latency_ms": 0,
+        "models_installed_count": 10,
+        "models_loaded_count": 0,
+        "name": "ollama",
+        "reachable": true,
+        "version": "0.20.5"
+      }
+    ],
+    "reachable_count": 2,
+    "total_count": 2
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:46642f48dad1b12f293f1f54f3b71bd05fdd6ddeba03f7038565769d7b08f1dd",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZWDCGRA4ZE03Q49TT2YYMM",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T17:14:32.344Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625171324-971300d3af49",
+  "warnings": []
+}

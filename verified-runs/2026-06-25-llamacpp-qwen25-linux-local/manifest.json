@@ -1,0 +1,147 @@
+{
+  "run_id": "2026-06-25-llamacpp-qwen25-linux-local",
+  "captured_at_utc": "2026-06-25T17:14:32Z",
+  "artifact_status": "publishable_redacted",
+  "inferctl": {
+    "commit": "971300d3af49c3857e398bba258465daee076145",
+    "version": "0.2.2-0.20260625171324-971300d3af49",
+    "contract_version": "0.1",
+    "build_go_version": "go1.26.1",
+    "target_os": "linux",
+    "target_arch": "amd64"
+  },
+  "environment": {
+    "machine_identity": "redacted",
+    "os": "Linux",
+    "arch": "x86_64",
+    "network_scope": "localhost provider endpoints only"
+  },
+  "providers": [
+    {
+      "kind": "llama.cpp",
+      "version": "9789 (b3ce5cedf)",
+      "endpoint": "http://127.0.0.1:8080",
+      "status": "pass",
+      "verified": true
+    },
+    {
+      "kind": "ollama",
+      "version": "0.20.5",
+      "endpoint": "http://127.0.0.1:11434",
+      "status": "pass",
+      "verified": true
+    }
+  ],
+  "models": [
+    {
+      "provider": "llama.cpp",
+      "name": "qwen2.5-0.5b-instruct-q4_k_m",
+      "source": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "quantization": "Q4_K_M",
+      "status": "loaded",
+      "selected_for_tasks": [
+        "code"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "inferctl version --json",
+      "artifact": "version.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl capabilities --json",
+      "artifact": "capabilities.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --json",
+      "artifact": "discover.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind llama.cpp --json",
+      "artifact": "discover.llamacpp.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind llama.cpp --format toml",
+      "artifact": "discover.llamacpp.toml",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config init --path inferctl.toml --json",
+      "artifact": "config.init.write.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config patch --from-stdin --path inferctl.toml --json < patch.llamacpp.toml",
+      "artifact": "config.patch.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl config validate --json",
+      "artifact": "config.validate.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl doctor --json",
+      "artifact": "doctor.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl backends --json",
+      "artifact": "backends.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl models --json",
+      "artifact": "models.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl model qwen2.5-0.5b-instruct-q4_k_m --json",
+      "artifact": "model.qwen2.5-0.5b-instruct-q4_k_m.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl route code --json",
+      "artifact": "route.code.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl triage --json",
+      "artifact": "triage.json",
+      "status": "pass"
+    }
+  ],
+  "observations": {
+    "backends_reachable": 2,
+    "models_installed": 11,
+    "models_loaded_at_doctor_capture": 1,
+    "selected_route_model": "qwen2.5-0.5b-instruct-q4_k_m",
+    "selected_route_backend": "llamacpp",
+    "route_ready": true,
+    "route_warning_codes": []
+  },
+  "redactions": [
+    {
+      "field": "run directory name",
+      "rule": "use neutral public name instead of private machine hostname"
+    },
+    {
+      "field": "llama.cpp model identifier",
+      "rule": "use llama-server --alias so public artifacts do not expose local GGUF filesystem paths"
+    }
+  ],
+  "redaction_review": {
+    "raw_output_field_redactions_applied": false,
+    "notes": "Captured inferctl JSON used localhost URLs and neutral model aliases. The curated artifacts do not contain private hostnames, home paths, Tailscale addresses, tokens, API key values, or local GGUF paths."
+  },
+  "caveats": [
+    "This run validates provider workflow behavior and route selection, not model quality.",
+    "The llama.cpp server version does not expose a provider version through the OpenAI models API, so the server version is captured in provider.llamacpp.version.txt.",
+    "The config intentionally includes both Ollama and llama.cpp to validate cross-provider control-plane behavior; route code selects the llama.cpp model."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "commands": [],
+  "data": {
+    "build": {
+      "arch": "amd64",
+      "commit": "971300d3af49c3857e398bba258465daee076145",
+      "date_iso": "2026-06-25T17:13:24Z",
+      "go_version": "go1.26.1",
+      "os": "linux"
+    },
+    "contract_version": "0.1",
+    "dependencies": {
+      "cobra": "v1.10.2",
+      "go-toml/v2": "v2.3.1",
+      "ulid/v2": "v2.1.1"
+    },
+    "schema_version": "0.1",
+    "tool_version": "0.2.2-0.20260625171324-971300d3af49",
+    "update": {
+      "checked": false,
+      "checked_at_iso": null,
+      "latest_known": null,
+      "update_available": null
+    }
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:03991fd5e8b1849e0c7a3331fb61e9b4651f1c46b6b0cf1cdc26e28c36af3b36",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZWDCDT1A3QQ33BGNV4VAB2",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T17:14:32.250Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625171324-971300d3af49",
+  "warnings": []
+}

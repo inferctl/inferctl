@@ -1,0 +1,33 @@
+{
+  "commands": [],
+  "data": {
+    "changed_keys": [
+      "backends.ollama.default",
+      "backends.llamacpp.kind",
+      "backends.llamacpp.base_url",
+      "backends.llamacpp.default",
+      "routing.code.model",
+      "routing.code.backend",
+      "routing.code.fallback"
+    ],
+    "dry_run": false,
+    "message": "config file updated",
+    "path": "inferctl.toml",
+    "preview": "[meta]\nschema_version = \"0.1\"\n\n[profile]\nname = \"default_local_workstation\"\nmax_context_tokens = 8192\nmax_concurrent_models = 1\nallow_premium = false\nmode = \"warn\"\n\n[backends.ollama]\nkind = \"ollama\"\nbase_url = \"http://127.0.0.1:11434\"\ndefault = false\n\n[routing.code]\nmodel = \"qwen2.5-0.5b-instruct-q4_k_m\"\nbackend = \"llamacpp\"\nfallback = []\n\n[backends.llamacpp]\nkind = \"llama.cpp\"\nbase_url = \"http://127.0.0.1:8080\"\ndefault = true\n",
+    "written": true
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:aa577ff99b8950cbc7a81469ea3df70998ae8a5a7ff173ab6d01685dea9084d3",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZWDCFMCM35VCRTC6AK0C91",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T17:14:32.308Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625171324-971300d3af49",
+  "warnings": []
+}

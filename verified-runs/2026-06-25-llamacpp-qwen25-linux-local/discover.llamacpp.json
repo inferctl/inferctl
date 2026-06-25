@@ -1,0 +1,50 @@
+{
+  "commands": [],
+  "data": {
+    "candidates": [
+      {
+        "auth_required": false,
+        "base_url": "http://127.0.0.1:8080",
+        "confidence": "high",
+        "config_patch": "[backends.llamacpp]\nkind = \"llama.cpp\"\nbase_url = \"http://127.0.0.1:8080\"\ndefault = true\n\n",
+        "kind": "llama.cpp",
+        "models_count": 1,
+        "name_hint": "llamacpp",
+        "port": 8080,
+        "reachable": true,
+        "verified": true,
+        "version": null,
+        "warnings": []
+      }
+    ],
+    "delivery": null,
+    "scan": {
+      "mode": "localhost_fixed_ports",
+      "ports": [
+        8080,
+        8090
+      ],
+      "timeout_ms": 750
+    },
+    "summary": {
+      "patchable_count": 1,
+      "probed_count": 2,
+      "reachable_count": 1,
+      "verified_count": 1
+    }
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:dcb611f308b0b985695204aab34b24024d6f8d03ddad43603236e608c3bec9d3",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZWDCEPKQ2Y7XBY16FC35Z6",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T17:14:32.278Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625171324-971300d3af49",
+  "warnings": []
+}

@@ -1,0 +1,100 @@
+{
+  "commands": [],
+  "data": {
+    "loaded_count": 1,
+    "models": [
+      {
+        "backend": "llamacpp",
+        "digest": null,
+        "installed_at_iso": null,
+        "name": "qwen2.5-0.5b-instruct-q4_k_m",
+        "size_bytes": null
+      },
+      {
+        "backend": "ollama",
+        "digest": "bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8",
+        "installed_at_iso": "2026-05-15T17:30:38.20480093Z",
+        "name": "qwen3:14b",
+        "size_bytes": 9276198565
+      },
+      {
+        "backend": "ollama",
+        "digest": "78fad5d182a7c33065e153a5f8ba210754207ba9d91973f57dffa7f487363753",
+        "installed_at_iso": "2026-05-14T17:53:47.543536516Z",
+        "name": "phi4-mini:3.8b",
+        "size_bytes": 2491876774
+      },
+      {
+        "backend": "ollama",
+        "digest": "df5bd2e3c74cd8d069d21dc038f1b359fcdc9458fce1c99bd43c9eb1518ff907",
+        "installed_at_iso": "2026-05-14T17:51:48.640488477Z",
+        "name": "qwen3-embedding:4b",
+        "size_bytes": 2496704041
+      },
+      {
+        "backend": "ollama",
+        "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+        "installed_at_iso": "2026-05-14T17:49:50.2473673Z",
+        "name": "qwen3:4b",
+        "size_bytes": 2497293931
+      },
+      {
+        "backend": "ollama",
+        "digest": "a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a",
+        "installed_at_iso": "2026-05-14T17:47:51.527144892Z",
+        "name": "gemma3:4b",
+        "size_bytes": 3338801804
+      },
+      {
+        "backend": "ollama",
+        "digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+        "installed_at_iso": "2026-05-14T17:45:11.906300409Z",
+        "name": "qwen2.5-coder:7b",
+        "size_bytes": 4683087561
+      },
+      {
+        "backend": "ollama",
+        "digest": "6995872bfe4c521a67b32da386cd21d5c6e819b6e0d62f79f64ec83be99f5763",
+        "installed_at_iso": "2026-05-14T17:41:32.492242013Z",
+        "name": "deepseek-r1:8b",
+        "size_bytes": 5225376047
+      },
+      {
+        "backend": "ollama",
+        "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+        "installed_at_iso": "2026-05-14T17:37:26.711729593Z",
+        "name": "qwen3:8b",
+        "size_bytes": 5225388164
+      },
+      {
+        "backend": "ollama",
+        "digest": "6488c96fa5faab64bb65cbd30d4289e20e6130ef535a93ef9a49f42eda893ea7",
+        "installed_at_iso": "2026-04-22T01:33:16.572184808Z",
+        "name": "qwen3.5:9b",
+        "size_bytes": 6594474711
+      },
+      {
+        "backend": "ollama",
+        "digest": "cad56cde78d90061359535b0604b02aacd8e45419dbb42204729f414168338ab",
+        "installed_at_iso": "2026-04-12T05:38:30.146797579Z",
+        "name": "sorc/qwen3.5:9b",
+        "size_bytes": 10699916828
+      }
+    ],
+    "total_count": 11
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:85932325c3abcb1fe42fa1a482d5abddee2df36ad10bec7a4a3503751947fa84",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZWDCH3M56B8W6SJHFME6F9",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T17:14:32.355Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625171324-971300d3af49",
+  "warnings": []
+}

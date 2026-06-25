@@ -1,0 +1,37 @@
+{
+  "commands": [],
+  "data": {
+    "inputs": [
+      {
+        "ok": true,
+        "source": "config.validate"
+      },
+      {
+        "ok": true,
+        "source": "doctor"
+      }
+    ],
+    "items": [],
+    "recommended_action": null,
+    "summary": {
+      "errors": 0,
+      "info": 0,
+      "total": 0,
+      "warnings": 0
+    }
+  },
+  "errors": [],
+  "meta": {
+    "contract_version": "0.1",
+    "data_hash": "sha256:beed5e64514757c7eb98ed44d770ba99012094583ccb418416f6d4e92b5d292d",
+    "elapsed_ms": 0,
+    "fallback_reason": null,
+    "fallback_tier": null,
+    "request_id": "req_01KVZWDCHWDVQ22XZFHNGJHY1T",
+    "search_mode": null,
+    "ts_iso": "2026-06-25T17:14:32.380Z"
+  },
+  "ok": true,
+  "tool_version": "0.2.2-0.20260625171324-971300d3af49",
+  "warnings": []
+}
