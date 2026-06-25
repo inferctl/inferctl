@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -146,8 +147,14 @@ func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {
 		Verbs []struct {
 			Name string `json:"name"`
 		} `json:"verbs"`
-		ErrorCodes   map[string]any `json:"error_codes"`
-		WarningCodes map[string]any `json:"warning_codes"`
+		ErrorCodes    map[string]any `json:"error_codes"`
+		WarningCodes  map[string]any `json:"warning_codes"`
+		Features      []string       `json:"features"`
+		GlobalFlags   map[string]any `json:"global_flags"`
+		Config        map[string]any `json:"config"`
+		SchemasURI    string         `json:"schemas_uri"`
+		RobotDocsURI  string         `json:"robot_docs_uri"`
+		KnownNonGoals []string       `json:"known_non_goals"`
 	}
 	if err := json.Unmarshal(raw, &caps); err != nil {
 		t.Fatal(err)
@@ -168,6 +175,20 @@ func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {
 		if !strings.Contains(verbsDoc, "## `inferctl "+verb.Name+"`") {
 			t.Fatalf("docs/verbs.md missing verb %s", verb.Name)
 		}
+	}
+	for _, feature := range []string{"json_envelope", "stderr_error_mirror", "did_you_mean", "config_provenance"} {
+		if !slices.Contains(caps.Features, feature) {
+			t.Fatalf("capabilities missing feature %s", feature)
+		}
+	}
+	if _, ok := caps.GlobalFlags["--json"]; !ok {
+		t.Fatal("capabilities missing --json global flag")
+	}
+	if caps.Config["schema_uri"] != "inferctl config explain --json" || caps.Config["show_uri"] != "inferctl config show --json" {
+		t.Fatalf("capabilities config metadata incomplete: %#v", caps.Config)
+	}
+	if caps.SchemasURI == "" || caps.RobotDocsURI != "docs/agent-guide.md" || len(caps.KnownNonGoals) == 0 {
+		t.Fatalf("capabilities missing schema/docs/non-goal metadata: %#v", caps)
 	}
 
 	docCodeRE := regexp.MustCompile("`([EW]_[A-Z0-9_]+)`")

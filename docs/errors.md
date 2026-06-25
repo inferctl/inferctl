@@ -11,6 +11,7 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 | `E_BACKEND_TIMEOUT` | v0.1 | 4 | true | all configured backends timed out | `#/schemas/error_details/E_BACKEND_TIMEOUT` |
 | `E_BINARY_INTERNAL` | v0.1 | 3 | false | internal error: <short_description> | `#/schemas/error_details/E_BINARY_INTERNAL` |
 | `E_CONFIG_INVALID` | v0.1 | 3 | false | config file at <path> failed to parse | `#/schemas/error_details/E_CONFIG_INVALID` |
+| `E_CONFIG_KEY_UNKNOWN` | v0.2 | 1 | false | config key '<key>' is not recognized | `#/schemas/error_details/E_CONFIG_KEY_UNKNOWN` |
 | `E_CONFIG_MISSING` | v0.1 | 3 | false | no config file found | `#/schemas/error_details/E_CONFIG_MISSING` |
 | `E_CONFIG_PATCH_DELETE_UNSUPPORTED` | v0.2 | 1 | false | config patch deletion is not supported | `#/schemas/error_details/E_CONFIG_PATCH_DELETE_UNSUPPORTED` |
 | `E_CONFIG_UNREADABLE` | v0.1 | 3 | false | config file at <path> could not be read: <reason> | `#/schemas/error_details/E_CONFIG_UNREADABLE` |
@@ -37,7 +38,7 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 | `W_BACKEND_KIND_UNSUPPORTED` | v0.1 | backend '<backend>' uses kind '<kind>' with v0.1-unsupported option(s): <list> | `#/schemas/warning_details/W_BACKEND_KIND_UNSUPPORTED` |
 | `W_BACKEND_UNREACHABLE` | v0.1 | backend '<backend>' is unreachable: <reason> | `#/schemas/warning_details/W_BACKEND_UNREACHABLE` |
 | `W_CONFIG_KEY_DEPRECATED` | v0.1 | config key '<old_key>' is deprecated; use '<new_key>' instead | `#/schemas/warning_details/W_CONFIG_KEY_DEPRECATED` |
-| `W_CONFIG_KEY_UNKNOWN` | v0.1 | config key '<key>' is not recognized and was ignored | `#/schemas/warning_details/W_CONFIG_KEY_UNKNOWN` |
+| `W_CONFIG_KEY_UNKNOWN` | v0.1 | config key '<key>' is not recognized | `#/schemas/warning_details/W_CONFIG_KEY_UNKNOWN` |
 | `W_CONFIG_SCHEMA_VERSION_MISMATCH` | v0.1 | config schema_version '<got>' does not match expected '<expected>' | `#/schemas/warning_details/W_CONFIG_SCHEMA_VERSION_MISMATCH` |
 | `W_CONTEXT_NEAR_LIMIT` | v0.1 | input is <pct>% of profile max_context_tokens (<used>/<limit>) | `#/schemas/warning_details/W_CONTEXT_NEAR_LIMIT` |
 | `W_FALLBACK_USED` | v0.1 | routed to fallback '<model>' because primary '<primary>' is <reason> | `#/schemas/warning_details/W_FALLBACK_USED` |

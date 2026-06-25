@@ -9,7 +9,7 @@ import (
 )
 
 func TestUnknownVerbJSON(t *testing.T) {
-	stdout, _, err := executeForTest("doctr", "--json")
+	stdout, stderr, err := executeForTest("doctr", "--json")
 	if err == nil {
 		t.Fatal("expected unknown verb error")
 	}
@@ -30,6 +30,78 @@ func TestUnknownVerbJSON(t *testing.T) {
 	}
 	if env.ToolVersion != resolvedToolVersion() {
 		t.Fatalf("tool_version = %q, want %q", env.ToolVersion, resolvedToolVersion())
+	}
+	if !strings.Contains(stderr, "error: unknown verb 'doctr'") ||
+		!strings.Contains(stderr, "try: inferctl doctor") ||
+		!strings.Contains(stderr, "exit: 1 (user_input_error, retryable: false)") {
+		t.Fatalf("stderr missing mirrored JSON diagnostic:\n%s", stderr)
+	}
+}
+
+func TestBareInvocationPrintsHelp(t *testing.T) {
+	stdout, stderr, err := executeForTest()
+	if err != nil {
+		t.Fatalf("bare invocation should print help successfully: %v", err)
+	}
+	if !strings.Contains(stdout, "Usage:") ||
+		!strings.Contains(stdout, "inferctl [command]") ||
+		!strings.Contains(stdout, "capabilities") ||
+		!strings.Contains(stdout, "Exit Codes:") ||
+		!strings.Contains(stdout, "Agent/Automation:") ||
+		!strings.Contains(stdout, "Machine contract: inferctl capabilities --json") {
+		t.Fatalf("bare invocation did not print root help:\n%s", stdout)
+	}
+	if stderr != "" {
+		t.Fatalf("bare invocation should not write stderr, got:\n%s", stderr)
+	}
+}
+
+func TestHelpIncludesAgentFooter(t *testing.T) {
+	for _, args := range [][]string{
+		{"--help"},
+		{"doctor", "--help"},
+		{"config", "validate", "--help"},
+	} {
+		stdout, stderr, err := executeForTest(args...)
+		if err != nil {
+			t.Fatalf("%v help failed: %v stderr=%s", args, err, stderr)
+		}
+		for _, want := range []string{
+			"Exit Codes:",
+			"See: inferctl capabilities --json",
+			"Agent/Automation:",
+			"Machine contract: inferctl capabilities --json",
+			"JSON envelope: add --json or set INFERCTL_FORMAT=json",
+		} {
+			if !strings.Contains(stdout, want) {
+				t.Fatalf("%v help missing %q:\n%s", args, want, stdout)
+			}
+		}
+	}
+}
+
+func TestNoVerbJSONReturnsStructuredError(t *testing.T) {
+	stdout, stderr, err := executeForTest("--json")
+	if err == nil {
+		t.Fatal("expected no-verb JSON error")
+	}
+	var env struct {
+		OK     bool `json:"ok"`
+		Errors []struct {
+			Code       string `json:"code"`
+			DidYouMean string `json:"did_you_mean"`
+			ExitCode   int    `json:"exit_code"`
+		} `json:"errors"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, stdout)
+	}
+	if env.OK || len(env.Errors) != 1 || env.Errors[0].Code != "E_MISSING_ARG" || env.Errors[0].DidYouMean != "inferctl --help" || env.Errors[0].ExitCode != 1 {
+		t.Fatalf("unexpected no-verb envelope: %#v", env)
+	}
+	if !strings.Contains(stderr, "error: no verb specified") ||
+		!strings.Contains(stderr, "try: inferctl --help") {
+		t.Fatalf("stderr missing no-verb diagnostic:\n%s", stderr)
 	}
 }
 
@@ -82,6 +154,27 @@ func TestUnknownFlagJSON(t *testing.T) {
 	}
 	if !strings.Contains(stdout, "E_UNKNOWN_FLAG") || !strings.Contains(stdout, "inferctl doctor --help") {
 		t.Fatalf("unexpected unknown flag envelope: %s", stdout)
+	}
+
+	stdout, _, err = executeForTest("doctor", "--json", "--jsno")
+	if err == nil {
+		t.Fatal("expected typo'd flag error")
+	}
+	var env struct {
+		Errors []struct {
+			Code       string         `json:"code"`
+			DidYouMean string         `json:"did_you_mean"`
+			Details    map[string]any `json:"details"`
+		} `json:"errors"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, stdout)
+	}
+	if len(env.Errors) != 1 || env.Errors[0].Code != "E_UNKNOWN_FLAG" || env.Errors[0].DidYouMean != "inferctl doctor --json" {
+		t.Fatalf("unexpected typo'd flag envelope: %#v", env.Errors)
+	}
+	if env.Errors[0].Details["nearest"] != "--json" {
+		t.Fatalf("nearest flag missing: %#v", env.Errors[0].Details)
 	}
 }
 

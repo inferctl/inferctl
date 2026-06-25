@@ -109,8 +109,8 @@ func newDoctorCommand(jsonFlag *bool) *cobra.Command {
 }
 
 func buildDoctorReport(ctx context.Context, cfg config.Config, entries []backendEntry, fast bool) (doctorReport, []envelope.Warning, []envelope.Command) {
-	var probes []doctorProbe
-	var warnings []envelope.Warning
+	probes := []doctorProbe{}
+	warnings := []envelope.Warning{}
 	installedByModel := map[string][]inferctl.ModelInfo{}
 	loadedByBackendModel := map[string]bool{}
 	for _, entry := range entries {
@@ -161,8 +161,8 @@ func buildDoctorReport(ctx context.Context, cfg config.Config, entries []backend
 }
 
 func summarizeDoctorProbes(probes []doctorProbe) ([]inferctl.BackendStatus, []inferctl.LoadedModelInfo, doctorSummary) {
-	var statuses []inferctl.BackendStatus
-	var loaded []inferctl.LoadedModelInfo
+	statuses := []inferctl.BackendStatus{}
+	loaded := []inferctl.LoadedModelInfo{}
 	var summary doctorSummary
 	summary.BackendsTotal = len(probes)
 	for _, probe := range probes {
@@ -194,8 +194,8 @@ func summarizeDoctorRoutes(cfg config.Config, entries []backendEntry, installedB
 		tasks = append(tasks, task)
 	}
 	slices.Sort(tasks)
-	var routes []doctorRouteSummary
-	var warnings []envelope.Warning
+	routes := []doctorRouteSummary{}
+	warnings := []envelope.Warning{}
 	for _, task := range tasks {
 		route := cfg.Routing[task]
 		candidates := append([]string{route.Model}, route.Fallback...)
@@ -272,7 +272,7 @@ func doctorSystemForConfig(cfg config.Config) doctorSystem {
 }
 
 func doctorCommands(report doctorReport) []envelope.Command {
-	var commands []envelope.Command
+	commands := []envelope.Command{}
 	for _, backend := range report.Backends {
 		if !backend.Reachable {
 			commands = append(commands, envelope.Command{

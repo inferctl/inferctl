@@ -169,6 +169,48 @@ func TestUnknownBackendAndModelErrors(t *testing.T) {
 	}
 }
 
+func TestEmptyListPayloadsUseArrays(t *testing.T) {
+	server := testserver.New(testserver.Fixture{Kind: testserver.KindOllama})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeListConfig(t, server.URL, server.URL))
+
+	stdout, _, err := executeForTest("models", "--json")
+	if err != nil {
+		t.Fatalf("models error = %v stdout=%s", err, stdout)
+	}
+	var modelsEnv struct {
+		Data struct {
+			Models json.RawMessage `json:"models"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &modelsEnv); err != nil {
+		t.Fatal(err)
+	}
+	if string(modelsEnv.Data.Models) != "[]" {
+		t.Fatalf("empty models should be [], got %s", modelsEnv.Data.Models)
+	}
+
+	stdout, _, err = executeForTest("doctor", "--json")
+	if err != nil {
+		t.Fatalf("doctor error = %v stdout=%s", err, stdout)
+	}
+	var doctorEnv struct {
+		Data struct {
+			LoadedModels json.RawMessage `json:"loaded_models"`
+			Warnings     json.RawMessage `json:"warnings"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &doctorEnv); err != nil {
+		t.Fatal(err)
+	}
+	if string(doctorEnv.Data.LoadedModels) != "[]" {
+		t.Fatalf("empty loaded_models should be [], got %s", doctorEnv.Data.LoadedModels)
+	}
+	if string(doctorEnv.Data.Warnings) == "null" {
+		t.Fatalf("data.warnings should not be null: %s", stdout)
+	}
+}
+
 func TestLocalBackendAdaptersAreFirstClassKinds(t *testing.T) {
 	lmServer := testserver.New(testserver.Fixture{
 		Kind:   testserver.KindLMStudio,

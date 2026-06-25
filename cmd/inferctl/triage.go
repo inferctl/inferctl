@@ -91,9 +91,9 @@ func newTriageCommand(jsonFlag *bool) *cobra.Command {
 }
 
 func buildTriageReport(ctx context.Context, opts triageOptions) (triageReport, []envelope.Command, *envelope.Error) {
-	var report triageReport
-	var items []triageItem
-	var commands []envelope.Command
+	report := triageReport{Inputs: []triageInput{}, Items: []triageItem{}}
+	items := []triageItem{}
+	commands := []envelope.Command{}
 	if opts.inputFile != "" {
 		inputItems, inputCommands, input, errObj := triageFromInputFile(opts.inputFile)
 		if errObj != nil {
@@ -124,8 +124,8 @@ func buildTriageReport(ctx context.Context, opts triageOptions) (triageReport, [
 
 func triageFromLiveInputs(ctx context.Context) ([]triageItem, []envelope.Command, []triageInput) {
 	inputs := []triageInput{}
-	var items []triageItem
-	var commands []envelope.Command
+	items := []triageItem{}
+	commands := []envelope.Command{}
 	result, err := (config.Loader{}).Load(config.LoadOptions{})
 	if err != nil {
 		errObj := configLoadError(err)
@@ -181,7 +181,7 @@ func triageFromInputFile(path string) ([]triageItem, []envelope.Command, triageI
 			Details:   map[string]any{"path": path, "parse_error": err.Error()},
 		}
 	}
-	var items []triageItem
+	items := []triageItem{}
 	for _, errObj := range prior.Errors {
 		items = append(items, triageItemFromError("input_file", errObj))
 	}
@@ -195,13 +195,13 @@ func triageFromInputFile(path string) ([]triageItem, []envelope.Command, triageI
 
 func triageFindingsFromRawData(raw json.RawMessage) []triageItem {
 	if len(raw) == 0 || string(raw) == "null" {
-		return nil
+		return []triageItem{}
 	}
 	var validation struct {
 		Findings []inferctl.Finding `json:"findings"`
 	}
 	if err := json.Unmarshal(raw, &validation); err != nil || len(validation.Findings) == 0 {
-		return nil
+		return []triageItem{}
 	}
 	items := make([]triageItem, 0, len(validation.Findings))
 	for _, finding := range validation.Findings {

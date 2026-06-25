@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"slices"
+	"sort"
+	"strings"
 
 	"github.com/inferctl/inferctl/pkg/inferctl"
 )
@@ -25,6 +27,8 @@ func Validate(result *Result, strict bool) ValidationResult {
 	findings := []inferctl.Finding{}
 	cfg := result.Config
 	pos := result.Positions
+
+	findings = append(findings, unknownKeyFindings(cfg, pos)...)
 
 	requireKey(&findings, pos, "meta.schema_version", "missing required key")
 	requireKey(&findings, pos, "profile.name", "missing required key")
@@ -172,4 +176,156 @@ func summarize(findings []inferctl.Finding) ValidationSummary {
 		}
 	}
 	return summary
+}
+
+func unknownKeyFindings(cfg Config, pos map[string]Position) []inferctl.Finding {
+	candidates := knownConfigKeyCandidates(cfg)
+	findings := []inferctl.Finding{}
+	keys := make([]string, 0, len(pos))
+	for key := range pos {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		if knownConfigKey(cfg, key) {
+			continue
+		}
+		nearest, distance := nearestConfigKey(key, candidates)
+		details := map[string]any{"code": "E_CONFIG_KEY_UNKNOWN", "kind": "unknown_key"}
+		if nearest != "" && distance <= 6 {
+			details["did_you_mean"] = nearest
+			details["remediation"] = "inferctl config explain --key " + nearest + " --json"
+			details["distance"] = distance
+		}
+		findings = append(findings, errorFinding(pos, key, "config key is not recognized", details))
+	}
+	return findings
+}
+
+func knownConfigKey(cfg Config, key string) bool {
+	switch key {
+	case "meta", "meta.schema_version",
+		"profile", "profile.name", "profile.max_context_tokens", "profile.max_concurrent_models", "profile.allow_premium", "profile.mode", "profile.vram_total_bytes_hint",
+		"backends", "routing":
+		return true
+	}
+	parts := strings.Split(key, ".")
+	if len(parts) < 2 {
+		return false
+	}
+	switch parts[0] {
+	case "backends":
+		if len(parts) == 2 {
+			_, ok := cfg.Backends[parts[1]]
+			return ok
+		}
+		if len(parts) != 3 {
+			return false
+		}
+		if _, ok := cfg.Backends[parts[1]]; !ok {
+			return false
+		}
+		return slices.Contains(backendConfigFields(), parts[2])
+	case "routing":
+		if len(parts) == 2 {
+			_, ok := cfg.Routing[parts[1]]
+			return ok
+		}
+		if len(parts) != 3 {
+			return false
+		}
+		if _, ok := cfg.Routing[parts[1]]; !ok {
+			return false
+		}
+		return slices.Contains(routingConfigFields(), parts[2])
+	default:
+		return false
+	}
+}
+
+func knownConfigKeyCandidates(cfg Config) []string {
+	keys := []string{
+		"meta", "meta.schema_version",
+		"profile", "profile.name", "profile.max_context_tokens", "profile.max_concurrent_models", "profile.allow_premium", "profile.mode", "profile.vram_total_bytes_hint",
+		"backends", "routing",
+	}
+	for name := range cfg.Backends {
+		prefix := "backends." + name
+		keys = append(keys, prefix)
+		for _, field := range backendConfigFields() {
+			keys = append(keys, prefix+"."+field)
+		}
+	}
+	for task := range cfg.Routing {
+		prefix := "routing." + task
+		keys = append(keys, prefix)
+		for _, field := range routingConfigFields() {
+			keys = append(keys, prefix+"."+field)
+		}
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func backendConfigFields() []string {
+	return []string{
+		"auth_header_name",
+		"auth_header_value",
+		"base_url",
+		"default",
+		"fallback_chain_position",
+		"kind",
+		"remote_allowed",
+		"timeout_ms",
+	}
+}
+
+func routingConfigFields() []string {
+	return []string{"backend", "fallback", "model", "num_ctx"}
+}
+
+func nearestConfigKey(given string, candidates []string) (string, int) {
+	best := ""
+	bestDistance := 1 << 30
+	for _, candidate := range candidates {
+		distance := levenshteinDistance(given, candidate)
+		if distance < bestDistance || (distance == bestDistance && candidate < best) {
+			best = candidate
+			bestDistance = distance
+		}
+	}
+	return best, bestDistance
+}
+
+func levenshteinDistance(a, b string) int {
+	if a == b {
+		return 0
+	}
+	if len(a) == 0 {
+		return len(b)
+	}
+	if len(b) == 0 {
+		return len(a)
+	}
+	prev := make([]int, len(b)+1)
+	for j := range prev {
+		prev[j] = j
+	}
+	for i := 1; i <= len(a); i++ {
+		current := make([]int, len(b)+1)
+		current[0] = i
+		for j := 1; j <= len(b); j++ {
+			cost := 0
+			if a[i-1] != b[j-1] {
+				cost = 1
+			}
+			current[j] = min(
+				current[j-1]+1,
+				prev[j]+1,
+				prev[j-1]+cost,
+			)
+		}
+		prev = current
+	}
+	return prev[len(b)]
 }

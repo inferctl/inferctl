@@ -41,7 +41,7 @@ func newBackendsCommand(jsonFlag *bool) *cobra.Command {
 			if errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
-			var statuses []inferctl.BackendStatus
+			statuses := []inferctl.BackendStatus{}
 			reachable := 0
 			for _, entry := range entries {
 				status := inferctl.BackendStatus{BackendInfo: entry.backend.Info()}
@@ -97,7 +97,7 @@ func newModelsCommand(jsonFlag *bool) *cobra.Command {
 			if errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
-			var models []inferctl.ModelInfo
+			models := []inferctl.ModelInfo{}
 			loadedCount := 0
 			for _, entry := range entries {
 				if loadedOnly {
@@ -298,7 +298,7 @@ func instantiateBackend(name string, cfg config.BackendConfig) inferctl.Backend 
 
 func inspectModel(ctx context.Context, cfg config.Config, entries []backendEntry, name string, noProbe bool) (inferctl.ModelDetail, bool) {
 	loaded := map[string]bool{}
-	var backends []inferctl.ModelBackend
+	backends := []inferctl.ModelBackend{}
 	for _, entry := range entries {
 		for _, loadedModel := range mustLoaded(ctx, entry.backend) {
 			if loadedModel.Name == name {
@@ -352,7 +352,11 @@ func mustLoaded(ctx context.Context, backend inferctl.Backend) []inferctl.Loaded
 }
 
 func routingForModel(cfg config.Config, model string) inferctl.ModelRouting {
-	var routing inferctl.ModelRouting
+	routing := inferctl.ModelRouting{
+		PrimaryForTasks:  []string{},
+		FallbackForTasks: []string{},
+		FallbackChain:    []string{},
+	}
 	for task, route := range cfg.Routing {
 		if route.Model == model {
 			routing.PrimaryForTasks = append(routing.PrimaryForTasks, task)

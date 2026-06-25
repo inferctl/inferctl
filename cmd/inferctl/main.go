@@ -14,6 +14,7 @@ import (
 	"github.com/inferctl/inferctl/internal/render"
 	internalversion "github.com/inferctl/inferctl/internal/version"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func main() {
@@ -57,13 +58,16 @@ func (c *rootCommand) Execute() error {
 func newRootCommand() *rootCommand {
 	var jsonFlag bool
 	base := &cobra.Command{
-		Use:           "inferctl",
+		Use:           "inferctl [command]",
 		Short:         "Explain your local LLM stack",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprintln(cmd.ErrOrStderr(), "inferctl: no verb specified")
-			return exitError(1)
+			mode := render.SelectMode(render.Options{JSONFlag: jsonFlag, Env: envMap()})
+			if mode == render.ModeJSON {
+				return writeError(cmd, true, noVerbError())
+			}
+			return cmd.Help()
 		},
 	}
 	root := &rootCommand{Command: base, json: &jsonFlag}
@@ -85,7 +89,39 @@ func newRootCommand() *rootCommand {
 	root.AddCommand(newDiscoverCommand(&jsonFlag))
 	root.AddCommand(newTriageCommand(&jsonFlag))
 	root.AddCommand(newVersionCommand(&jsonFlag))
+	applyHelpTemplate(root.Command)
 	return root
+}
+
+const helpTemplate = `{{with (or .Long .Short)}}{{. | trimTrailingWhitespaces}}
+
+{{end}}Usage:
+  {{.UseLine}}{{if .HasAvailableSubCommands}}
+
+Available Commands:
+{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}  {{rpad .Name .NamePadding }} {{.Short}}
+{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}
+{{end}}{{if .HasAvailableInheritedFlags}}
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}
+{{end}}
+Exit Codes:
+  0 success; 1 user-input; 2 safety; 3 environment; 4 transient; 5 conflict.
+  See: inferctl capabilities --json
+
+Agent/Automation:
+  Machine contract: inferctl capabilities --json
+  Workflow guide: docs/agent-guide.md
+  JSON envelope: add --json or set INFERCTL_FORMAT=json
+`
+
+func applyHelpTemplate(cmd *cobra.Command) {
+	cmd.SetHelpTemplate(helpTemplate)
+	for _, child := range cmd.Commands() {
+		applyHelpTemplate(child)
+	}
 }
 
 func (c *rootCommand) redirectRemovedVerb(args []string) error {
@@ -238,14 +274,17 @@ func writeError(cmd *cobra.Command, jsonFlag bool, errObj envelope.Error) error 
 		if err := render.WriteJSON(cmd.OutOrStdout(), env); err != nil {
 			return err
 		}
-	} else {
-		fmt.Fprintf(cmd.ErrOrStderr(), "error: %s\n", errObj.Message)
-		if errObj.DidYouMean != nil {
-			fmt.Fprintf(cmd.ErrOrStderr(), "try: %s\n", *errObj.DidYouMean)
-		}
-		fmt.Fprintf(cmd.ErrOrStderr(), "exit: %d (%s, retryable: %v)\n", errObj.ExitCode, exitCodeName(errObj.ExitCode), errObj.Retryable)
 	}
+	writeErrorDiagnostic(cmd, errObj)
 	return exitError(errObj.ExitCode)
+}
+
+func writeErrorDiagnostic(cmd *cobra.Command, errObj envelope.Error) {
+	fmt.Fprintf(cmd.ErrOrStderr(), "error: %s\n", errObj.Message)
+	if errObj.DidYouMean != nil {
+		fmt.Fprintf(cmd.ErrOrStderr(), "try: %s\n", *errObj.DidYouMean)
+	}
+	fmt.Fprintf(cmd.ErrOrStderr(), "exit: %d (%s, retryable: %v)\n", errObj.ExitCode, exitCodeName(errObj.ExitCode), errObj.Retryable)
 }
 
 func firstVerb(args []string) (int, string, bool) {
@@ -311,6 +350,18 @@ func unknownVerbError(verb string) envelope.Error {
 	}
 }
 
+func noVerbError() envelope.Error {
+	did := "inferctl --help"
+	return envelope.Error{
+		Code:       "E_MISSING_ARG",
+		Message:    "no verb specified",
+		DidYouMean: &did,
+		ExitCode:   1,
+		Retryable:  false,
+		Details:    map[string]any{"missing": "verb", "valid_verbs": rootVerbNames()},
+	}
+}
+
 func renamedVerbError(old, newCommand string) envelope.Error {
 	return envelope.Error{
 		Code:       "E_VERB_RENAMED",
@@ -325,14 +376,22 @@ func renamedVerbError(old, newCommand string) envelope.Error {
 func unknownFlagError(cmd *cobra.Command, err error) envelope.Error {
 	given := parseUnknownFlag(err.Error())
 	verb := cmd.CommandPath()
+	nearest, distance := nearestFlag(given, cmd)
 	did := verb + " --help"
+	var nearestValue any
+	var distanceValue any
+	if nearest != "" && distance <= 2 {
+		did = verb + " " + nearest
+		nearestValue = nearest
+		distanceValue = distance
+	}
 	return envelope.Error{
 		Code:       "E_UNKNOWN_FLAG",
 		Message:    "unknown flag '" + given + "' for verb '" + verb + "'",
 		DidYouMean: &did,
 		ExitCode:   1,
 		Retryable:  false,
-		Details:    map[string]any{"verb": verb, "given": given, "nearest": nil, "distance": nil},
+		Details:    map[string]any{"verb": verb, "given": given, "nearest": nearestValue, "distance": distanceValue},
 	}
 }
 
@@ -357,6 +416,37 @@ func nearestString(given string, candidates []string) (string, int) {
 		}
 	}
 	return best, bestDistance
+}
+
+func nearestFlag(given string, cmd *cobra.Command) (string, int) {
+	candidates := commandFlagNames(cmd)
+	if len(candidates) == 0 {
+		return "", 0
+	}
+	return nearestString(given, candidates)
+}
+
+func commandFlagNames(cmd *cobra.Command) []string {
+	seen := map[string]bool{}
+	var names []string
+	for _, flags := range []*pflag.FlagSet{cmd.Flags(), cmd.InheritedFlags()} {
+		flags.VisitAll(func(flag *pflag.Flag) {
+			long := "--" + flag.Name
+			if !seen[long] {
+				seen[long] = true
+				names = append(names, long)
+			}
+			if flag.Shorthand != "" {
+				short := "-" + flag.Shorthand
+				if !seen[short] {
+					seen[short] = true
+					names = append(names, short)
+				}
+			}
+		})
+	}
+	slices.Sort(names)
+	return names
 }
 
 func levenshtein(a, b string) int {

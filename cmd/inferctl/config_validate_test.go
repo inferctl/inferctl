@@ -141,6 +141,56 @@ func TestConfigValidateDirectKeyLineColumn(t *testing.T) {
 	t.Fatalf("base_url finding missing: %#v", env.Data.Findings)
 }
 
+func TestConfigValidateUnknownKeySuggestsNearestKnownKey(t *testing.T) {
+	cfg := stringsReplace(workedExampleConfig, `max_concurrent_models = 1`, "max_concurrent_models = 1\nmax_concurent_models = 2")
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, cfg))
+	stdout, stderr, err := executeForTest("config", "validate", "--json")
+	if err == nil {
+		t.Fatal("unknown key should fail validation")
+	}
+	var env struct {
+		OK   bool `json:"ok"`
+		Data struct {
+			Findings []struct {
+				Severity string         `json:"severity"`
+				Key      string         `json:"key"`
+				Line     *int           `json:"line"`
+				Details  map[string]any `json:"details"`
+			} `json:"findings"`
+		} `json:"data"`
+		Errors []struct {
+			Code       string `json:"code"`
+			DidYouMean string `json:"did_you_mean"`
+		} `json:"errors"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, stdout)
+	}
+	if env.OK || len(env.Errors) != 1 || env.Errors[0].Code != "E_CONFIG_VALIDATION_FAILED" {
+		t.Fatalf("unexpected envelope = %#v", env)
+	}
+	if env.Errors[0].DidYouMean != "inferctl config explain --key profile.max_concurrent_models --json" {
+		t.Fatalf("unexpected top-level remediation: %#v", env.Errors[0])
+	}
+	for _, finding := range env.Data.Findings {
+		if finding.Key != "profile.max_concurent_models" {
+			continue
+		}
+		if finding.Severity != "error" || finding.Line == nil {
+			t.Fatalf("unknown-key finding missing severity/line: %#v", finding)
+		}
+		if finding.Details["did_you_mean"] != "profile.max_concurrent_models" {
+			t.Fatalf("unknown-key suggestion missing: %#v", finding.Details)
+		}
+		if !strings.Contains(stderr, "error: config validation found") ||
+			!strings.Contains(stderr, "try: inferctl config explain --key profile.max_concurrent_models --json") {
+			t.Fatalf("stderr missing validation diagnostic:\n%s", stderr)
+		}
+		return
+	}
+	t.Fatalf("unknown-key finding absent: %#v", env.Data.Findings)
+}
+
 func writeConfig(t *testing.T, body string) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "config.toml")

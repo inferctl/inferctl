@@ -97,6 +97,7 @@ func newConfigValidateCommand(jsonFlag *bool) *cobra.Command {
 				if err := render.WriteJSON(cmd.OutOrStdout(), env); err != nil {
 					return err
 				}
+				writeErrorDiagnostic(cmd, errObj)
 			} else {
 				fmt.Fprintln(cmd.ErrOrStderr(), errObj.Message)
 				for _, finding := range data.Findings {
@@ -286,16 +287,22 @@ func invalidArg(arg, given, expected string, validSet []string) envelope.Error {
 
 func validationFailedError(data config.ValidationResult) envelope.Error {
 	first := ""
+	remediation := ""
 	for _, finding := range data.Findings {
 		if finding.Severity == "error" || first == "" {
 			first = finding.Key
+			if value, ok := finding.Details["remediation"].(string); ok {
+				remediation = value
+			}
 		}
 		if finding.Severity == "error" {
 			break
 		}
 	}
 	did := "inferctl config validate --json"
-	if first != "" {
+	if remediation != "" {
+		did = remediation
+	} else if first != "" {
 		did = "inferctl config explain --key " + first + " --json"
 	}
 	return envelope.Error{

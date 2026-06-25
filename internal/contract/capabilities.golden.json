@@ -2,6 +2,83 @@
   "tool": "inferctl",
   "binary": "inferctl",
   "contract_version": "0.1",
+  "features": [
+    "json_envelope",
+    "stderr_error_mirror",
+    "did_you_mean",
+    "contract_goldens",
+    "deterministic_test_mode",
+    "config_provenance",
+    "config_mutation",
+    "from_stdin",
+    "delivery_artifacts",
+    "mega_command_capabilities",
+    "mega_command_diagnose",
+    "mega_command_plan",
+    "mega_command_triage"
+  ],
+  "global_flags": {
+    "--help": {
+      "type": "bool",
+      "default": false,
+      "description": "Show terse human help with exit-code and automation guidance."
+    },
+    "--json": {
+      "type": "bool",
+      "default": false,
+      "description": "Emit the universal JSON envelope on stdout."
+    }
+  },
+  "limits": {
+    "discovery": {
+      "mode": "localhost_fixed_ports",
+      "default_timeout_ms": 750,
+      "minimum_timeout_ms": 100,
+      "default_ports": [
+        1234,
+        8080,
+        8081,
+        8090,
+        11434
+      ]
+    },
+    "triage": {
+      "default_limit": 0,
+      "limit_zero_means": "unbounded"
+    }
+  },
+  "config": {
+    "format": "toml",
+    "schema_uri": "inferctl config explain --json",
+    "show_uri": "inferctl config show --json",
+    "validate_uri": "inferctl config validate --json",
+    "search_path": [
+      "$INFERCTL_CONFIG",
+      "./inferctl.toml",
+      "$XDG_CONFIG_HOME/inferctl/config.toml",
+      "$HOME/.config/inferctl/config.toml"
+    ],
+    "precedence": [
+      "flag",
+      "env",
+      "file",
+      "default"
+    ],
+    "supports_profiles": false,
+    "mutation_verbs": [
+      "config init",
+      "config set",
+      "config patch"
+    ]
+  },
+  "schemas_uri": "inferctl capabilities --json | jq '.data.schemas'",
+  "robot_docs_uri": "docs/agent-guide.md",
+  "known_non_goals": [
+    "No model-quality benchmarking.",
+    "No inference execution API in v0.2.",
+    "No release binaries, archives, installers, Homebrew formula, or Scoop manifest for the current Go-install-only launch posture.",
+    "No automatic remote backend use unless config explicitly opts in with remote_allowed=true."
+  ],
   "docs": [
     {
       "name": "agent_guide",
@@ -848,6 +925,13 @@
       "message_template": "config patch deletion is not supported",
       "details_schema_ref": "#/schemas/error_details/E_CONFIG_PATCH_DELETE_UNSUPPORTED"
     },
+    "E_CONFIG_KEY_UNKNOWN": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "config key '<key>' is not recognized",
+      "details_schema_ref": "#/schemas/error_details/E_CONFIG_KEY_UNKNOWN"
+    },
     "E_BACKEND_TIMEOUT": {
       "status": "v0.1",
       "exit_code": 4,
@@ -946,7 +1030,7 @@
     },
     "W_CONFIG_KEY_UNKNOWN": {
       "status": "v0.1",
-      "message_template": "config key '<key>' is not recognized and was ignored",
+      "message_template": "config key '<key>' is not recognized",
       "details_schema_ref": "#/schemas/warning_details/W_CONFIG_KEY_UNKNOWN"
     },
     "W_CONFIG_SCHEMA_VERSION_MISMATCH": {
