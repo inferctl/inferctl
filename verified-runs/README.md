@@ -11,6 +11,21 @@ These artifacts are bootstrap evidence for the source-first public release and s
 - A `manifest.json` describing the run, commands, caveats, and redaction review.
 - A `summary.md` that explains the result for humans.
 
+## Current Curated Runs
+
+| Run | Provider path | Environment | Model | Result |
+| --- | --- | --- | --- | --- |
+| [`2026-06-25-ollama-linux-local`](2026-06-25-ollama-linux-local/summary.md) | Ollama | Linux localhost | `qwen3:8b` | Pass with `W_MODEL_NOT_LOADED` caveat |
+| [`2026-06-25-llamacpp-qwen25-linux-local`](2026-06-25-llamacpp-qwen25-linux-local/summary.md) | llama.cpp plus Ollama config | Linux localhost | `qwen2.5-0.5b-instruct-q4_k_m` | Pass |
+| [`2026-06-25-openai-compat-qwen25-linux-local`](2026-06-25-openai-compat-qwen25-linux-local/summary.md) | generic `openai_compat` | Linux localhost | `qwen2.5-0.5b-instruct-q4_k_m-openai-compat` | Pass with expected loaded-model caveat |
+| [`2026-06-25-lmstudio-qwen25-linux-local`](2026-06-25-lmstudio-qwen25-linux-local/summary.md) | LM Studio headless | Linux localhost | `qwen2.5-0.5b-instruct-q8_0-lmstudio` | Pass |
+| [`2026-06-25-mlx-qwen25-macos-local`](2026-06-25-mlx-qwen25-macos-local/summary.md) | MLX | macOS arm64 localhost | `mlx-community/Qwen2.5-0.5B-Instruct-4bit` | Pass |
+
+These runs validate inferctl's control-plane workflow: discovery, config
+composition, config validation, backend/model inspection, route explanation,
+and triage. They do not validate generation quality, throughput, latency, or
+long-running provider reliability.
+
 ## What Does Not Belong Here
 
 - Raw unredacted captures.

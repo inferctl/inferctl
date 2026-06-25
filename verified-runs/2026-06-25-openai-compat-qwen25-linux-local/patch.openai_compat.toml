@@ -1,0 +1,10 @@
+[backends.openai_compat_local]
+kind = "openai_compat"
+base_url = "http://127.0.0.1:8090"
+default = true
+remote_allowed = false
+
+[routing.code]
+model = "qwen2.5-0.5b-instruct-q4_k_m-openai-compat"
+backend = "openai_compat_local"
+fallback = []

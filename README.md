@@ -17,10 +17,31 @@ Licensed under Apache 2.0 (see LICENSE and NOTICE).
 - Shows, validates, and explains the v0.1 config format.
 - Emits a machine-readable contract with `inferctl capabilities --json`.
 
-v0.1 supports read-only adapters for Ollama, llama.cpp, and unauthenticated
-OpenAI-compatible `/v1/models` servers. Remote authenticated backends, warmup,
-release, lock management, and live inference execution are intentionally
-deferred.
+v0.2.2 supports read-only adapters for Ollama, llama.cpp, generic
+OpenAI-compatible `/v1/models` servers, LM Studio, and MLX. Remote
+authenticated `openai_compat` configuration is supported, but warmup, release,
+lock management, latency collection, and live inference execution are
+intentionally deferred.
+
+## Verified Provider Runs
+
+The `verified-runs/` directory stores curated, redacted provider workflow
+captures. These are bootstrap evidence for local provider discovery, config
+validation, diagnosis, model listing, route explanation, and triage behavior;
+they are not model quality benchmarks.
+
+Current curated provider coverage:
+
+| Provider path | Environment | Model | Result |
+| --- | --- | --- | --- |
+| Ollama | Linux localhost | `qwen3:8b` | Pass with `W_MODEL_NOT_LOADED` caveat |
+| llama.cpp | Linux localhost | `qwen2.5-0.5b-instruct-q4_k_m` | Pass |
+| `openai_compat` | Linux localhost | `qwen2.5-0.5b-instruct-q4_k_m-openai-compat` | Pass with expected loaded-model caveat |
+| LM Studio | Linux localhost, headless daemon | `qwen2.5-0.5b-instruct-q8_0-lmstudio` | Pass |
+| MLX | macOS arm64 localhost | `mlx-community/Qwen2.5-0.5B-Instruct-4bit` | Pass |
+
+See [verified-runs/README.md](verified-runs/README.md) for the artifact index,
+redaction policy, and per-run summaries.
 
 ## Install
 
@@ -91,6 +112,7 @@ to resolve.
 - [Agent guide](docs/agent-guide.md)
 - [Install](docs/install.md)
 - [Public-readiness memo](docs/public-readiness.md)
+- [Verified runs](verified-runs/README.md)
 - [Lineage](docs/lineage.md)
 - [Contract goldens](testdata/contract/README.md)
 

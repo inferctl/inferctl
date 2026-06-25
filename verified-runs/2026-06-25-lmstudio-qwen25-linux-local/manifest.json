@@ -1,0 +1,143 @@
+{
+  "run_id": "2026-06-25-lmstudio-qwen25-linux-local",
+  "captured_at_utc": "2026-06-25T19:36:09Z",
+  "artifact_status": "publishable_redacted",
+  "inferctl": {
+    "commit": "d8f812a8d0087fe6cb382ab67d3f352c4fa6547b",
+    "version": "0.2.2-0.20260625174225-d8f812a8d008",
+    "contract_version": "0.1",
+    "build_go_version": "go1.26.1",
+    "target_os": "linux",
+    "target_arch": "amd64"
+  },
+  "environment": {
+    "machine_identity": "redacted",
+    "os": "Linux",
+    "arch": "x86_64",
+    "network_scope": "localhost provider endpoint only"
+  },
+  "providers": [
+    {
+      "kind": "lmstudio",
+      "server": "LM Studio headless daemon",
+      "server_version": "llmster v0.0.15+2",
+      "cli_commit": "efce996",
+      "endpoint": "http://127.0.0.1:1234",
+      "status": "pass",
+      "verified": true
+    }
+  ],
+  "models": [
+    {
+      "provider": "lmstudio",
+      "name": "qwen2.5-0.5b-instruct-q8_0-lmstudio",
+      "source": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "quantization": "Q8_0",
+      "status": "loaded",
+      "selected_for_tasks": [
+        "code"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "inferctl version --json",
+      "artifact": "version.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl capabilities --json",
+      "artifact": "capabilities.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --json",
+      "artifact": "discover.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind lmstudio --json",
+      "artifact": "discover.lmstudio.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind lmstudio --format toml",
+      "artifact": "discover.lmstudio.toml",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config init --path init.scaffold.toml --json",
+      "artifact": "config.init.write.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config patch --from-stdin --path inferctl.toml --json < patch.lmstudio.toml",
+      "artifact": "config.patch.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl config validate --json",
+      "artifact": "config.validate.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl doctor --json",
+      "artifact": "doctor.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl backends --json",
+      "artifact": "backends.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl models --json",
+      "artifact": "models.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl model qwen2.5-0.5b-instruct-q8_0-lmstudio --json",
+      "artifact": "model.qwen2.5-0.5b-instruct-q8_0-lmstudio.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl route code --json",
+      "artifact": "route.code.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl triage --json",
+      "artifact": "triage.json",
+      "status": "pass"
+    }
+  ],
+  "observations": {
+    "backends_reachable": 1,
+    "models_installed": 3,
+    "models_loaded_at_doctor_capture": 3,
+    "selected_route_model": "qwen2.5-0.5b-instruct-q8_0-lmstudio",
+    "selected_route_backend": "lmstudio",
+    "route_ready": true,
+    "route_warning_codes": [],
+    "triage_warning_codes": []
+  },
+  "redactions": [
+    {
+      "field": "run directory name",
+      "rule": "use neutral public name instead of private machine hostname"
+    },
+    {
+      "field": "loaded model identifier",
+      "rule": "use lms load --identifier so public artifacts do not expose local cache paths"
+    }
+  ],
+  "redaction_review": {
+    "raw_output_field_redactions_applied": false,
+    "notes": "Captured inferctl JSON used localhost URLs and public model identifiers. The curated artifacts do not contain private hostnames, home paths, Tailscale addresses, tokens, API key values, or local model cache paths."
+  },
+  "caveats": [
+    "This run validates provider workflow behavior and route selection, not model quality.",
+    "LM Studio's /v1/models response included the loaded Qwen alias, the base Qwen model key, and an existing embedding model.",
+    "The final run config starts from a minimal meta/profile config because v0.1 config patching cannot delete default scaffold backends."
+  ]
+}

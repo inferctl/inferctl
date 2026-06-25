@@ -1,0 +1,147 @@
+{
+  "run_id": "2026-06-25-openai-compat-qwen25-linux-local",
+  "captured_at_utc": "2026-06-25T18:35:36Z",
+  "artifact_status": "publishable_redacted",
+  "inferctl": {
+    "commit": "d8f812a8d0087fe6cb382ab67d3f352c4fa6547b",
+    "version": "0.2.2-0.20260625174225-d8f812a8d008",
+    "contract_version": "0.1",
+    "build_go_version": "go1.26.1",
+    "target_os": "linux",
+    "target_arch": "amd64"
+  },
+  "environment": {
+    "machine_identity": "redacted",
+    "os": "Linux",
+    "arch": "x86_64",
+    "network_scope": "localhost provider endpoint only"
+  },
+  "providers": [
+    {
+      "kind": "openai_compat",
+      "server": "llama.cpp",
+      "server_version": "9789 (b3ce5cedf)",
+      "endpoint": "http://127.0.0.1:8090",
+      "status": "pass",
+      "verified": true
+    }
+  ],
+  "models": [
+    {
+      "provider": "openai_compat",
+      "name": "qwen2.5-0.5b-instruct-q4_k_m-openai-compat",
+      "source": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "quantization": "Q4_K_M",
+      "status": "listed",
+      "selected_for_tasks": [
+        "code"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "inferctl version --json",
+      "artifact": "version.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl capabilities --json",
+      "artifact": "capabilities.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --json",
+      "artifact": "discover.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind openai_compat --json",
+      "artifact": "discover.openai_compat.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind openai_compat --format toml",
+      "artifact": "discover.openai_compat.toml",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config init --path init.scaffold.toml --json",
+      "artifact": "config.init.write.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config patch --from-stdin --path inferctl.toml --json < patch.openai_compat.toml",
+      "artifact": "config.patch.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl config validate --json",
+      "artifact": "config.validate.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl doctor --json",
+      "artifact": "doctor.json",
+      "status": "pass_with_expected_warning"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl backends --json",
+      "artifact": "backends.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl models --json",
+      "artifact": "models.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl model qwen2.5-0.5b-instruct-q4_k_m-openai-compat --json",
+      "artifact": "model.qwen2.5-0.5b-instruct-q4_k_m-openai-compat.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl route code --json",
+      "artifact": "route.code.json",
+      "status": "pass_with_expected_warning"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl triage --json",
+      "artifact": "triage.json",
+      "status": "pass_with_expected_warning"
+    }
+  ],
+  "observations": {
+    "backends_reachable": 1,
+    "models_installed": 1,
+    "models_loaded_at_doctor_capture": 0,
+    "selected_route_model": "qwen2.5-0.5b-instruct-q4_k_m-openai-compat",
+    "selected_route_backend": "openai_compat_local",
+    "route_ready": false,
+    "route_warning_codes": [
+      "W_MODEL_NOT_LOADED"
+    ],
+    "triage_warning_codes": [
+      "W_BACKEND_DEGRADED"
+    ]
+  },
+  "redactions": [
+    {
+      "field": "run directory name",
+      "rule": "use neutral public name instead of private machine hostname"
+    },
+    {
+      "field": "model identifier",
+      "rule": "use llama-server --alias so public artifacts do not expose local GGUF filesystem paths"
+    }
+  ],
+  "redaction_review": {
+    "raw_output_field_redactions_applied": false,
+    "notes": "Captured inferctl JSON used localhost URLs and a neutral model alias. The curated artifacts do not contain private hostnames, home paths, Tailscale addresses, tokens, API key values, or local GGUF paths."
+  },
+  "caveats": [
+    "This run validates provider workflow behavior and route selection, not model quality.",
+    "The generic openai_compat adapter does not support loaded-model inventory in v0.1, so W_BACKEND_DEGRADED and W_MODEL_NOT_LOADED are expected.",
+    "The provider server was llama.cpp exposing OpenAI-compatible /v1/models; this run validates inferctl's generic openai_compat adapter path, not a separate server implementation from the dedicated llama.cpp run.",
+    "The final run config starts from a minimal meta/profile config because v0.1 config patching cannot delete default scaffold backends."
+  ]
+}

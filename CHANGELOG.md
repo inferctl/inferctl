@@ -8,6 +8,13 @@ gates are cleared.
 
 ## [Unreleased]
 
+### Added
+
+- Added curated verified-run artifact packs for generic `openai_compat`,
+  LM Studio headless on Linux, and MLX on macOS arm64.
+- Documented verified provider workflow coverage across Ollama, llama.cpp,
+  generic OpenAI-compatible, LM Studio, and MLX local backend paths.
+
 ### Changed
 
 - Adopted a Go-install-only public launch posture: no release binaries,

@@ -106,3 +106,8 @@ Remote `openai_compat` URLs require `remote_allowed = true`; otherwise commands 
 Use backend kind and model names as operational hints, not as proof of capability. Ollama exposes `/api/tags` and loaded models through `/api/ps`; llama.cpp, LM Studio, MLX, and generic `openai_compat` expose OpenAI-style `/v1/models`. Ambiguous OpenAI-style discovery candidates may be verified but not patchable until the agent supplies a specific kind.
 
 Keep routing config explicit for each task. Prefer fallback chains for local workstation variance, then confirm with `inferctl doctor --json` and `inferctl route <task> --json`.
+
+For public sample evidence, see `verified-runs/`. The curated runs cover
+Ollama, llama.cpp, generic `openai_compat`, LM Studio, and MLX provider paths.
+Treat those artifacts as workflow examples and compatibility evidence, not as
+model quality, latency, or throughput benchmarks.

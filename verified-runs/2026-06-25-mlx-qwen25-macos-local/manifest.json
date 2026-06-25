@@ -1,0 +1,139 @@
+{
+  "run_id": "2026-06-25-mlx-qwen25-macos-local",
+  "captured_at_utc": "2026-06-25T18:43:17Z",
+  "artifact_status": "publishable_redacted",
+  "inferctl": {
+    "commit": "d8f812a8d0087fe6cb382ab67d3f352c4fa6547b",
+    "version": "0.2.2-0.20260625174225-d8f812a8d008",
+    "contract_version": "0.1",
+    "build_go_version": "go1.26.1",
+    "target_os": "darwin",
+    "target_arch": "arm64"
+  },
+  "environment": {
+    "machine_identity": "redacted",
+    "os": "macOS",
+    "arch": "arm64",
+    "network_scope": "localhost provider endpoint only"
+  },
+  "providers": [
+    {
+      "kind": "mlx",
+      "server": "mlx_lm.server",
+      "server_version": "mlx-lm 0.31.3",
+      "runtime_version": "mlx 0.31.2",
+      "endpoint": "http://127.0.0.1:8081",
+      "status": "pass",
+      "verified": true
+    }
+  ],
+  "models": [
+    {
+      "provider": "mlx",
+      "name": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "source": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "quantization": "4bit",
+      "status": "loaded",
+      "selected_for_tasks": [
+        "code"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "inferctl version --json",
+      "artifact": "version.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl capabilities --json",
+      "artifact": "capabilities.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --json",
+      "artifact": "discover.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind mlx --json",
+      "artifact": "discover.mlx.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl discover --kind mlx --format toml",
+      "artifact": "discover.mlx.toml",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config init --path init.scaffold.toml --json",
+      "artifact": "config.init.write.json",
+      "status": "pass"
+    },
+    {
+      "command": "inferctl config patch --from-stdin --path inferctl.toml --json < patch.mlx.toml",
+      "artifact": "config.patch.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl config validate --json",
+      "artifact": "config.validate.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl doctor --json",
+      "artifact": "doctor.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl backends --json",
+      "artifact": "backends.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl models --json",
+      "artifact": "models.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl model mlx-community/Qwen2.5-0.5B-Instruct-4bit --json",
+      "artifact": "model.mlx-community-qwen2.5-0.5b-instruct-4bit.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl route code --json",
+      "artifact": "route.code.json",
+      "status": "pass"
+    },
+    {
+      "command": "INFERCTL_CONFIG=inferctl.toml inferctl triage --json",
+      "artifact": "triage.json",
+      "status": "pass"
+    }
+  ],
+  "observations": {
+    "backends_reachable": 1,
+    "models_installed": 1,
+    "models_loaded_at_doctor_capture": 1,
+    "selected_route_model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+    "selected_route_backend": "mlx",
+    "route_ready": true,
+    "route_warning_codes": [],
+    "triage_warning_codes": []
+  },
+  "redactions": [
+    {
+      "field": "run directory name",
+      "rule": "use neutral public name instead of private machine hostname"
+    }
+  ],
+  "redaction_review": {
+    "raw_output_field_redactions_applied": false,
+    "notes": "Captured inferctl JSON used localhost URLs and public model identifiers. The curated artifacts do not contain private hostnames, home paths, Tailscale addresses, tokens, API key values, or local model cache paths."
+  },
+  "caveats": [
+    "This run validates provider workflow behavior and route selection, not model quality.",
+    "The mlx adapter treats models listed by /v1/models as loaded for v0.1 readiness checks.",
+    "The final run config starts from a minimal meta/profile config because v0.1 config patching cannot delete default scaffold backends."
+  ]
+}
