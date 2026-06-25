@@ -119,7 +119,7 @@ inferctl route code --prompt "summarize this" --json
 
 ## `inferctl config`
 
-Namespace for config show, validate, explain, init, set, and patch. Not directly invokable.
+Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable.
 
 Namespace only; use one of its subcommands.
 
@@ -161,6 +161,24 @@ Validate config and return source-position findings.
 
 ```sh
 inferctl config validate --json
+```
+
+## `inferctl config schema`
+
+Export the inferctl TOML config JSON Schema.
+
+- JSON data schema: `#/schemas/config_file`
+- Exit codes: `0`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl config schema --json
 ```
 
 ## `inferctl config explain`
@@ -336,5 +354,48 @@ Show version, build metadata, and optional update status.
 
 ```sh
 inferctl version --json
+```
+
+## `inferctl schema`
+
+Export JSON schemas for envelopes and verb data.
+
+- JSON data schema: `#/schemas/schema_export`
+- Exit codes: `0`, `1`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--command` type=`string` default=`<nil>`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl schema --json
+```
+
+## `inferctl robot-docs`
+
+Namespace for agent workflow documentation. Not directly invokable.
+
+Namespace only; use one of its subcommands.
+
+## `inferctl robot-docs guide`
+
+Print the embedded agent workflow guide.
+
+- JSON data schema: `#/schemas/robot_docs_guide`
+- Exit codes: `0`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl robot-docs guide --json
 ```
 

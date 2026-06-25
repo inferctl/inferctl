@@ -9,6 +9,9 @@ Install the public command with the Go toolchain:
 ```sh
 go install github.com/inferctl/inferctl/cmd/inferctl@latest
 inferctl capabilities --json
+inferctl schema --json
+inferctl config schema --json
+inferctl robot-docs guide
 ```
 
 For development, build from a source checkout:
@@ -16,6 +19,7 @@ For development, build from a source checkout:
 ```sh
 go build -o bin/inferctl ./cmd/inferctl
 bin/inferctl capabilities --json
+bin/inferctl schema --json
 ```
 
 The examples in `examples/` are source-only checkout artifacts for v0.2. They are not release-package payloads, and they may build `inferctl` and `infer-testserver` with the local Go toolchain. Public installation is Go toolchain only for now; no packaged examples or release archives are planned for this launch posture.
@@ -25,6 +29,7 @@ The examples in `examples/` are source-only checkout artifacts for v0.2. They ar
 Start by inspecting the schema, then create or edit a TOML config:
 
 ```sh
+inferctl config schema --json
 inferctl config explain --json
 inferctl config init --path inferctl.toml --json
 inferctl config set profile.max_concurrent_models 2 --type int --path inferctl.toml --json

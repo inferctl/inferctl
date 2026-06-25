@@ -60,7 +60,7 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 			emitsDataOnFailure = append(emitsDataOnFailure, verb["name"].(string))
 		}
 	}
-	if invokable != 15 {
+	if invokable != 18 {
 		t.Fatalf("invokable count = %d", invokable)
 	}
 	if !configNamespace {
@@ -176,7 +176,7 @@ func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {
 			t.Fatalf("docs/verbs.md missing verb %s", verb.Name)
 		}
 	}
-	for _, feature := range []string{"json_envelope", "stderr_error_mirror", "did_you_mean", "config_provenance"} {
+	for _, feature := range []string{"json_envelope", "stderr_error_mirror", "did_you_mean", "config_provenance", "schema_export", "robot_docs_command"} {
 		if !slices.Contains(caps.Features, feature) {
 			t.Fatalf("capabilities missing feature %s", feature)
 		}
@@ -184,10 +184,10 @@ func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {
 	if _, ok := caps.GlobalFlags["--json"]; !ok {
 		t.Fatal("capabilities missing --json global flag")
 	}
-	if caps.Config["schema_uri"] != "inferctl config explain --json" || caps.Config["show_uri"] != "inferctl config show --json" {
+	if caps.Config["schema_uri"] != "inferctl config schema --json" || caps.Config["show_uri"] != "inferctl config show --json" {
 		t.Fatalf("capabilities config metadata incomplete: %#v", caps.Config)
 	}
-	if caps.SchemasURI == "" || caps.RobotDocsURI != "docs/agent-guide.md" || len(caps.KnownNonGoals) == 0 {
+	if caps.SchemasURI != "inferctl schema --json" || caps.RobotDocsURI != "inferctl robot-docs guide" || len(caps.KnownNonGoals) == 0 {
 		t.Fatalf("capabilities missing schema/docs/non-goal metadata: %#v", caps)
 	}
 

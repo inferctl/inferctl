@@ -19,10 +19,28 @@ func newConfigCommand(jsonFlag *bool) *cobra.Command {
 	}
 	cmd.AddCommand(newConfigShowCommand(jsonFlag))
 	cmd.AddCommand(newConfigValidateCommand(jsonFlag))
+	cmd.AddCommand(newConfigSchemaCommand(jsonFlag))
 	cmd.AddCommand(newConfigExplainCommand(jsonFlag))
 	cmd.AddCommand(newConfigInitCommand(jsonFlag))
 	cmd.AddCommand(newConfigSetCommand(jsonFlag))
 	cmd.AddCommand(newConfigPatchCommand(jsonFlag))
+	return cmd
+}
+
+func newConfigSchemaCommand(jsonFlag *bool) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "schema",
+		Short: "Export the inferctl TOML config JSON Schema",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			schema := configFileJSONSchema()
+			return writeData(cmd, *jsonFlag, schema, func() error {
+				fmt.Fprintln(cmd.OutOrStdout(), "inferctl config schema")
+				fmt.Fprintln(cmd.OutOrStdout(), "json: inferctl config schema --json")
+				return nil
+			})
+		},
+	}
 	return cmd
 }
 

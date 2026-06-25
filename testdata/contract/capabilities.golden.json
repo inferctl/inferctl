@@ -10,8 +10,11 @@
     "deterministic_test_mode",
     "config_provenance",
     "config_mutation",
+    "config_schema",
     "from_stdin",
     "delivery_artifacts",
+    "schema_export",
+    "robot_docs_command",
     "mega_command_capabilities",
     "mega_command_diagnose",
     "mega_command_plan",
@@ -49,9 +52,10 @@
   },
   "config": {
     "format": "toml",
-    "schema_uri": "inferctl config explain --json",
+    "schema_uri": "inferctl config schema --json",
     "show_uri": "inferctl config show --json",
     "validate_uri": "inferctl config validate --json",
+    "explain_uri": "inferctl config explain --json",
     "search_path": [
       "$INFERCTL_CONFIG",
       "./inferctl.toml",
@@ -71,8 +75,8 @@
       "config patch"
     ]
   },
-  "schemas_uri": "inferctl capabilities --json | jq '.data.schemas'",
-  "robot_docs_uri": "docs/agent-guide.md",
+  "schemas_uri": "inferctl schema --json",
+  "robot_docs_uri": "inferctl robot-docs guide",
   "known_non_goals": [
     "No model-quality benchmarking.",
     "No inference execution API in v0.2.",
@@ -319,7 +323,7 @@
     {
       "name": "config",
       "namespace_only": true,
-      "summary": "Namespace for config show, validate, explain, init, set, and patch. Not directly invokable."
+      "summary": "Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable."
     },
     {
       "name": "config show",
@@ -375,6 +379,22 @@
       ],
       "output_schema_ref": "#/schemas/config_validation",
       "emits_data_on_failure": true
+    },
+    {
+      "name": "config schema",
+      "summary": "Export the inferctl TOML config JSON Schema.",
+      "flags": [
+        {
+          "name": "--json",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "exit_codes": [
+        0
+      ],
+      "output_schema_ref": "#/schemas/config_file",
+      "emits_data_on_failure": false
     },
     {
       "name": "config explain",
@@ -661,6 +681,49 @@
       ],
       "output_schema_ref": "#/schemas/version_info",
       "emits_data_on_failure": false
+    },
+    {
+      "name": "schema",
+      "summary": "Export JSON schemas for envelopes and verb data.",
+      "flags": [
+        {
+          "name": "--command",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--json",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "exit_codes": [
+        0,
+        1
+      ],
+      "output_schema_ref": "#/schemas/schema_export",
+      "emits_data_on_failure": false
+    },
+    {
+      "name": "robot-docs",
+      "namespace_only": true,
+      "summary": "Namespace for agent workflow documentation. Not directly invokable."
+    },
+    {
+      "name": "robot-docs guide",
+      "summary": "Print the embedded agent workflow guide.",
+      "flags": [
+        {
+          "name": "--json",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "exit_codes": [
+        0
+      ],
+      "output_schema_ref": "#/schemas/robot_docs_guide",
+      "emits_data_on_failure": false
     }
   ],
   "exit_codes": {
@@ -797,6 +860,10 @@
       "$ref": "#/generated/config_explanation",
       "title": "ConfigExplanation"
     },
+    "config_file": {
+      "$ref": "#/generated/config_file",
+      "title": "ConfigFile"
+    },
     "config_mutation": {
       "$ref": "#/generated/config_mutation",
       "title": "ConfigMutation"
@@ -816,6 +883,14 @@
     "capabilities_manifest": {
       "$ref": "#/generated/capabilities_manifest",
       "title": "CapabilitiesManifest"
+    },
+    "schema_export": {
+      "$ref": "#/generated/schema_export",
+      "title": "SchemaExport"
+    },
+    "robot_docs_guide": {
+      "$ref": "#/generated/robot_docs_guide",
+      "title": "RobotDocsGuide"
     },
     "error_details": {
       "$ref": "#/generated/error_details",

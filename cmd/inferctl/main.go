@@ -89,6 +89,8 @@ func newRootCommand() *rootCommand {
 	root.AddCommand(newDiscoverCommand(&jsonFlag))
 	root.AddCommand(newTriageCommand(&jsonFlag))
 	root.AddCommand(newVersionCommand(&jsonFlag))
+	root.AddCommand(newSchemaCommand(&jsonFlag))
+	root.AddCommand(newRobotDocsCommand(&jsonFlag))
 	applyHelpTemplate(root.Command)
 	return root
 }
@@ -113,7 +115,7 @@ Exit Codes:
 
 Agent/Automation:
   Machine contract: inferctl capabilities --json
-  Workflow guide: docs/agent-guide.md
+  Workflow guide: inferctl robot-docs guide
   JSON envelope: add --json or set INFERCTL_FORMAT=json
 `
 
@@ -323,7 +325,7 @@ func jsonRequested(args []string) bool {
 }
 
 func rootVerbNames() []string {
-	return []string{"doctor", "backends", "models", "model", "route", "config", "discover", "triage", "capabilities", "version"}
+	return []string{"doctor", "backends", "models", "model", "route", "config", "discover", "triage", "capabilities", "version", "schema", "robot-docs"}
 }
 
 func unknownVerbError(verb string) envelope.Error {
