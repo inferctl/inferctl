@@ -9,6 +9,8 @@ commands.
 
 Licensed under Apache 2.0 (see LICENSE and NOTICE).
 
+![inferctl terminal demo](docs/img/inferctl-demo.gif)
+
 ## What It Does
 
 - Diagnoses backend health with `inferctl doctor`.
