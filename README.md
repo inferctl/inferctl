@@ -9,8 +9,6 @@ commands.
 
 Licensed under Apache 2.0 (see LICENSE and NOTICE).
 
-![inferctl terminal demo](docs/img/inferctl-demo.gif)
-
 ## What It Does
 
 - Diagnoses backend health with `inferctl doctor`.
@@ -84,6 +82,8 @@ examples/demo-1-install-moment.sh
 examples/demo-2-route-explained.sh
 examples/demo-3-agent-loop.sh
 ```
+
+See the terminal demo GIF in [docs/img/inferctl-demo.gif](docs/img/inferctl-demo.gif).
 
 The fixture helper intentionally keeps the internal legacy name
 `cmd/infer-testserver`. The product rename applies to the user-facing CLI
