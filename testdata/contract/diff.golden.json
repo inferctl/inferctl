@@ -1,0 +1,37 @@
+{
+  "changes": [
+    {
+      "rank": 1,
+      "type": "backend_reachability",
+      "subject": "ollama",
+      "severity": "high",
+      "before": "reachable",
+      "after": "unreachable",
+      "explanation": "backend reachability changed"
+    },
+    {
+      "rank": 2,
+      "type": "error_codes",
+      "subject": "E_NO_ROUTE_AVAILABLE",
+      "severity": "high",
+      "before": "",
+      "after": "present",
+      "explanation": "error code set changed"
+    },
+    {
+      "rank": 3,
+      "type": "fallback_status",
+      "subject": "code",
+      "severity": "high",
+      "before": false,
+      "after": true,
+      "explanation": "fallback status changed"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "high": 4,
+    "medium": 4,
+    "low": 1
+  }
+}

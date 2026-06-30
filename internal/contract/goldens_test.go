@@ -19,6 +19,7 @@ func TestVerbGoldens(t *testing.T) {
 		"config_patch.stdin.golden.json",
 		"config_set.change.golden.json",
 		"config_validate.clean.golden.json",
+		"diff.golden.json",
 		"discover.empty.golden.json",
 		"discover.ollama.golden.json",
 		"doctor.golden.json",

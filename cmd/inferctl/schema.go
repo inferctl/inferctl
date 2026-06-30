@@ -113,6 +113,7 @@ func schemaCommandMap() map[string]string {
 		"model":            "model_detail",
 		"route":            "route_explanation",
 		"preflight":        "preflight_report",
+		"diff":             "diff_report",
 		"config show":      "config_view",
 		"config validate":  "config_validation",
 		"config explain":   "config_explanation",
@@ -152,6 +153,7 @@ func commandSchemas() map[string]any {
 		"model_detail":       modelDetailSchema(),
 		"route_explanation":  routeExplanationSchema(),
 		"preflight_report":   preflightReportSchema(),
+		"diff_report":        diffReportSchema(),
 		"config_view":        configViewSchema(),
 		"config_validation":  configValidationSchema(),
 		"config_explanation": configExplanationSchema(),
@@ -413,6 +415,15 @@ func preflightReportSchema() map[string]any {
 		"policy":             map[string]any{"type": "object"},
 		"warnings":           arrayOf(map[string]any{"$ref": "#/definitions/warning"}),
 		"recommended_action": nullable("object"),
+	})
+}
+
+func diffReportSchema() map[string]any {
+	return objectSchema([]string{"before", "after", "summary", "changes"}, map[string]any{
+		"before":  map[string]any{"type": "object"},
+		"after":   map[string]any{"type": "object"},
+		"summary": map[string]any{"type": "object"},
+		"changes": arrayOf(map[string]any{"$ref": "#/definitions/control_plane_change"}),
 	})
 }
 

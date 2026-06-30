@@ -146,6 +146,28 @@ Decide whether automation may attempt a configured task.
 inferctl preflight code --prompt-file prompt.txt --json
 ```
 
+## `inferctl diff`
+
+Compare two inferctl control-plane snapshots.
+
+- Mega-command: `DIAGNOSE`
+- JSON data schema: `#/schemas/diff_report`
+- Exit codes: `0`, `1`, `3`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--before` type=`string` default=`<nil>`
+- `--after` type=`string` default=`<nil>`
+- `--format` type=`enum` default=`human`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl diff --before before.json --after after.json --json
+```
+
 ## `inferctl config`
 
 Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable.
