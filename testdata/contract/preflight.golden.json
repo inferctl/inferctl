@@ -1,0 +1,29 @@
+{
+  "policy": {
+    "allow_fallback": false,
+    "require_ready": false
+  },
+  "prompt": {
+    "source_kind": "none",
+    "source": "none",
+    "prompt_chars": 0,
+    "estimated_tokens": 0
+  },
+  "route_decision": {
+    "selected_model": "qwen3:8b",
+    "selected_backend": "ollama",
+    "is_fallback": false,
+    "fallback_index": null,
+    "ready": true,
+    "estimated_first_token_ms": null,
+    "estimated_total_ms": null,
+    "reason": "primary model is available"
+  },
+  "runnability": {
+    "status": "runnable",
+    "runnable": true,
+    "exit_code": 0,
+    "reason": "route satisfies preflight policy"
+  },
+  "warnings": []
+}

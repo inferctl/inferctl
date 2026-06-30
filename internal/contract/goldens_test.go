@@ -25,6 +25,7 @@ func TestVerbGoldens(t *testing.T) {
 		"doctor.recommended_action.no_future_verbs.golden.json",
 		"model.golden.json",
 		"models.golden.json",
+		"preflight.golden.json",
 		"route.golden.json",
 		"triage.clean.golden.json",
 		"triage.errors.golden.json",

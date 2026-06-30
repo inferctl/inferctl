@@ -112,6 +112,7 @@ func schemaCommandMap() map[string]string {
 		"models":           "model_list",
 		"model":            "model_detail",
 		"route":            "route_explanation",
+		"preflight":        "preflight_report",
 		"config show":      "config_view",
 		"config validate":  "config_validation",
 		"config explain":   "config_explanation",
@@ -150,6 +151,7 @@ func commandSchemas() map[string]any {
 		"model_list":         modelListSchema(),
 		"model_detail":       modelDetailSchema(),
 		"route_explanation":  routeExplanationSchema(),
+		"preflight_report":   preflightReportSchema(),
 		"config_view":        configViewSchema(),
 		"config_validation":  configValidationSchema(),
 		"config_explanation": configExplanationSchema(),
@@ -397,6 +399,20 @@ func routeExplanationSchema() map[string]any {
 		"decision":    map[string]any{"type": "object"},
 		"candidates":  arrayOf(map[string]any{"type": "object"}),
 		"constraints": map[string]any{"type": "object"},
+	})
+}
+
+func preflightReportSchema() map[string]any {
+	return objectSchema([]string{"task", "prompt", "route_decision", "route_candidates", "constraints", "runnability", "policy", "warnings", "recommended_action"}, map[string]any{
+		"task":               map[string]any{"type": "string"},
+		"prompt":             map[string]any{"$ref": "#/definitions/prompt_metadata"},
+		"route_decision":     map[string]any{"type": "object"},
+		"route_candidates":   arrayOf(map[string]any{"type": "object"}),
+		"constraints":        map[string]any{"type": "object"},
+		"runnability":        map[string]any{"type": "object"},
+		"policy":             map[string]any{"type": "object"},
+		"warnings":           arrayOf(map[string]any{"$ref": "#/definitions/warning"}),
+		"recommended_action": nullable("object"),
 	})
 }
 

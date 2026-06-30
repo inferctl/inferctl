@@ -321,6 +321,66 @@
       "emits_data_on_failure": false
     },
     {
+      "name": "preflight",
+      "summary": "Decide whether automation may attempt a configured task.",
+      "mega_command": "PLAN",
+      "flags": [
+        {
+          "name": "--prompt-file",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--prompt",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--from-stdin",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "--allow-fallback",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "--require-ready",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "--format",
+          "type": "enum",
+          "values": [
+            "human",
+            "markdown"
+          ],
+          "default": "human"
+        },
+        {
+          "name": "--json",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "args": [
+        {
+          "name": "task",
+          "required": true
+        }
+      ],
+      "exit_codes": [
+        0,
+        1,
+        3,
+        4
+      ],
+      "output_schema_ref": "#/schemas/preflight_report",
+      "emits_data_on_failure": true
+    },
+    {
       "name": "config",
       "namespace_only": true,
       "summary": "Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable."
@@ -848,6 +908,10 @@
       "$ref": "#/generated/route_explanation",
       "title": "RouteExplanation"
     },
+    "preflight_report": {
+      "$ref": "#/generated/preflight_report",
+      "title": "PreflightReport"
+    },
     "config_view": {
       "$ref": "#/generated/config_view",
       "title": "ConfigView"
@@ -1034,6 +1098,13 @@
       "retryable": true,
       "message_template": "no candidate model for task '<task>' is reachable",
       "details_schema_ref": "#/schemas/error_details/E_NO_ROUTE_AVAILABLE"
+    },
+    "E_PREFLIGHT_POLICY_BLOCKED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "preflight policy blocks task '<task>': <reason>",
+      "details_schema_ref": "#/schemas/error_details/E_PREFLIGHT_POLICY_BLOCKED"
     },
     "E_BINARY_INTERNAL": {
       "status": "v0.1",

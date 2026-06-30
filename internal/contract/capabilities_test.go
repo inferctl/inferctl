@@ -60,13 +60,13 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 			emitsDataOnFailure = append(emitsDataOnFailure, verb["name"].(string))
 		}
 	}
-	if invokable != 18 {
+	if invokable != 19 {
 		t.Fatalf("invokable count = %d", invokable)
 	}
 	if !configNamespace {
 		t.Fatal("config namespace entry missing")
 	}
-	if len(emitsDataOnFailure) != 1 || emitsDataOnFailure[0] != "config validate" {
+	if len(emitsDataOnFailure) != 2 || !slices.Contains(emitsDataOnFailure, "config validate") || !slices.Contains(emitsDataOnFailure, "preflight") {
 		t.Fatalf("emits_data_on_failure = %#v", emitsDataOnFailure)
 	}
 }

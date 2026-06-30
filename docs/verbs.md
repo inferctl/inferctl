@@ -117,6 +117,35 @@ Compute and explain a route for a configured task.
 inferctl route code --prompt "summarize this" --json
 ```
 
+## `inferctl preflight`
+
+Decide whether automation may attempt a configured task.
+
+- Mega-command: `PLAN`
+- JSON data schema: `#/schemas/preflight_report`
+- Exit codes: `0`, `1`, `3`, `4`
+- Emits data on failure: `true`
+
+### Args
+
+- `task` required=true
+
+### Flags
+
+- `--prompt-file` type=`string` default=`<nil>`
+- `--prompt` type=`string` default=`<nil>`
+- `--from-stdin` type=`bool` default=`false`
+- `--allow-fallback` type=`bool` default=`false`
+- `--require-ready` type=`bool` default=`false`
+- `--format` type=`enum` default=`human`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl preflight code --prompt-file prompt.txt --json
+```
+
 ## `inferctl config`
 
 Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable.
@@ -398,4 +427,3 @@ Print the embedded agent workflow guide.
 ```sh
 inferctl robot-docs guide --json
 ```
-

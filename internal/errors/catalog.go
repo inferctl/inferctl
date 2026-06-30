@@ -20,6 +20,7 @@ const (
 	EBackendRemoteNotAllowed      = "E_BACKEND_REMOTE_NOT_ALLOWED"
 	EBackendTimeout               = "E_BACKEND_TIMEOUT"
 	ENoRouteAvailable             = "E_NO_ROUTE_AVAILABLE"
+	EPreflightPolicyBlocked       = "E_PREFLIGHT_POLICY_BLOCKED"
 	EBinaryInternal               = "E_BINARY_INTERNAL"
 	EVerbRenamed                  = "E_VERB_RENAMED"
 	EConfigValidationFailed       = "E_CONFIG_VALIDATION_FAILED"
@@ -59,6 +60,7 @@ var ActiveErrorCodes = []string{
 	EBackendRemoteNotAllowed,
 	EBackendTimeout,
 	ENoRouteAvailable,
+	EPreflightPolicyBlocked,
 	EBinaryInternal,
 	EVerbRenamed,
 	EConfigValidationFailed,
