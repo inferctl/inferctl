@@ -418,6 +418,51 @@
       "emits_data_on_failure": false
     },
     {
+      "name": "snapshot",
+      "summary": "Capture a comparable inferctl control-plane snapshot.",
+      "mega_command": "DIAGNOSE",
+      "flags": [
+        {
+          "name": "--task",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--prompt-file",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--prompt",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--from-stdin",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "--output",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--json",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "exit_codes": [
+        0,
+        1,
+        3,
+        4
+      ],
+      "output_schema_ref": "#/schemas/control_plane_snapshot",
+      "emits_data_on_failure": false
+    },
+    {
       "name": "config",
       "namespace_only": true,
       "summary": "Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable."

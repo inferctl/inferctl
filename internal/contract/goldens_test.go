@@ -28,6 +28,7 @@ func TestVerbGoldens(t *testing.T) {
 		"models.golden.json",
 		"preflight.golden.json",
 		"route.golden.json",
+		"snapshot.golden.json",
 		"triage.clean.golden.json",
 		"triage.errors.golden.json",
 		"version.golden.json",

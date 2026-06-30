@@ -114,6 +114,7 @@ func schemaCommandMap() map[string]string {
 		"route":            "route_explanation",
 		"preflight":        "preflight_report",
 		"diff":             "diff_report",
+		"snapshot":         "control_plane_snapshot",
 		"config show":      "config_view",
 		"config validate":  "config_validation",
 		"config explain":   "config_explanation",
@@ -147,13 +148,16 @@ func envelopeJSONSchema() map[string]any {
 
 func commandSchemas() map[string]any {
 	return map[string]any{
-		"doctor_report":      doctorReportSchema(),
-		"backend_list":       backendListSchema(),
-		"model_list":         modelListSchema(),
-		"model_detail":       modelDetailSchema(),
-		"route_explanation":  routeExplanationSchema(),
-		"preflight_report":   preflightReportSchema(),
-		"diff_report":        diffReportSchema(),
+		"doctor_report":     doctorReportSchema(),
+		"backend_list":      backendListSchema(),
+		"model_list":        modelListSchema(),
+		"model_detail":      modelDetailSchema(),
+		"route_explanation": routeExplanationSchema(),
+		"preflight_report":  preflightReportSchema(),
+		"diff_report":       diffReportSchema(),
+		"control_plane_snapshot": map[string]any{
+			"$ref": "#/definitions/control_plane_snapshot",
+		},
 		"config_view":        configViewSchema(),
 		"config_validation":  configValidationSchema(),
 		"config_explanation": configExplanationSchema(),

@@ -269,7 +269,7 @@ func newControlPlaneSnapshot(task string, prompt promptMetadata) controlPlaneSna
 		SnapshotSchemaVersion: snapshotSchemaVersion,
 		ContractVersion:       "0.1",
 		InferctlVersion:       internalversion.Tool(),
-		CapturedAtISO:         time.Now().UTC().Format(time.RFC3339Nano),
+		CapturedAtISO:         deterministicSnapshotTime().Format(time.RFC3339Nano),
 		Task:                  task,
 		Prompt:                prompt,
 		Warnings:              []envelope.Warning{},

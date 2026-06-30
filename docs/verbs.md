@@ -168,6 +168,30 @@ Compare two inferctl control-plane snapshots.
 inferctl diff --before before.json --after after.json --json
 ```
 
+## `inferctl snapshot`
+
+Capture a comparable inferctl control-plane snapshot.
+
+- Mega-command: `DIAGNOSE`
+- JSON data schema: `#/schemas/control_plane_snapshot`
+- Exit codes: `0`, `1`, `3`, `4`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--task` type=`string` default=`<nil>`
+- `--prompt-file` type=`string` default=`<nil>`
+- `--prompt` type=`string` default=`<nil>`
+- `--from-stdin` type=`bool` default=`false`
+- `--output` type=`string` default=`<nil>`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl snapshot --task code --prompt-file prompt.txt --output snapshot.json
+```
+
 ## `inferctl config`
 
 Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable.

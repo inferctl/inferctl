@@ -1,0 +1,25 @@
+{
+  "captured_at_iso": "1970-01-01T00:00:00Z",
+  "contract_version": "0.1",
+  "prompt": {
+    "source_kind": "file",
+    "source": "file",
+    "prompt_chars": 21,
+    "estimated_tokens": 6,
+    "content_sha256": "6b9dbfcffba149b68e61e283c5141fd5122b22398a74208ed9a709180fe6fd2b",
+    "filename": "prompt.txt",
+    "basename": "prompt.txt"
+  },
+  "route_decision": {
+    "selected_model": "qwen3:8b",
+    "selected_backend": "ollama",
+    "is_fallback": false,
+    "fallback_index": null,
+    "ready": true,
+    "estimated_first_token_ms": null,
+    "estimated_total_ms": null,
+    "reason": "primary model is available"
+  },
+  "snapshot_schema_version": "0.1",
+  "task": "code"
+}
