@@ -3,8 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
 	"slices"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/inferctl/inferctl/internal/config"
 	"github.com/inferctl/inferctl/internal/envelope"
@@ -13,6 +17,8 @@ import (
 )
 
 const statusSchemaVersion = "0.1"
+
+const defaultStatusWatchInterval = 2 * time.Second
 
 type statusSnapshot struct {
 	StatusSchemaVersion string                      `json:"status_schema_version"`
@@ -59,28 +65,66 @@ type statusRoute struct {
 	Warnings   []envelope.Warning        `json:"warnings"`
 }
 
+type statusOptions struct {
+	watch    bool
+	interval time.Duration
+}
+
 func newStatusCommand(jsonFlag *bool) *cobra.Command {
+	opts := statusOptions{interval: defaultStatusWatchInterval}
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Emit an aggregate live-state status snapshot",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			snapshot, warnings, commands, errObj := buildStatusSnapshot(cmd.Context())
-			if errObj != nil {
-				return writeError(cmd, *jsonFlag, *errObj)
+			if opts.interval <= 0 {
+				return writeError(cmd, *jsonFlag, invalidArg("--interval", opts.interval.String(), "positive duration such as 2s", nil))
 			}
-			return writeDataWithDiagnostics(cmd, *jsonFlag, snapshot, warnings, commands, func() error {
-				fmt.Fprintf(cmd.OutOrStdout(), "status: %d/%d backends reachable, %d loaded models, %d route(s)\n",
-					snapshot.Summary.BackendsReachable,
-					snapshot.Summary.BackendsTotal,
-					snapshot.Summary.ModelsLoadedTotal,
-					snapshot.Summary.RoutesTotal,
-				)
-				return nil
-			})
+			if opts.watch {
+				return runStatusWatch(cmd, *jsonFlag, opts.interval)
+			}
+			return writeStatusSnapshot(cmd.Context(), cmd, *jsonFlag)
 		},
 	}
+	cmd.Flags().BoolVar(&opts.watch, "watch", false, "emit status snapshots continuously")
+	cmd.Flags().DurationVar(&opts.interval, "interval", opts.interval, "watch polling interval")
 	return cmd
+}
+
+func runStatusWatch(cmd *cobra.Command, jsonFlag bool, interval time.Duration) error {
+	ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if err := writeStatusSnapshot(ctx, cmd, jsonFlag); err != nil {
+		return err
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			if err := writeStatusSnapshot(ctx, cmd, jsonFlag); err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func writeStatusSnapshot(ctx context.Context, cmd *cobra.Command, jsonFlag bool) error {
+	snapshot, warnings, commands, errObj := buildStatusSnapshot(ctx)
+	if errObj != nil {
+		return writeError(cmd, jsonFlag, *errObj)
+	}
+	return writeDataWithDiagnostics(cmd, jsonFlag, snapshot, warnings, commands, func() error {
+		fmt.Fprintf(cmd.OutOrStdout(), "status: %d/%d backends reachable, %d loaded models, %d route(s)\n",
+			snapshot.Summary.BackendsReachable,
+			snapshot.Summary.BackendsTotal,
+			snapshot.Summary.ModelsLoadedTotal,
+			snapshot.Summary.RoutesTotal,
+		)
+		return nil
+	})
 }
 
 func buildStatusSnapshot(ctx context.Context) (statusSnapshot, []envelope.Warning, []envelope.Command, *envelope.Error) {

@@ -48,10 +48,12 @@ func main() {
 	if err := os.MkdirAll(filepath.Join(root, "docs"), 0o755); err != nil {
 		fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "docs", "errors.md"), []byte(renderErrors(caps)), 0o644); err != nil {
+	errorsDoc := strings.TrimRight(renderErrors(caps), "\n") + "\n"
+	if err := os.WriteFile(filepath.Join(root, "docs", "errors.md"), []byte(errorsDoc), 0o644); err != nil {
 		fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "docs", "verbs.md"), []byte(renderVerbs(caps)), 0o644); err != nil {
+	verbsDoc := strings.TrimRight(renderVerbs(caps), "\n") + "\n"
+	if err := os.WriteFile(filepath.Join(root, "docs", "verbs.md"), []byte(verbsDoc), 0o644); err != nil {
 		fatal(err)
 	}
 }

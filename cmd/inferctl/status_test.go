@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/inferctl/inferctl/internal/testserver"
 )
@@ -79,6 +84,98 @@ func TestStatusCoversSupportedBackendKinds(t *testing.T) {
 	if env.Data.Summary.BackendsTotal != 5 || env.Data.Summary.BackendsReachable != 5 || len(env.Data.Models.Exposed) < 5 {
 		t.Fatalf("status summary = %#v exposed=%#v", env.Data.Summary, env.Data.Models.Exposed)
 	}
+}
+
+func TestStatusWatchJSONEmitsRepeatedSnapshotsAndStopsOnContextCancel(t *testing.T) {
+	t.Setenv("INFERCTL_TEST_DETERMINISTIC", "1")
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "fallback:8b", SizeBytes: 1}},
+		Loaded: []testserver.LoadedModel{{Name: "fallback:8b", VRAMBytes: 1}},
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeDoctorConfig(t, doctorConfigOptions{
+		OllamaURL: server.URL,
+		Primary:   "fallback:8b",
+	}))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	out := &cancelAfterLinesWriter{after: 2, cancel: cancel}
+	var stderr bytes.Buffer
+	cmd := newRootCommand()
+	cmd.SetContext(ctx)
+	cmd.SetOut(out)
+	cmd.SetErr(&stderr)
+	cmd.SetArgs([]string{"status", "--json", "--watch", "--interval", "1ms"})
+
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Execute()
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("status watch error = %v stderr=%s stdout=%s", err, stderr.String(), out.String())
+		}
+	case <-time.After(time.Second):
+		cancel()
+		t.Fatal("status watch did not stop after context cancellation")
+	}
+
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	if len(lines) < 2 {
+		t.Fatalf("status watch emitted %d envelopes, want at least 2: %q", len(lines), out.String())
+	}
+	for _, line := range lines {
+		var env struct {
+			OK   bool           `json:"ok"`
+			Data statusSnapshot `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(line), &env); err != nil {
+			t.Fatalf("unmarshal watch envelope: %v\n%s", err, line)
+		}
+		if !env.OK || env.Data.StatusSchemaVersion != statusSchemaVersion {
+			t.Fatalf("unexpected watch envelope: %#v", env)
+		}
+	}
+}
+
+func TestStatusWatchRejectsNonPositiveInterval(t *testing.T) {
+	t.Setenv("INFERCTL_CONFIG", writeTempConfig(t))
+	stdout, _, err := executeForTest("status", "--json", "--watch", "--interval", "0s")
+	if err == nil {
+		t.Fatalf("status watch accepted zero interval: %s", stdout)
+	}
+	if !strings.Contains(stdout, `"code":"E_INVALID_ARG"`) {
+		t.Fatalf("status watch interval error = %s", stdout)
+	}
+}
+
+type cancelAfterLinesWriter struct {
+	mu     sync.Mutex
+	buf    bytes.Buffer
+	lines  int
+	after  int
+	cancel context.CancelFunc
+}
+
+func (w *cancelAfterLinesWriter) Write(p []byte) (int, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	n, err := w.buf.Write(p)
+	w.lines += strings.Count(string(p), "\n")
+	if w.lines >= w.after {
+		w.cancel()
+	}
+	return n, err
+}
+
+func (w *cancelAfterLinesWriter) String() string {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.buf.String()
 }
 
 func hasStatusBackendKind(backends []statusBackend, kind string) bool {

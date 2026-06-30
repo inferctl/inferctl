@@ -491,6 +491,16 @@
           "name": "--json",
           "type": "bool",
           "default": false
+        },
+        {
+          "name": "--watch",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "--interval",
+          "type": "duration",
+          "default": "2s"
         }
       ],
       "exit_codes": [
