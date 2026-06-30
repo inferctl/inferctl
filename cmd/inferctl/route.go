@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
-	"math"
-	"os"
 	"slices"
 	"strings"
 
@@ -110,57 +107,15 @@ func newRouteCommand(jsonFlag *bool) *cobra.Command {
 }
 
 func readRouteInput(cmd *cobra.Command, opts routePromptOptions) (routeInput, *envelope.Error) {
-	sources := 0
-	if opts.inline != "" {
-		sources++
+	meta, errObj := readPromptMetadata(cmd, promptReadOptions{inline: opts.inline, file: opts.file, fromStdin: opts.fromStdin})
+	if errObj != nil {
+		return routeInput{}, errObj
 	}
+	input := routeInputFromPromptMetadata(meta)
 	if opts.file != "" {
-		sources++
+		input.Source = "file:" + opts.file
 	}
-	if opts.fromStdin {
-		sources++
-	}
-	if sources > 1 {
-		err := invalidArg("prompt_source", "multiple", "choose only one of --prompt, --prompt-file, or --from-stdin", []string{"--prompt", "--prompt-file", "--from-stdin"})
-		return routeInput{}, &err
-	}
-	var text string
-	source := "none"
-	switch {
-	case opts.inline != "":
-		text = opts.inline
-		source = "inline"
-	case opts.file != "":
-		data, err := os.ReadFile(opts.file)
-		if err != nil {
-			errObj := envelope.Error{
-				Code:      "E_CONFIG_UNREADABLE",
-				Message:   "prompt file at " + opts.file + " could not be read: " + err.Error(),
-				ExitCode:  3,
-				Retryable: false,
-				Details:   map[string]any{"path": opts.file, "reason": err.Error()},
-			}
-			return routeInput{}, &errObj
-		}
-		text = string(data)
-		source = "file:" + opts.file
-	case opts.fromStdin:
-		data, err := io.ReadAll(cmd.InOrStdin())
-		if err != nil {
-			errObj := envelope.Error{
-				Code:      "E_CONFIG_UNREADABLE",
-				Message:   "stdin could not be read: " + err.Error(),
-				ExitCode:  3,
-				Retryable: false,
-				Details:   map[string]any{"path": "stdin", "reason": err.Error()},
-			}
-			return routeInput{}, &errObj
-		}
-		text = string(data)
-		source = "stdin"
-	}
-	chars := len([]rune(text))
-	return routeInput{PromptChars: chars, EstimatedTokens: int(math.Ceil(float64(chars) / 4.0)), Source: source}, nil
+	return input, nil
 }
 
 func buildRouteReport(ctx context.Context, cfg config.Config, task string, routeCfg config.RoutingConfig, entries []backendEntry, input routeInput) (routeReport, []envelope.Warning, []envelope.Command, *envelope.Error) {

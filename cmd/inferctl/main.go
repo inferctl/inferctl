@@ -220,6 +220,15 @@ func (e exitError) Error() string {
 	return fmt.Sprintf("exit %d", int(e))
 }
 
+const (
+	exitSuccess     = 0
+	exitUserInput   = 1
+	exitSafetyBlock = 2
+	exitEnvironment = 3
+	exitTransient   = 4
+	exitConflict    = 5
+)
+
 func envMap() map[string]string {
 	out := map[string]string{}
 	for _, kv := range os.Environ() {
@@ -476,17 +485,17 @@ func levenshtein(a, b string) int {
 
 func exitCodeName(code int) string {
 	switch code {
-	case 0:
+	case exitSuccess:
 		return "success"
-	case 1:
+	case exitUserInput:
 		return "user_input_error"
-	case 2:
+	case exitSafetyBlock:
 		return "safety_block"
-	case 3:
+	case exitEnvironment:
 		return "tool_environment_error"
-	case 4:
+	case exitTransient:
 		return "transient_failure"
-	case 5:
+	case exitConflict:
 		return "conflict"
 	default:
 		return "unknown"
