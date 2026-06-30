@@ -15,19 +15,18 @@ git diff -- internal/contract/capabilities.golden.json testdata/contract
 Review the diff before committing. Human-rendered output is intentionally not
 goldened; only JSON contract data belongs here.
 
-## Status Snapshot Schema
+## Status Frame Schema
 
 `status.golden.json` defines the committed aggregate feed for
 `inferctl status --json` and `inferctl status --json --watch`.
 
 Top-level fields:
 
-- `status_schema_version`: schema version for the status feed.
+- `status_frame_schema_version`: schema version for the status feed.
 - `contract_version`: inferctl machine-contract version.
-- `captured_at_iso`: snapshot capture time.
 - `summary`: counts for backends, reachable backends, exposed models, loaded
   models, route outcomes, ready routes, and warnings.
-- `backends`: backend reachability rows with name, kind, base URL,
+- `backends`: backend reachability rows with name, kind, endpoint identifier,
   reachability, default flag, model counts, and optional error.
 - `models.exposed`: model rows visible across configured backends, including
   backend, `loaded`, and `available` state.
@@ -41,6 +40,14 @@ Top-level fields:
 The status feed is read-only. It aggregates the same non-inference probes used
 by `doctor`, `models`, and `route`; it must not run inference, warm models, load
 models, or create a hidden data-plane request path.
+
+Status frame data is an allowlist. It may include backend name, kind, default
+flag, reachability, endpoint identifier, aggregate model counts, exposed model
+names, route decisions, warning codes/messages/details, and recommended
+commands. It must not include prompt text, auth headers, tokens, API keys,
+secret config values, full prompt file paths, arbitrary local filesystem paths,
+or raw config file content. Capture time lives in the envelope metadata, not in
+status frame `data`, so `meta.data_hash` tracks stable live state.
 
 ## Status Change Event Schema
 

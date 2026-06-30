@@ -115,7 +115,7 @@ func schemaCommandMap() map[string]string {
 		"preflight":        "preflight_report",
 		"diff":             "diff_report",
 		"snapshot":         "control_plane_snapshot",
-		"status":           "status_snapshot",
+		"status":           "status_frame",
 		"config show":      "config_view",
 		"config validate":  "config_validation",
 		"config explain":   "config_explanation",
@@ -159,8 +159,8 @@ func commandSchemas() map[string]any {
 		"control_plane_snapshot": map[string]any{
 			"$ref": "#/definitions/control_plane_snapshot",
 		},
-		"status_snapshot": map[string]any{
-			"$ref": "#/definitions/status_snapshot",
+		"status_frame": map[string]any{
+			"$ref": "#/definitions/status_frame",
 		},
 		"status_event_batch": map[string]any{
 			"$ref": "#/definitions/status_event_batch",
@@ -359,10 +359,9 @@ func schemaDefinitions() map[string]any {
 			"models_loaded_count":    nullable("integer"),
 			"error":                  nullable("string"),
 		}),
-		"status_snapshot": objectSchema([]string{
-			"status_schema_version",
+		"status_frame": objectSchema([]string{
+			"status_frame_schema_version",
 			"contract_version",
-			"captured_at_iso",
 			"summary",
 			"backends",
 			"models",
@@ -370,11 +369,10 @@ func schemaDefinitions() map[string]any {
 			"warnings",
 			"recommended_action",
 		}, map[string]any{
-			"status_schema_version": map[string]any{"type": "string"},
-			"contract_version":      map[string]any{"type": "string"},
-			"captured_at_iso":       map[string]any{"type": "string", "format": "date-time"},
-			"summary":               map[string]any{"type": "object"},
-			"backends":              arrayOf(map[string]any{"$ref": "#/definitions/status_backend"}),
+			"status_frame_schema_version": map[string]any{"type": "string"},
+			"contract_version":            map[string]any{"type": "string"},
+			"summary":                     map[string]any{"type": "object"},
+			"backends":                    arrayOf(map[string]any{"$ref": "#/definitions/status_backend"}),
 			"models": objectSchema([]string{"exposed", "loaded"}, map[string]any{
 				"exposed": arrayOf(map[string]any{"$ref": "#/definitions/model_info"}),
 				"loaded":  arrayOf(map[string]any{"$ref": "#/definitions/loaded_model_info"}),

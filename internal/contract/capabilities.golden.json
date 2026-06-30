@@ -513,7 +513,7 @@
         3,
         4
       ],
-      "output_schema_ref": "#/schemas/status_snapshot",
+      "output_schema_ref": "#/schemas/status_frame",
       "emits_data_on_failure": false
     },
     {
@@ -1127,8 +1127,8 @@
       "$ref": "#/generated/warning_details",
       "title": "WarningDetails"
     },
-    "status_snapshot": {
-      "$ref": "#/generated/status_snapshot",
+    "status_frame": {
+      "$ref": "#/generated/status_frame",
       "title": "StatusSnapshot"
     },
     "status_event_batch": {

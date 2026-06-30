@@ -309,8 +309,8 @@ func TestDoctorGoldenIncludesRecommendedAction(t *testing.T) {
 func TestStatusGoldenCoversAggregateSchema(t *testing.T) {
 	body := readString(t, "../../testdata/contract/status.golden.json")
 	var golden struct {
-		StatusSchemaVersion string `json:"status_schema_version"`
-		Summary             struct {
+		StatusFrameSchemaVersion string `json:"status_frame_schema_version"`
+		Summary                  struct {
 			BackendsTotal      int `json:"backends_total"`
 			ModelsExposedTotal int `json:"models_exposed_total"`
 			ModelsLoadedTotal  int `json:"models_loaded_total"`
@@ -350,7 +350,7 @@ func TestStatusGoldenCoversAggregateSchema(t *testing.T) {
 	if err := json.Unmarshal([]byte(body), &golden); err != nil {
 		t.Fatal(err)
 	}
-	if golden.StatusSchemaVersion == "" || golden.Summary.BackendsTotal == 0 || golden.Summary.ModelsExposedTotal == 0 ||
+	if golden.StatusFrameSchemaVersion == "" || golden.Summary.BackendsTotal == 0 || golden.Summary.ModelsExposedTotal == 0 ||
 		golden.Summary.ModelsLoadedTotal == 0 || golden.Summary.RoutesTotal == 0 || golden.Summary.WarningsTotal == 0 {
 		t.Fatalf("status golden summary should cover aggregate counts: %#v", golden.Summary)
 	}

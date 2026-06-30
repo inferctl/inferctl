@@ -201,7 +201,7 @@ inferctl snapshot --json
 Emit an aggregate live-state status snapshot.
 
 - Mega-command: `DIAGNOSE`
-- JSON data schema: `#/schemas/status_snapshot`
+- JSON data schema: `#/schemas/status_frame`
 - Exit codes: `0`, `3`, `4`
 - Emits data on failure: `false`
 

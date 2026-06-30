@@ -249,6 +249,13 @@ func dashboardRecordFromEnvelope(line []byte) dashboardFeedRecordMsg {
 	if err := json.Unmarshal(env.Data, &discriminator); err != nil {
 		return dashboardFeedRecordMsg{err: err}
 	}
+	if _, ok := discriminator["status_frame_schema_version"]; ok {
+		var snapshot statusSnapshot
+		if err := json.Unmarshal(env.Data, &snapshot); err != nil {
+			return dashboardFeedRecordMsg{err: err}
+		}
+		return dashboardFeedRecordMsg{snapshot: &snapshot}
+	}
 	if _, ok := discriminator["status_schema_version"]; ok {
 		var snapshot statusSnapshot
 		if err := json.Unmarshal(env.Data, &snapshot); err != nil {

@@ -17,22 +17,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const statusSchemaVersion = "0.1"
+const statusFrameSchemaVersion = "0.1"
+const statusSchemaVersion = statusFrameSchemaVersion
 
 const defaultStatusWatchInterval = 2 * time.Second
 
 const statusEventSchemaVersion = "0.1"
 
 type statusSnapshot struct {
-	StatusSchemaVersion string                      `json:"status_schema_version"`
-	ContractVersion     string                      `json:"contract_version"`
-	CapturedAtISO       string                      `json:"captured_at_iso"`
-	Summary             statusSummary               `json:"summary"`
-	Backends            []statusBackend             `json:"backends"`
-	Models              statusModels                `json:"models"`
-	Routes              []statusRoute               `json:"routes"`
-	Warnings            []envelope.Warning          `json:"warnings"`
-	RecommendedAction   *inferctl.RecommendedAction `json:"recommended_action"`
+	StatusFrameSchemaVersion string                      `json:"status_frame_schema_version"`
+	ContractVersion          string                      `json:"contract_version"`
+	CapturedAtISO            string                      `json:"-"`
+	Summary                  statusSummary               `json:"summary"`
+	Backends                 []statusBackend             `json:"backends"`
+	Models                   statusModels                `json:"models"`
+	Routes                   []statusRoute               `json:"routes"`
+	Warnings                 []envelope.Warning          `json:"warnings"`
+	RecommendedAction        *inferctl.RecommendedAction `json:"recommended_action"`
 }
 
 type statusSummary struct {
@@ -348,10 +349,10 @@ func buildStatusSnapshot(ctx context.Context) (statusSnapshot, []envelope.Warnin
 	exposed := statusExposedModels(ctx, entries)
 	loaded := nonNilLoadedModels(doctor.LoadedModels)
 	status := statusSnapshot{
-		StatusSchemaVersion: statusSchemaVersion,
-		ContractVersion:     "0.1",
-		CapturedAtISO:       deterministicSnapshotTime().Format("2006-01-02T15:04:05Z"),
-		Backends:            statusBackendsFromDoctor(doctor.Backends),
+		StatusFrameSchemaVersion: statusFrameSchemaVersion,
+		ContractVersion:          "0.1",
+		CapturedAtISO:            deterministicSnapshotTime().Format("2006-01-02T15:04:05Z"),
+		Backends:                 statusBackendsFromDoctor(doctor.Backends),
 		Models: statusModels{
 			Exposed: exposed,
 			Loaded:  loaded,

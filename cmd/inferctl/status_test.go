@@ -46,8 +46,78 @@ func TestStatusJSONEnvelopeMatchesGolden(t *testing.T) {
 	if !env.OK {
 		t.Fatalf("status envelope not ok: %s", stdout)
 	}
+	if env.Data.StatusFrameSchemaVersion != statusFrameSchemaVersion || strings.Contains(stdout, "captured_at_iso") {
+		t.Fatalf("status frame schema/time contract violated: %#v stdout=%s", env.Data, stdout)
+	}
 	normalizeStatusForGolden(&env.Data)
 	assertJSONSubsetGolden(t, "status.golden.json", env.Data)
+}
+
+func TestStatusDataHashStableAcrossUnchangedState(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "fallback:8b", SizeBytes: 1}},
+		Loaded: []testserver.LoadedModel{{Name: "fallback:8b", VRAMBytes: 1}},
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeDoctorConfig(t, doctorConfigOptions{
+		OllamaURL: server.URL,
+		Primary:   "fallback:8b",
+	}))
+
+	first, _, err := executeForTest("status", "--json")
+	if err != nil {
+		t.Fatalf("first status error = %v stdout=%s", err, first)
+	}
+	time.Sleep(5 * time.Millisecond)
+	second, _, err := executeForTest("status", "--json")
+	if err != nil {
+		t.Fatalf("second status error = %v stdout=%s", err, second)
+	}
+	firstHash := statusDataHash(t, first)
+	secondHash := statusDataHash(t, second)
+	if firstHash == "" || firstHash != secondHash {
+		t.Fatalf("data hash changed for unchanged state: first=%q second=%q", firstHash, secondHash)
+	}
+}
+
+func TestStatusFramePrivacyExclusions(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "fallback:8b", SizeBytes: 1}},
+		Loaded: []testserver.LoadedModel{{Name: "fallback:8b", VRAMBytes: 1}},
+	})
+	defer server.Close()
+	configPath := filepath.Join(t.TempDir(), "private-config.toml")
+	promptPath := filepath.Join(t.TempDir(), "prompt-with-sensitive-name.txt")
+	if err := os.WriteFile(promptPath, []byte("do not expose this prompt text"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg := writeDoctorConfigBody(doctorConfigOptions{OllamaURL: server.URL, Primary: "fallback:8b"})
+	cfg = strings.Replace(cfg, "default = true\n", "default = true\nauth_header_name = \"Authorization\"\nauth_header_value = \"secret-token-value\"\n", 1)
+	if err := os.WriteFile(configPath, []byte(cfg), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("INFERCTL_CONFIG", configPath)
+
+	stdout, _, err := executeForTest("status", "--json")
+	if err != nil {
+		t.Fatalf("status error = %v stdout=%s", err, stdout)
+	}
+	for _, forbidden := range []string{
+		"secret-token-value",
+		"Authorization",
+		configPath,
+		promptPath,
+		"prompt-with-sensitive-name.txt",
+		"do not expose this prompt text",
+		"[meta]",
+		"auth_header_value",
+	} {
+		if strings.Contains(stdout, forbidden) {
+			t.Fatalf("status leaked %q in %s", forbidden, stdout)
+		}
+	}
 }
 
 func TestStatusCoversSupportedBackendKinds(t *testing.T) {
@@ -137,7 +207,7 @@ func TestStatusWatchJSONEmitsRepeatedSnapshotsAndStopsOnContextCancel(t *testing
 		if err := json.Unmarshal([]byte(line), &env); err != nil {
 			t.Fatalf("unmarshal watch envelope: %v\n%s", err, line)
 		}
-		if !env.OK || env.Data.StatusSchemaVersion != statusSchemaVersion {
+		if !env.OK || env.Data.StatusFrameSchemaVersion != statusFrameSchemaVersion {
 			t.Fatalf("unexpected watch envelope: %#v", env)
 		}
 	}
@@ -293,6 +363,19 @@ func normalizeStatusForGolden(status *statusSnapshot) {
 			status.Backends[i].BaseURL = "http://127.0.0.1:11434"
 		}
 	}
+}
+
+func statusDataHash(t *testing.T, stdout string) string {
+	t.Helper()
+	var env struct {
+		Meta struct {
+			DataHash string `json:"data_hash"`
+		} `json:"meta"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatalf("unmarshal status envelope: %v\n%s", err, stdout)
+	}
+	return env.Meta.DataHash
 }
 
 func writeStatusAllKindsConfig(t *testing.T, ollamaURL, llamaURL, compatURL, lmstudioURL, mlxURL string) string {

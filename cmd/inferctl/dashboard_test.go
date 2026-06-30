@@ -18,11 +18,11 @@ func TestDashboardStatusFeedArgsUsePublicStatusWatchFeed(t *testing.T) {
 
 func TestDashboardParsesStatusSnapshotEnvelope(t *testing.T) {
 	line := marshalDashboardEnvelope(t, statusSnapshot{
-		StatusSchemaVersion: statusSchemaVersion,
-		ContractVersion:     "0.1",
-		CapturedAtISO:       "2026-06-30T15:00:00Z",
-		Summary:             statusSummary{BackendsTotal: 1, BackendsReachable: 1},
-		Backends:            []statusBackend{{Name: "ollama", Kind: "ollama", Reachable: true}},
+		StatusFrameSchemaVersion: statusFrameSchemaVersion,
+		ContractVersion:          "0.1",
+		CapturedAtISO:            "2026-06-30T15:00:00Z",
+		Summary:                  statusSummary{BackendsTotal: 1, BackendsReachable: 1},
+		Backends:                 []statusBackend{{Name: "ollama", Kind: "ollama", Reachable: true}},
 		Routes: []statusRoute{{
 			Task: "code",
 		}},
@@ -32,7 +32,7 @@ func TestDashboardParsesStatusSnapshotEnvelope(t *testing.T) {
 	if msg.err != nil {
 		t.Fatalf("parse snapshot envelope: %v", msg.err)
 	}
-	if msg.snapshot == nil || msg.snapshot.StatusSchemaVersion != statusSchemaVersion || len(msg.snapshot.Backends) != 1 {
+	if msg.snapshot == nil || msg.snapshot.StatusFrameSchemaVersion != statusFrameSchemaVersion || len(msg.snapshot.Backends) != 1 {
 		t.Fatalf("snapshot msg = %#v", msg)
 	}
 }
