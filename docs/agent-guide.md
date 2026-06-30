@@ -93,6 +93,8 @@ Prompt-aware readiness data is metadata-only by default. File prompt metadata re
 
 The shared control-plane snapshot shape includes the task, prompt metadata, route decision, route candidates, backend reachability, loaded and installed model summaries, warnings, errors, inferctl version, contract version, and snapshot schema version. Diff-style explanations should rank domain-specific route, fallback, backend, readiness, warning/error, recommendation, and loaded-model-count changes ahead of generic JSON churn.
 
+Snapshot history is opt-in. `inferctl snapshot --store` writes raw snapshot artifacts under `INFERCTL_SNAPSHOT_DIR` when set; otherwise it uses the user state directory. `--retention-limit` keeps the newest N snapshots per task. Stored snapshots follow the same prompt privacy rule as stdout and `--output`: prompt text and local prompt paths are not stored by default.
+
 ## Auth and Remote Backends
 
 `openai_compat` supports authenticated local and remote endpoints:

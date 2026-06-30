@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -34,19 +35,33 @@ type diffSummary struct {
 func newDiffCommand(jsonFlag *bool) *cobra.Command {
 	var beforePath string
 	var afterPath string
+	var since string
+	var task string
 	var format string
 	cmd := &cobra.Command{
-		Use:   "diff --before <snapshot.json> --after <snapshot.json>",
+		Use:   "diff (--before <snapshot.json> --after <snapshot.json> | --task <task> --since <relative>)",
 		Short: "Compare two inferctl control-plane snapshots",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if format != "human" {
 				return writeError(cmd, *jsonFlag, invalidArg("--format", format, "human", []string{"human"}))
 			}
-			if beforePath == "" || afterPath == "" {
-				return writeError(cmd, *jsonFlag, invalidArg("--before/--after", "missing", "both --before and --after snapshot paths are required", []string{"--before", "--after"}))
+			var report diffReport
+			var errObj *envelope.Error
+			if since != "" {
+				if beforePath != "" || afterPath != "" {
+					return writeError(cmd, *jsonFlag, invalidArg("--since", since, "cannot be combined with --before or --after", nil))
+				}
+				if task == "" {
+					return writeError(cmd, *jsonFlag, invalidArg("--task", "", "configured task name when --since is used", nil))
+				}
+				report, errObj = buildSinceDiffReport(cmd.Context(), cmd, task, since)
+			} else {
+				if beforePath == "" || afterPath == "" {
+					return writeError(cmd, *jsonFlag, invalidArg("--before/--after", "missing", "both --before and --after snapshot paths are required, or use --task with --since", []string{"--before", "--after"}))
+				}
+				report, errObj = buildDiffReport(beforePath, afterPath)
 			}
-			report, errObj := buildDiffReport(beforePath, afterPath)
 			if errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
@@ -57,6 +72,8 @@ func newDiffCommand(jsonFlag *bool) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&beforePath, "before", "", "path to the baseline snapshot JSON artifact")
 	cmd.Flags().StringVar(&afterPath, "after", "", "path to the comparison snapshot JSON artifact")
+	cmd.Flags().StringVar(&since, "since", "", "compare current task state against the retained baseline at or before this relative time")
+	cmd.Flags().StringVar(&task, "task", "", "configured task for --since lookup")
 	cmd.Flags().StringVar(&format, "format", "human", "human output format: human")
 	return cmd
 }
@@ -86,6 +103,28 @@ func buildDiffReport(beforePath, afterPath string) (diffReport, *envelope.Error)
 		Summary: summarizeDiffChanges(changes),
 	}
 	return report, nil
+}
+
+func buildSinceDiffReport(ctx context.Context, cmd *cobra.Command, task, since string) (diffReport, *envelope.Error) {
+	baseline, errObj := selectStoredSnapshot(task, since, envMap(), timeNow())
+	if errObj != nil {
+		return diffReport{}, errObj
+	}
+	current, _, _, errObj := buildSnapshot(ctx, cmd, snapshotOptions{task: task})
+	if errObj != nil {
+		return diffReport{}, errObj
+	}
+	if baseline.Snapshot.SnapshotSchemaVersion != current.SnapshotSchemaVersion {
+		err := invalidArg("snapshot_schema_version", baseline.Snapshot.SnapshotSchemaVersion+" != "+current.SnapshotSchemaVersion, "matching snapshot schema versions", nil)
+		return diffReport{}, &err
+	}
+	changes := classifyControlPlaneChanges(baseline.Snapshot, current)
+	return diffReport{
+		Before:  summarizeDiffSnapshot(baseline.Snapshot),
+		After:   summarizeDiffSnapshot(current),
+		Changes: changes,
+		Summary: summarizeDiffChanges(changes),
+	}, nil
 }
 
 func readControlPlaneSnapshotFile(path, argName string) (controlPlaneSnapshot, *envelope.Error) {

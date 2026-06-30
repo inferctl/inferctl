@@ -20,6 +20,8 @@ type snapshotOptions struct {
 	task       string
 	prompt     routePromptOptions
 	outputPath string
+	store      bool
+	retention  int
 }
 
 func newSnapshotCommand(jsonFlag *bool) *cobra.Command {
@@ -41,12 +43,27 @@ func newSnapshotCommand(jsonFlag *bool) *cobra.Command {
 					return writeError(cmd, *jsonFlag, *errObj)
 				}
 			}
+			var stored *snapshotStoreResult
+			if opts.store {
+				result, errObj := storeSnapshot(snapshot, opts.retention, envMap())
+				if errObj != nil {
+					return writeError(cmd, *jsonFlag, *errObj)
+				}
+				stored = &result
+			}
 			mode := render.SelectMode(render.Options{JSONFlag: *jsonFlag, Env: envMap()})
 			if mode == render.ModeJSON {
 				return writeDataWithDiagnostics(cmd, true, snapshot, warnings, commands, func() error { return nil })
 			}
+			if stored != nil && opts.outputPath == "" {
+				fmt.Fprintf(cmd.OutOrStdout(), "snapshot stored: %s\n", stored.Path)
+				return nil
+			}
 			if opts.outputPath != "" {
 				fmt.Fprintf(cmd.OutOrStdout(), "snapshot written: %s\n", opts.outputPath)
+				if stored != nil {
+					fmt.Fprintf(cmd.OutOrStdout(), "snapshot stored: %s\n", stored.Path)
+				}
 				return nil
 			}
 			return render.WriteJSON(cmd.OutOrStdout(), snapshot)
@@ -57,6 +74,8 @@ func newSnapshotCommand(jsonFlag *bool) *cobra.Command {
 	cmd.Flags().StringVar(&opts.prompt.inline, "prompt", "", "inline prompt text")
 	cmd.Flags().BoolVar(&opts.prompt.fromStdin, "from-stdin", false, "read prompt from stdin")
 	cmd.Flags().StringVar(&opts.outputPath, "output", "", "write raw snapshot artifact to this path")
+	cmd.Flags().BoolVar(&opts.store, "store", false, "write raw snapshot artifact to the configured snapshot store")
+	cmd.Flags().IntVar(&opts.retention, "retention-limit", defaultSnapshotRetentionLimit, "stored snapshots to retain per task when --store is used")
 	return cmd
 }
 
@@ -227,5 +246,9 @@ func deterministicSnapshotTime() time.Time {
 	if deterministicOutputMode() {
 		return time.Unix(0, 0).UTC()
 	}
+	return time.Now().UTC()
+}
+
+func timeNow() time.Time {
 	return time.Now().UTC()
 }

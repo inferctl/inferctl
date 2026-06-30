@@ -396,6 +396,16 @@
           "default": null
         },
         {
+          "name": "--since",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "--task",
+          "type": "string",
+          "default": null
+        },
+        {
           "name": "--format",
           "type": "enum",
           "values": [
@@ -446,6 +456,16 @@
           "name": "--output",
           "type": "string",
           "default": null
+        },
+        {
+          "name": "--store",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "--retention-limit",
+          "type": "integer",
+          "default": 20
         },
         {
           "name": "--json",

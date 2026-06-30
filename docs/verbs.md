@@ -159,6 +159,8 @@ Compare two inferctl control-plane snapshots.
 
 - `--before` type=`string` default=`<nil>`
 - `--after` type=`string` default=`<nil>`
+- `--since` type=`string` default=`<nil>`
+- `--task` type=`string` default=`<nil>`
 - `--format` type=`enum` default=`human`
 - `--json` type=`bool` default=`false`
 
@@ -166,6 +168,7 @@ Compare two inferctl control-plane snapshots.
 
 ```sh
 inferctl diff --before before.json --after after.json --json
+inferctl diff --task code --since 24h --json
 ```
 
 ## `inferctl snapshot`
@@ -184,13 +187,18 @@ Capture a comparable inferctl control-plane snapshot.
 - `--prompt` type=`string` default=`<nil>`
 - `--from-stdin` type=`bool` default=`false`
 - `--output` type=`string` default=`<nil>`
+- `--store` type=`bool` default=`false`
+- `--retention-limit` type=`integer` default=`20`
 - `--json` type=`bool` default=`false`
 
 ### Example
 
 ```sh
 inferctl snapshot --task code --prompt-file prompt.txt --output snapshot.json
+inferctl snapshot --task code --store --retention-limit 20
 ```
+
+Stored snapshots are explicit: `snapshot --store` writes raw snapshot artifacts under `INFERCTL_SNAPSHOT_DIR` when set, otherwise under the platform state directory. Retention keeps the newest N snapshots per task and stored artifacts use the same prompt redaction policy as stdout and `--output`.
 
 ## `inferctl config`
 
