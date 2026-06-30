@@ -102,7 +102,14 @@ func newStatusCommand(jsonFlag *bool) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Emit an aggregate live-state status snapshot",
-		Args:  cobra.NoArgs,
+		Long: `Emit aggregate control-plane status frames for agents and monitors.
+
+Primary machine invocation: inferctl status --json.
+Watch stream: inferctl status --json --watch --events --interval 2s.
+Key flags: --watch emits newline-delimited status_frame envelopes; --events adds status_event_batch envelopes after changed frames; --interval controls polling.
+
+Control-plane only: status inspects config, backend reachability, model inventory, route decisions, warnings, and recommended actions. It does not run inference, warm models, or load models.`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.interval <= 0 {
 				return writeError(cmd, *jsonFlag, invalidArg("--interval", opts.interval.String(), "positive duration such as 2s", nil))

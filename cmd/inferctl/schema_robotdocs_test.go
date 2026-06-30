@@ -84,4 +84,71 @@ func TestRobotDocsGuideCommand(t *testing.T) {
 	if env.Data.Name != "inferctl Agent Guide" || env.Data.Format != "markdown" || !strings.Contains(env.Data.Content, "inferctl capabilities --json") {
 		t.Fatalf("robot guide incomplete: %#v", env.Data)
 	}
+	for _, required := range []string{
+		"inferctl preflight code --prompt-file prompt.txt --json",
+		"inferctl status --json",
+		"inferctl status --json --watch --events --interval 2s",
+		"inferctl dashboard --interval 2s",
+		"control-plane only",
+	} {
+		if !strings.Contains(env.Data.Content, required) {
+			t.Fatalf("robot guide missing %q", required)
+		}
+	}
+}
+
+func TestHelpFirstPageOrientsAgentSurfaces(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		args     []string
+		required []string
+	}{
+		{
+			name: "preflight",
+			args: []string{"preflight", "--help"},
+			required: []string{
+				"Machine contract: inferctl preflight <task> --prompt-file <path> --json.",
+				"--allow-fallback",
+				"--require-ready",
+			},
+		},
+		{
+			name: "status",
+			args: []string{"status", "--help"},
+			required: []string{
+				"Primary machine invocation: inferctl status --json.",
+				"inferctl status --json --watch --events --interval 2s",
+				"--watch",
+				"--events",
+				"Control-plane only:",
+			},
+		},
+		{
+			name: "dashboard",
+			args: []string{"dashboard", "--help"},
+			required: []string{
+				"Primary human invocation: inferctl dashboard --interval 2s.",
+				"dashboard --json refuses with a structured error",
+				"--interval",
+				"Control-plane only:",
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout, _, err := executeForTest(tc.args...)
+			if err != nil {
+				t.Fatalf("%s help error = %v stdout=%s", tc.name, err, stdout)
+			}
+			lines := strings.Split(stdout, "\n")
+			if len(lines) > 30 {
+				lines = lines[:30]
+			}
+			firstPage := strings.Join(lines, "\n")
+			for _, required := range tc.required {
+				if !strings.Contains(firstPage, required) {
+					t.Fatalf("%s help first page missing %q\n%s", tc.name, required, firstPage)
+				}
+			}
+		})
+	}
 }

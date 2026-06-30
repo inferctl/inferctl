@@ -24,7 +24,14 @@ func newDashboardCommand(jsonFlag *bool) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dashboard",
 		Short: "Run the human status dashboard backed by the public status feed",
-		Args:  cobra.NoArgs,
+		Long: `Run the human Bubble Tea status dashboard over the public status feed.
+
+Primary human invocation: inferctl dashboard --interval 2s.
+Machine consumers: use inferctl status --json --watch instead; dashboard --json refuses with a structured error.
+Key flag: --interval controls the underlying status feed polling interval.
+
+Control-plane only: dashboard renders status_frame and status_event_batch records from status --json --watch --events. It does not call private doctor, model, or route aggregation paths.`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if *jsonFlag {
 				return writeError(cmd, true, invalidArg("--json", "true", "interactive dashboard; use status --json --watch for the machine feed", []string{"status --json --watch"}))

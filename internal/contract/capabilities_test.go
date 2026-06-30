@@ -121,6 +121,75 @@ func TestDashboardCapabilitiesRemainHumanOnly(t *testing.T) {
 	}
 }
 
+func TestAgentIntrospectionCapabilitiesCoverReadinessSurfaces(t *testing.T) {
+	data, err := CapabilitiesData()
+	if err != nil {
+		t.Fatalf("CapabilitiesData() error = %v", err)
+	}
+	if data["contract_version"] == "" {
+		t.Fatal("capabilities missing contract_version")
+	}
+	for _, tc := range []struct {
+		name      string
+		flags     []string
+		exits     []int
+		schemaRef string
+	}{
+		{
+			name:      "preflight",
+			flags:     []string{"--json", "--prompt", "--prompt-file", "--from-stdin", "--allow-fallback", "--require-ready", "--format"},
+			exits:     []int{0, 1, 3, 4},
+			schemaRef: "#/schemas/preflight_report",
+		},
+		{
+			name:      "status",
+			flags:     []string{"--json", "--watch", "--events", "--interval"},
+			exits:     []int{0, 1, 3, 4},
+			schemaRef: "#/schemas/status_frame",
+		},
+		{
+			name:  "dashboard",
+			flags: []string{"--json", "--interval"},
+			exits: []int{0, 1, 3},
+		},
+	} {
+		verb, ok := capabilityVerb(data, tc.name)
+		if !ok {
+			t.Fatalf("%s verb missing from capabilities", tc.name)
+		}
+		flags, ok := verb["flags"].([]any)
+		if !ok {
+			t.Fatalf("%s flags type = %T", tc.name, verb["flags"])
+		}
+		for _, flag := range tc.flags {
+			if !mapListContainsName(flags, flag) {
+				t.Fatalf("%s missing flag %s: %#v", tc.name, flag, flags)
+			}
+		}
+		exitCodes, ok := verb["exit_codes"].([]any)
+		if !ok {
+			t.Fatalf("%s exit_codes type = %T", tc.name, verb["exit_codes"])
+		}
+		for _, code := range tc.exits {
+			if !numberListContains(exitCodes, code) {
+				t.Fatalf("%s missing exit code %d: %#v", tc.name, code, exitCodes)
+			}
+		}
+		if tc.schemaRef != "" && verb["output_schema_ref"] != tc.schemaRef {
+			t.Fatalf("%s output_schema_ref = %v", tc.name, verb["output_schema_ref"])
+		}
+	}
+	schemas, ok := data["schemas"].(map[string]any)
+	if !ok {
+		t.Fatalf("schemas type = %T", data["schemas"])
+	}
+	for _, name := range []string{"preflight_report", "status_frame", "status_event_batch"} {
+		if _, ok := schemas[name]; !ok {
+			t.Fatalf("capabilities missing schema %s", name)
+		}
+	}
+}
+
 func mapListContainsName(values []any, name string) bool {
 	for _, raw := range values {
 		value, ok := raw.(map[string]any)
@@ -176,6 +245,10 @@ func TestAgentGuideCoversRequiredWorkflows(t *testing.T) {
 		"Delivery metadata belongs in `data.delivery`",
 		"LM Studio",
 		"MLX",
+		"inferctl preflight code --prompt-file prompt.txt --json",
+		"inferctl status --json --watch --events --interval 2s",
+		"inferctl dashboard --interval 2s",
+		"dashboard --json",
 	}
 	for _, text := range required {
 		if !strings.Contains(guide, text) {

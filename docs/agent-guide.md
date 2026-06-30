@@ -95,6 +95,58 @@ The shared control-plane snapshot shape includes the task, prompt metadata, rout
 
 Snapshot history is opt-in. `inferctl snapshot --store` writes raw snapshot artifacts under `INFERCTL_SNAPSHOT_DIR` when set; otherwise it uses the user state directory. `--retention-limit` keeps the newest N snapshots per task. Stored snapshots follow the same prompt privacy rule as stdout and `--output`: prompt text and local prompt paths are not stored by default.
 
+## Product-Owned Readiness Recipes
+
+Use `preflight` before automation attempts a local model job:
+
+```sh
+inferctl preflight code --prompt-file prompt.txt --json
+inferctl preflight code --prompt-file prompt.txt --format markdown
+inferctl preflight code --prompt-file prompt.txt --allow-fallback --json
+inferctl preflight code --prompt-file prompt.txt --require-ready --json
+```
+
+`preflight` is control-plane only: it inspects config, route selection, model
+inventory, warnings, prompt metadata, and policy flags. It does not run
+inference, load models, emit prompt text, or persist prompt content.
+
+Use `status` for aggregate frames:
+
+```sh
+inferctl status --json
+inferctl status --json | jq '.data.summary'
+inferctl status --json | jq '.data.routes[] | {task, selected: .decision.selected_model, ready: .decision.ready}'
+```
+
+`status` is control-plane only: it inspects config, backend reachability, model
+inventory, route decisions, warnings, and recommended actions. It does not run
+inference, warm models, load models, or send prompt text to a backend.
+
+Use status watch events for monitors:
+
+```sh
+inferctl status --json --watch --events --interval 2s
+inferctl status --json --watch --events --interval 2s | jq --unbuffered 'select(.data.event_schema_version? == "0.1") | .data.events[]'
+inferctl status --json --watch --events --interval 2s | jq --unbuffered 'select(.data.status_frame_schema_version? == "0.1") | .data.summary'
+```
+
+The watch stream is newline-delimited JSON envelopes. Event batches are derived
+from consecutive status frames, so the stream stays control-plane only and does
+not run a separate probe path.
+
+Use `dashboard` only for humans:
+
+```sh
+inferctl dashboard --interval 2s
+inferctl status --json --watch --events --interval 2s
+inferctl dashboard --json
+```
+
+`dashboard` is a human TUI over the public status feed. Automation should
+consume `status --json --watch`; `dashboard --json` intentionally refuses with a
+structured error. Dashboard rendering is control-plane only because it renders
+status frames and event batches produced by `status`.
+
 ## Auth and Remote Backends
 
 `openai_compat` supports authenticated local and remote endpoints:

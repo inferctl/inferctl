@@ -95,6 +95,47 @@ control-plane state only: config, route selection, model inventory, warnings,
 prompt metadata, and policy flags. It does not run inference, load models, emit
 prompt text, or persist prompt content.
 
+## Status Frames
+
+```sh
+inferctl status --json
+inferctl status --json | jq '.data.summary'
+inferctl status --json | jq '.data.routes[] | {task, selected: .decision.selected_model, ready: .decision.ready}'
+```
+
+`status` emits the aggregate `status_frame` machine contract. It is
+control-plane only: it inspects config, backend reachability, model inventory,
+route decisions, warnings, and recommended actions. It does not run inference,
+warm models, load models, or send prompt text to a backend.
+
+## Status Watch Events
+
+```sh
+inferctl status --json --watch --events --interval 2s
+inferctl status --json --watch --events --interval 2s | jq --unbuffered 'select(.data.event_schema_version? == "0.1") | .data.events[]'
+inferctl status --json --watch --events --interval 2s | jq --unbuffered 'select(.data.status_frame_schema_version? == "0.1") | .data.summary'
+```
+
+The watch stream is newline-delimited JSON envelopes. Normal records contain
+`data.status_frame_schema_version`; change records contain
+`data.event_schema_version` and an ordered `events[]` list. Event batches are
+derived from consecutive status frames, so the stream stays control-plane only
+and does not run a separate probe path.
+
+## Human Dashboard
+
+```sh
+inferctl dashboard --interval 2s
+inferctl status --json --watch --events --interval 2s
+inferctl dashboard --json
+```
+
+`dashboard` is a human TUI over the public status watch feed. Automation should
+consume `status --json --watch` instead; `dashboard --json` intentionally
+refuses with a structured error that points agents at the machine feed.
+Dashboard rendering is control-plane only because it renders status frames and
+event batches produced by `status`.
+
 ## Exit Codes
 
 ```sh
