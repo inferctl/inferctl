@@ -6,16 +6,37 @@
     "source": "none"
   },
   "decision": {
-    "selected_model": "qwen3:8b",
+    "selected_model": "fallback:8b",
     "selected_backend": "ollama",
-    "is_fallback": false,
-    "fallback_index": null,
-    "ready": true,
+    "is_fallback": true,
+    "fallback_index": 0,
+    "ready": false,
     "estimated_first_token_ms": null,
     "estimated_total_ms": null,
-    "reason": "primary model is available"
+    "reason": "selected fallback because primary 'primary:70b' is unavailable"
   },
-  "candidates": [],
+  "candidates": [
+    {
+      "model": "primary:70b",
+      "backend": "ollama",
+      "role": "primary",
+      "fallback_index": null,
+      "available": false,
+      "unavailability_reason": "not_installed",
+      "loaded": false,
+      "estimated_first_token_ms": null
+    },
+    {
+      "model": "fallback:8b",
+      "backend": "ollama",
+      "role": "fallback",
+      "fallback_index": 0,
+      "available": true,
+      "unavailability_reason": null,
+      "loaded": false,
+      "estimated_first_token_ms": null
+    }
+  ],
   "constraints": {
     "profile": "default_local_workstation",
     "max_context_tokens": 8192,

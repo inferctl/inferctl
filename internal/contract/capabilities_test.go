@@ -263,6 +263,49 @@ func TestModelsGoldenIncludesLoadedState(t *testing.T) {
 	t.Fatalf("models golden should include representative loaded/available row: %#v", golden.Models)
 }
 
+func TestRouteGoldenCoversFallbackCandidateFields(t *testing.T) {
+	body := readString(t, "../../testdata/contract/route.golden.json")
+	var golden struct {
+		Decision struct {
+			IsFallback bool   `json:"is_fallback"`
+			Reason     string `json:"reason"`
+		} `json:"decision"`
+		Candidates []struct {
+			Role                 string  `json:"role"`
+			Available            bool    `json:"available"`
+			UnavailabilityReason *string `json:"unavailability_reason"`
+		} `json:"candidates"`
+	}
+	if err := json.Unmarshal([]byte(body), &golden); err != nil {
+		t.Fatal(err)
+	}
+	if !golden.Decision.IsFallback || golden.Decision.Reason == "" {
+		t.Fatalf("route golden should exercise fallback decision reason: %#v", golden.Decision)
+	}
+	for _, candidate := range golden.Candidates {
+		if candidate.Role == "primary" && !candidate.Available && candidate.UnavailabilityReason != nil && *candidate.UnavailabilityReason != "" {
+			return
+		}
+	}
+	t.Fatalf("route golden should include an unavailable candidate reason: %#v", golden.Candidates)
+}
+
+func TestDoctorGoldenIncludesRecommendedAction(t *testing.T) {
+	body := readString(t, "../../testdata/contract/doctor.golden.json")
+	var golden struct {
+		RecommendedAction *struct {
+			Command   string `json:"command"`
+			Rationale string `json:"rationale"`
+		} `json:"recommended_action"`
+	}
+	if err := json.Unmarshal([]byte(body), &golden); err != nil {
+		t.Fatal(err)
+	}
+	if golden.RecommendedAction == nil || golden.RecommendedAction.Command == "" || golden.RecommendedAction.Rationale == "" {
+		t.Fatalf("doctor golden should include recommended_action: %#v", golden.RecommendedAction)
+	}
+}
+
 func readString(t *testing.T, path string) string {
 	t.Helper()
 	data, err := os.ReadFile(path)
