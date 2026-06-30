@@ -5,11 +5,28 @@
     "candidates": []
   },
   "effective_config": {
+    "backends": {
+      "ollama": {
+        "auth_header_name": "Authorization",
+        "base_url": "http://127.0.0.1:11434",
+        "default": true,
+        "kind": "ollama",
+        "remote_allowed": false,
+        "timeout_ms": 2000
+      }
+    },
     "meta": {
       "schema_version": "0.1"
     }
   },
   "provenance": {
+    "backends.ollama.auth_header_name": "file",
+    "backends.ollama.base_url": "file",
+    "backends.ollama.default": "file",
+    "backends.ollama.fallback_chain_position": "default",
+    "backends.ollama.kind": "file",
+    "backends.ollama.remote_allowed": "default",
+    "backends.ollama.timeout_ms": "default",
     "meta.schema_version": "file"
   }
 }

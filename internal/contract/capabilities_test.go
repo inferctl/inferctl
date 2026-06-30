@@ -219,6 +219,29 @@ func TestContractGoldensUsePortablePathPlaceholders(t *testing.T) {
 	}
 }
 
+func TestConfigShowGoldenRedactsSecrets(t *testing.T) {
+	body := readString(t, "../../testdata/contract/config-show.golden.json")
+	if strings.Contains(body, "auth_header_value\":") {
+		t.Fatalf("config-show golden should not expose auth_header_value in effective config")
+	}
+	if strings.Contains(body, "fixture-auth-value") {
+		t.Fatalf("config-show golden leaked fixture auth value")
+	}
+	var golden struct {
+		EffectiveConfig struct {
+			Backends map[string]struct {
+				BaseURL string `json:"base_url"`
+			} `json:"backends"`
+		} `json:"effective_config"`
+	}
+	if err := json.Unmarshal([]byte(body), &golden); err != nil {
+		t.Fatal(err)
+	}
+	if golden.EffectiveConfig.Backends["ollama"].BaseURL != "http://127.0.0.1:11434" {
+		t.Fatalf("config-show golden should retain backend base_url: %#v", golden.EffectiveConfig.Backends)
+	}
+}
+
 func readString(t *testing.T, path string) string {
 	t.Helper()
 	data, err := os.ReadFile(path)

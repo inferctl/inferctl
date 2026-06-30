@@ -134,6 +134,7 @@ func configShowData(result *config.Result, section, key string, noProvenance boo
 	if err != nil {
 		return nil, err
 	}
+	redactConfigSecrets(cfgMap)
 	if section != "" {
 		value, ok := cfgMap[section]
 		if !ok {
@@ -160,7 +161,7 @@ func configShowData(result *config.Result, section, key string, noProvenance boo
 		"effective_config": cfgMap,
 	}
 	if !noProvenance {
-		data["provenance"] = provenanceAsStrings(result.Provenance)
+		data["provenance"] = redactedProvenanceAsStrings(result.Provenance)
 	}
 	return data, nil
 }
@@ -175,6 +176,32 @@ func configAsMap(cfg config.Config) (map[string]any, error) {
 		return nil, err
 	}
 	return out, nil
+}
+
+func redactConfigSecrets(value any) {
+	switch v := value.(type) {
+	case map[string]any:
+		for key, child := range v {
+			if isSecretConfigKey(key) {
+				delete(v, key)
+				continue
+			}
+			redactConfigSecrets(child)
+		}
+	case []any:
+		for _, child := range v {
+			redactConfigSecrets(child)
+		}
+	}
+}
+
+func isSecretConfigKey(key string) bool {
+	switch strings.ToLower(key) {
+	case "auth_header_value", "password", "secret", "token", "api_key", "access_key", "credential":
+		return true
+	default:
+		return false
+	}
 }
 
 func lookupDotted(m map[string]any, key string) (any, bool) {
@@ -195,6 +222,18 @@ func lookupDotted(m map[string]any, key string) (any, bool) {
 func provenanceAsStrings(in map[string]config.Provenance) map[string]string {
 	out := make(map[string]string, len(in))
 	for k, v := range in {
+		out[k] = string(v)
+	}
+	return out
+}
+
+func redactedProvenanceAsStrings(in map[string]config.Provenance) map[string]string {
+	out := make(map[string]string, len(in))
+	for k, v := range in {
+		parts := strings.Split(k, ".")
+		if isSecretConfigKey(parts[len(parts)-1]) {
+			continue
+		}
 		out[k] = string(v)
 	}
 	return out

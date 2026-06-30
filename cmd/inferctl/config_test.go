@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -41,6 +42,26 @@ func TestConfigShowJSON(t *testing.T) {
 		env.Data.Provenance["backends.llamacpp_32b.default"] != "env" {
 		t.Fatalf("default backend provenance = %#v", env.Data.Provenance)
 	}
+	if _, ok := env.Data.Provenance["backends.ollama.auth_header_value"]; ok {
+		t.Fatalf("secret provenance should be omitted: %#v", env.Data.Provenance)
+	}
+	backends, ok := env.Data.EffectiveConfig["backends"].(map[string]any)
+	if !ok {
+		t.Fatalf("backends missing from effective_config: %#v", env.Data.EffectiveConfig)
+	}
+	ollama, ok := backends["ollama"].(map[string]any)
+	if !ok {
+		t.Fatalf("ollama backend missing from effective_config: %#v", backends)
+	}
+	if got := ollama["base_url"]; got != "http://127.0.0.1:11434" {
+		t.Fatalf("ollama base_url = %#v", got)
+	}
+	if _, ok := ollama["auth_header_value"]; ok {
+		t.Fatalf("auth_header_value should be omitted from config show output: %#v", ollama)
+	}
+	if strings.Contains(stdout, "fixture-auth-value") {
+		t.Fatalf("config show leaked auth header value:\n%s", stdout)
+	}
 }
 
 func TestConfigShowKeyAndSection(t *testing.T) {
@@ -71,6 +92,14 @@ func TestConfigShowKeyAndSection(t *testing.T) {
 	}
 	if _, ok := sectionEnv.Data["provenance"]; ok {
 		t.Fatalf("provenance should be omitted: %#v", sectionEnv.Data)
+	}
+
+	stdout, _, err = executeForTest("config", "show", "--key", "backends.ollama.auth_header_value", "--json")
+	if err == nil {
+		t.Fatalf("expected redacted key lookup to fail, stdout=%s", stdout)
+	}
+	if strings.Contains(stdout, "fixture-auth-value") {
+		t.Fatalf("redacted key lookup leaked auth header value:\n%s", stdout)
 	}
 }
 
@@ -129,6 +158,8 @@ mode = "warn"
 kind = "ollama"
 base_url = "http://127.0.0.1:11434"
 default = true
+auth_header_name = "Authorization"
+auth_header_value = "fixture-auth-value"
 
 [backends.llamacpp_32b]
 kind = "llama.cpp"
