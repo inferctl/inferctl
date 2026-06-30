@@ -218,6 +218,25 @@ Emit an aggregate live-state status snapshot.
 inferctl status --json
 ```
 
+## `inferctl dashboard`
+
+Run the Bubble Tea status dashboard backed by the public status feed.
+
+- Mega-command: `DIAGNOSE`
+- Exit codes: `0`, `1`, `3`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--interval` type=`duration` default=`2s`
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl dashboard --interval 2s
+```
+
 ## `inferctl config`
 
 Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable.

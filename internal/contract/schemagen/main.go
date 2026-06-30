@@ -191,6 +191,8 @@ func exampleForVerb(name string) string {
 		return "inferctl capabilities --json"
 	case "version":
 		return "inferctl version --json"
+	case "dashboard":
+		return "inferctl dashboard --interval 2s"
 	default:
 		return "inferctl " + name + " --json"
 	}

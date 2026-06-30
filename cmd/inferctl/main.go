@@ -90,6 +90,7 @@ func newRootCommand() *rootCommand {
 	root.AddCommand(newDiffCommand(&jsonFlag))
 	root.AddCommand(newSnapshotCommand(&jsonFlag))
 	root.AddCommand(newStatusCommand(&jsonFlag))
+	root.AddCommand(newDashboardCommand(&jsonFlag))
 	root.AddCommand(newDiscoverCommand(&jsonFlag))
 	root.AddCommand(newTriageCommand(&jsonFlag))
 	root.AddCommand(newVersionCommand(&jsonFlag))
@@ -338,7 +339,7 @@ func jsonRequested(args []string) bool {
 }
 
 func rootVerbNames() []string {
-	return []string{"doctor", "backends", "models", "model", "route", "preflight", "diff", "snapshot", "status", "config", "discover", "triage", "capabilities", "version", "schema", "robot-docs"}
+	return []string{"doctor", "backends", "models", "model", "route", "preflight", "diff", "snapshot", "status", "dashboard", "config", "discover", "triage", "capabilities", "version", "schema", "robot-docs"}
 }
 
 func unknownVerbError(verb string) envelope.Error {
