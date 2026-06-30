@@ -14,16 +14,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const preflightSchemaVersion = "0.1"
+
 type preflightReport struct {
-	Task              string                      `json:"task"`
-	Prompt            promptMetadata              `json:"prompt"`
-	RouteDecision     inferctl.RouteDecision      `json:"route_decision"`
-	RouteCandidates   []inferctl.RouteCandidate   `json:"route_candidates"`
-	Constraints       inferctl.RouteConstraints   `json:"constraints"`
-	Runnability       preflightRunnability        `json:"runnability"`
-	Policy            preflightPolicy             `json:"policy"`
-	Warnings          []envelope.Warning          `json:"warnings"`
-	RecommendedAction *inferctl.RecommendedAction `json:"recommended_action"`
+	PreflightSchemaVersion string                      `json:"preflight_schema_version"`
+	Task                   string                      `json:"task"`
+	Runnable               bool                        `json:"runnable"`
+	RunnabilityStatus      string                      `json:"runnability_status"`
+	Prompt                 promptMetadata              `json:"prompt"`
+	Route                  routeReport                 `json:"route"`
+	RouteDecision          inferctl.RouteDecision      `json:"route_decision"`
+	RouteCandidates        []inferctl.RouteCandidate   `json:"route_candidates"`
+	Constraints            inferctl.RouteConstraints   `json:"constraints"`
+	Runnability            preflightRunnability        `json:"runnability"`
+	Policy                 preflightPolicy             `json:"policy"`
+	Summary                preflightSummary            `json:"summary"`
+	Warnings               []envelope.Warning          `json:"warnings"`
+	RecommendedAction      *inferctl.RecommendedAction `json:"recommended_action"`
 }
 
 type preflightRunnability struct {
@@ -36,6 +43,11 @@ type preflightRunnability struct {
 type preflightPolicy struct {
 	AllowFallback bool `json:"allow_fallback"`
 	RequireReady  bool `json:"require_ready"`
+}
+
+type preflightSummary struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 type preflightOptions struct {
@@ -99,45 +111,48 @@ func runPreflight(ctx context.Context, cmd *cobra.Command, task string, opts pre
 		includeHash: true,
 	})
 	if errObj != nil {
-		return preflightReport{}, nil, nil, errObj
+		return errorPreflightReport(task, promptMetadata{SourceKind: "none", Source: "none"}, opts, *errObj), nil, nil, errObj
 	}
 	result, err := (config.Loader{}).Load(config.LoadOptions{})
 	if err != nil {
 		errObj := configLoadError(err)
-		return preflightReport{}, nil, nil, &errObj
+		return errorPreflightReport(task, meta, opts, errObj), nil, nil, &errObj
 	}
 	if len(result.Config.Backends) == 0 {
 		errObj := noBackendsError(result)
-		return preflightReport{}, nil, nil, &errObj
+		return errorPreflightReport(task, meta, opts, errObj), nil, nil, &errObj
 	}
 	if validation := config.Validate(result, false); validation.Summary.Errors > 0 {
 		errObj := validationFailedError(validation)
 		errObj.ExitCode = exitEnvironment
-		return preflightReport{}, nil, nil, &errObj
+		return errorPreflightReport(task, meta, opts, errObj), nil, nil, &errObj
 	}
 	routeCfg, ok := result.Config.Routing[task]
 	if !ok {
 		errObj := unknownTaskError(task, result.Config)
-		return preflightReport{}, nil, nil, &errObj
+		return errorPreflightReport(task, meta, opts, errObj), nil, nil, &errObj
 	}
 	entries, backendsErr := configuredBackends(result, "", "")
 	if backendsErr != nil {
-		return preflightReport{}, nil, nil, backendsErr
+		return errorPreflightReport(task, meta, opts, *backendsErr), nil, nil, backendsErr
 	}
 	if errObj := firstFatalBackendReadError(ctx, entries); errObj != nil {
-		return preflightReport{}, nil, nil, errObj
+		return errorPreflightReport(task, meta, opts, *errObj), nil, nil, errObj
 	}
 	routeInput := routeInput{PromptChars: meta.PromptChars, EstimatedTokens: meta.EstimatedTokens, Source: meta.Source}
 	route, warnings, commands, noRoute := buildRouteReport(ctx, result.Config, task, routeCfg, entries, routeInput)
 	if noRoute != nil {
-		return preflightReport{}, warnings, commands, noRoute
+		return errorPreflightReport(task, meta, opts, *noRoute), warnings, commands, noRoute
 	}
+	commands = preflightCommands(task, route, commands)
 	report := preflightReport{
-		Task:            task,
-		Prompt:          meta,
-		RouteDecision:   route.Decision,
-		RouteCandidates: route.Candidates,
-		Constraints:     route.Constraints,
+		PreflightSchemaVersion: preflightSchemaVersion,
+		Task:                   task,
+		Prompt:                 meta,
+		Route:                  route,
+		RouteDecision:          route.Decision,
+		RouteCandidates:        route.Candidates,
+		Constraints:            route.Constraints,
 		Policy: preflightPolicy{
 			AllowFallback: opts.allowFallback,
 			RequireReady:  opts.requireReady,
@@ -146,17 +161,57 @@ func runPreflight(ctx context.Context, cmd *cobra.Command, task string, opts pre
 		RecommendedAction: recommendedAction(commands),
 	}
 	report.Runnability = preflightRunnability{Status: runnabilityRunnable, Runnable: true, ExitCode: exitSuccess, Reason: "route satisfies preflight policy"}
+	report.applyRunnability()
 	if route.Decision.IsFallback && !opts.allowFallback {
 		errObj := preflightPolicyBlockedError(task, "fallback selected but --allow-fallback was not set")
 		report.Runnability = preflightRunnability{Status: runnabilityPolicyBlock, Runnable: false, ExitCode: errObj.ExitCode, Reason: errObj.Message}
+		report.applyRunnability()
 		return report, warnings, commands, &errObj
 	}
 	if !route.Decision.Ready && opts.requireReady {
 		errObj := preflightPolicyBlockedError(task, "selected model is not loaded and --require-ready was set")
 		report.Runnability = preflightRunnability{Status: runnabilityPolicyBlock, Runnable: false, ExitCode: errObj.ExitCode, Reason: errObj.Message}
+		report.applyRunnability()
 		return report, warnings, commands, &errObj
 	}
 	return report, warnings, commands, nil
+}
+
+func errorPreflightReport(task string, prompt promptMetadata, opts preflightOptions, errObj envelope.Error) preflightReport {
+	status := runnabilityInvocationBlock
+	switch errObj.ExitCode {
+	case exitEnvironment:
+		status = runnabilityConfigError
+	case exitTransient:
+		status = runnabilityTransientError
+	}
+	if errObj.Code == "E_PREFLIGHT_POLICY_BLOCKED" {
+		status = runnabilityPolicyBlock
+	}
+	report := preflightReport{
+		PreflightSchemaVersion: preflightSchemaVersion,
+		Task:                   task,
+		Prompt:                 prompt,
+		Policy:                 preflightPolicy{AllowFallback: opts.allowFallback, RequireReady: opts.requireReady},
+		Warnings:               []envelope.Warning{},
+		Runnability: preflightRunnability{
+			Status:   status,
+			Runnable: false,
+			ExitCode: errObj.ExitCode,
+			Reason:   errObj.Message,
+		},
+	}
+	report.applyRunnability()
+	return report
+}
+
+func (r *preflightReport) applyRunnability() {
+	r.Runnable = r.Runnability.Runnable
+	r.RunnabilityStatus = r.Runnability.Status
+	r.Summary = preflightSummary{
+		Status:  r.Runnability.Status,
+		Message: r.Runnability.Reason,
+	}
 }
 
 func nonNilPreflightWarnings(warnings []envelope.Warning) []envelope.Warning {
@@ -164,6 +219,43 @@ func nonNilPreflightWarnings(warnings []envelope.Warning) []envelope.Warning {
 		return []envelope.Warning{}
 	}
 	return warnings
+}
+
+func preflightCommands(task string, route routeReport, routeCommands []envelope.Command) []envelope.Command {
+	commands := []envelope.Command{{
+		Label:     "Inspect route decision",
+		Command:   "inferctl route " + task + " --json",
+		Rationale: "Review the underlying route candidates and constraints",
+	}}
+	if route.Decision.SelectedBackend != "" {
+		commands = append(commands, envelope.Command{
+			Label:     "Inspect selected backend",
+			Command:   "inferctl backends --filter " + route.Decision.SelectedBackend + " --json",
+			Rationale: "Check reachability and model inventory for the selected backend",
+		})
+	}
+	if route.Decision.SelectedModel != "" {
+		commands = append(commands, envelope.Command{
+			Label:     "Inspect selected model",
+			Command:   "inferctl model " + route.Decision.SelectedModel + " --json",
+			Rationale: "Show placements, capabilities, and routing usage for the selected model",
+		})
+	}
+	seen := map[string]bool{}
+	for _, command := range commands {
+		seen[command.Command] = true
+	}
+	for _, command := range routeCommands {
+		if seen[command.Command] {
+			continue
+		}
+		commands = append(commands, command)
+		seen[command.Command] = true
+	}
+	if len(commands) > 6 {
+		commands = commands[:6]
+	}
+	return commands
 }
 
 func preflightPolicyBlockedError(task, reason string) envelope.Error {

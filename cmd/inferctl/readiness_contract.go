@@ -91,7 +91,21 @@ func readPromptMetadata(cmd *cobra.Command, opts promptReadOptions) (promptMetad
 		sources++
 	}
 	if sources > 1 {
-		err := invalidArg("prompt_source", "multiple", "choose only one of --prompt, --prompt-file, or --from-stdin", []string{"--prompt", "--prompt-file", "--from-stdin"})
+		did := cmd.CommandPath() + " <task> --prompt-file <path> --json"
+		err := envelope.Error{
+			Code:       "E_INVALID_ARG",
+			Message:    "choose only one prompt source: --prompt, --prompt-file, or --from-stdin",
+			DidYouMean: &did,
+			ExitCode:   exitUserInput,
+			Retryable:  false,
+			Details: map[string]any{
+				"arg":        "prompt_source",
+				"given":      "multiple",
+				"expected":   "exactly zero or one prompt source",
+				"valid_set":  []string{"--prompt", "--prompt-file", "--from-stdin"},
+				"correction": "remove all but one prompt source flag",
+			},
+		}
 		return promptMetadata{}, &err
 	}
 

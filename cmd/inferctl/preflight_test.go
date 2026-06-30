@@ -27,15 +27,34 @@ func TestPreflightPrimaryReady(t *testing.T) {
 	if !env.OK || !env.Data.Runnability.Runnable || env.Data.Runnability.ExitCode != 0 {
 		t.Fatalf("runnability = %#v ok=%v", env.Data.Runnability, env.OK)
 	}
+	if env.Data.PreflightSchemaVersion == "" || !env.Data.Runnable || env.Data.RunnabilityStatus != "runnable" {
+		t.Fatalf("top-level preflight contract = %#v", env.Data)
+	}
 	if env.Data.RouteDecision.SelectedModel != "qwen3:8b" || !env.Data.RouteDecision.Ready {
 		t.Fatalf("route decision = %#v", env.Data.RouteDecision)
 	}
+	if env.Data.Route.Decision.SelectedModel != env.Data.RouteDecision.SelectedModel {
+		t.Fatalf("route alias = %#v route_decision=%#v", env.Data.Route, env.Data.RouteDecision)
+	}
+	if env.Data.Summary.Status != "runnable" || env.Data.Summary.Message == "" {
+		t.Fatalf("summary = %#v", env.Data.Summary)
+	}
+	assertPreflightCommands(t, env.Commands, []string{
+		"inferctl route code --json",
+		"inferctl backends --filter ollama --json",
+		"inferctl model qwen3:8b --json",
+	})
 	assertJSONSubsetGolden(t, "preflight.golden.json", map[string]any{
-		"prompt":         env.Data.Prompt,
-		"route_decision": env.Data.RouteDecision,
-		"runnability":    env.Data.Runnability,
-		"policy":         env.Data.Policy,
-		"warnings":       env.Data.Warnings,
+		"preflight_schema_version": env.Data.PreflightSchemaVersion,
+		"runnable":                 env.Data.Runnable,
+		"runnability_status":       env.Data.RunnabilityStatus,
+		"prompt":                   env.Data.Prompt,
+		"route":                    env.Data.Route,
+		"route_decision":           env.Data.RouteDecision,
+		"summary":                  env.Data.Summary,
+		"runnability":              env.Data.Runnability,
+		"policy":                   env.Data.Policy,
+		"warnings":                 env.Data.Warnings,
 	})
 }
 
@@ -140,7 +159,7 @@ func TestPreflightInvocationAndEnvironmentErrors(t *testing.T) {
 		t.Fatalf("unknown task stdout=%s err=%v", stdout, err)
 	}
 	stdout, _, err = executeForTest("preflight", "code", "--prompt", "a", "--from-stdin", "--json")
-	if err == nil || !strings.Contains(stdout, "E_INVALID_ARG") {
+	if err == nil || !strings.Contains(stdout, "E_INVALID_ARG") || !strings.Contains(stdout, "remove all but one prompt source flag") {
 		t.Fatalf("multiple prompt sources stdout=%s err=%v", stdout, err)
 	}
 	stdout, _, err = executeForTest("preflight", "code", "--prompt-file", filepath.Join(t.TempDir(), "missing.txt"), "--json")
@@ -176,8 +195,13 @@ func TestPreflightInvalidConfigAndNoRouteExitClasses(t *testing.T) {
 }
 
 type preflightEnvelopeForTest struct {
-	OK   bool            `json:"ok"`
-	Data preflightReport `json:"data"`
+	OK       bool               `json:"ok"`
+	Data     preflightReport    `json:"data"`
+	Commands []preflightCommand `json:"commands"`
+}
+
+type preflightCommand struct {
+	Command string `json:"command"`
 }
 
 func decodePreflightEnvelope(t *testing.T, stdout string) preflightEnvelopeForTest {
@@ -201,5 +225,18 @@ func assertEnvelopeExitCode(t *testing.T, stdout string, want int) {
 	}
 	if len(env.Errors) == 0 || env.Errors[0].ExitCode != want {
 		t.Fatalf("exit code = %#v want %d", env.Errors, want)
+	}
+}
+
+func assertPreflightCommands(t *testing.T, commands []preflightCommand, want []string) {
+	t.Helper()
+	seen := map[string]bool{}
+	for _, command := range commands {
+		seen[command.Command] = true
+	}
+	for _, command := range want {
+		if !seen[command] {
+			t.Fatalf("missing command %q in %#v", command, commands)
+		}
 	}
 }

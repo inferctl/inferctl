@@ -3,11 +3,52 @@
     "allow_fallback": false,
     "require_ready": false
   },
+  "preflight_schema_version": "0.1",
   "prompt": {
     "source_kind": "none",
     "source": "none",
     "prompt_chars": 0,
     "estimated_tokens": 0
+  },
+  "route": {
+    "task": "code",
+    "input": {
+      "prompt_chars": 0,
+      "estimated_tokens": 0,
+      "source": "none"
+    },
+    "decision": {
+      "selected_model": "qwen3:8b",
+      "selected_backend": "ollama",
+      "is_fallback": false,
+      "fallback_index": null,
+      "ready": true,
+      "estimated_first_token_ms": null,
+      "estimated_total_ms": null,
+      "reason": "primary model is available"
+    },
+    "candidates": [
+      {
+        "model": "qwen3:8b",
+        "backend": "ollama",
+        "role": "primary",
+        "fallback_index": null,
+        "available": true,
+        "unavailability_reason": null,
+        "loaded": true,
+        "estimated_first_token_ms": null
+      }
+    ],
+    "constraints": {
+      "profile": "default_local_workstation",
+      "max_context_tokens": 8192,
+      "context_used_tokens": 0,
+      "context_pct": 0,
+      "max_concurrent_models": 1,
+      "current_loaded_count": 1,
+      "allow_premium": false,
+      "selected_is_premium": null
+    }
   },
   "route_decision": {
     "selected_model": "qwen3:8b",
@@ -24,6 +65,12 @@
     "runnable": true,
     "exit_code": 0,
     "reason": "route satisfies preflight policy"
+  },
+  "runnability_status": "runnable",
+  "runnable": true,
+  "summary": {
+    "status": "runnable",
+    "message": "route satisfies preflight policy"
   },
   "warnings": []
 }

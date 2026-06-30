@@ -497,16 +497,21 @@ func routeExplanationSchema() map[string]any {
 }
 
 func preflightReportSchema() map[string]any {
-	return objectSchema([]string{"task", "prompt", "route_decision", "route_candidates", "constraints", "runnability", "policy", "warnings", "recommended_action"}, map[string]any{
-		"task":               map[string]any{"type": "string"},
-		"prompt":             map[string]any{"$ref": "#/definitions/prompt_metadata"},
-		"route_decision":     map[string]any{"type": "object"},
-		"route_candidates":   arrayOf(map[string]any{"type": "object"}),
-		"constraints":        map[string]any{"type": "object"},
-		"runnability":        map[string]any{"type": "object"},
-		"policy":             map[string]any{"type": "object"},
-		"warnings":           arrayOf(map[string]any{"$ref": "#/definitions/warning"}),
-		"recommended_action": nullable("object"),
+	return objectSchema([]string{"preflight_schema_version", "task", "runnable", "runnability_status", "prompt", "route", "route_decision", "route_candidates", "constraints", "runnability", "policy", "summary", "warnings", "recommended_action"}, map[string]any{
+		"preflight_schema_version": map[string]any{"type": "string"},
+		"task":                     map[string]any{"type": "string"},
+		"runnable":                 map[string]any{"type": "boolean"},
+		"runnability_status":       map[string]any{"type": "string"},
+		"prompt":                   map[string]any{"$ref": "#/definitions/prompt_metadata"},
+		"route":                    map[string]any{"$ref": "#/schemas/route_explanation"},
+		"route_decision":           map[string]any{"type": "object"},
+		"route_candidates":         arrayOf(map[string]any{"type": "object"}),
+		"constraints":              map[string]any{"type": "object"},
+		"runnability":              map[string]any{"type": "object"},
+		"policy":                   map[string]any{"type": "object"},
+		"summary":                  map[string]any{"type": "object"},
+		"warnings":                 arrayOf(map[string]any{"$ref": "#/definitions/warning"}),
+		"recommended_action":       nullable("object"),
 	})
 }
 
