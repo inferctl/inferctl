@@ -109,6 +109,52 @@ The minimum useful config defines `[meta]`, `[profile]`, at least one
 `[backends.<name>]`, and any `[routing.<task>]` entries you want `inferctl route`
 to resolve.
 
+## For Tool Builders
+
+External tools should use inferctl for control-plane decisions, then call the
+selected backend directly. The live backend-selection pattern is:
+
+```sh
+inferctl route <task> --json
+inferctl config show --json
+```
+
+`route --json` answers which backend/model is selected right now and why.
+`config show --json` maps that backend name to connection metadata such as
+`base_url`.
+
+```python
+import json
+import subprocess
+
+from openai import OpenAI
+
+
+def inferctl_json(*args):
+    out = subprocess.check_output(["inferctl", *args, "--json"], text=True)
+    return json.loads(out)["data"]
+
+
+route = inferctl_json("route", "code")
+cfg = inferctl_json("config", "show")
+
+backend_name = route["decision"]["selected_backend"]
+model = route["decision"]["selected_model"]
+backend = cfg["effective_config"]["backends"][backend_name]
+
+client = OpenAI(base_url=backend["base_url"])
+client.chat.completions.create(
+    model=model,
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+`inferctl capabilities --json` describes inferctl's binary command contract,
+not live backend state. Use it for compatibility checks, not for backend
+inventory or route selection. Consumers that use `config show` output must
+respect inferctl endpoint policy; for example, non-loopback `openai_compat`
+URLs require `remote_allowed = true`.
+
 ## Docs
 
 - [Verbs](docs/verbs.md)
