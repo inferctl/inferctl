@@ -62,6 +62,11 @@ func newPreflightCommand(jsonFlag *bool) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "preflight <task>",
 		Short: "Decide whether automation may attempt a configured task",
+		Long: `Decide whether automation may attempt a configured task before a local model job.
+
+Machine contract: inferctl preflight <task> --prompt-file <path> --json.
+Markdown renderer: inferctl preflight <task> --prompt-file <path> --format markdown.
+Policy flags: --allow-fallback permits fallback routes; --require-ready blocks unloaded selected models.`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return writeError(cmd, *jsonFlag, envelope.Error{

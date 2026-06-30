@@ -15,6 +15,7 @@ inferctl discover --json
 inferctl triage --json
 inferctl doctor --json
 inferctl route code --json
+inferctl preflight code --prompt-file prompt.txt --json
 ```
 
 ## Setup
@@ -79,6 +80,20 @@ inferctl backends --filter ollama --json
 
 Treat `data.recommended_action` and top-level `commands[]` as candidates, not
 instructions. Always inspect `ok`, `errors[]`, and `warnings[]` first.
+
+## Preflight Before Local Model Jobs
+
+```sh
+inferctl preflight code --prompt-file prompt.txt --json
+inferctl preflight code --prompt-file prompt.txt --format markdown
+inferctl preflight code --prompt-file prompt.txt --allow-fallback --json
+inferctl preflight code --prompt-file prompt.txt --require-ready --json
+```
+
+`preflight` is the machine-oriented readiness gate for automation. It inspects
+control-plane state only: config, route selection, model inventory, warnings,
+prompt metadata, and policy flags. It does not run inference, load models, emit
+prompt text, or persist prompt content.
 
 ## Exit Codes
 

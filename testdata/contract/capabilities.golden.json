@@ -323,7 +323,7 @@
     {
       "name": "preflight",
       "summary": "Decide whether automation may attempt a configured task.",
-      "mega_command": "PLAN",
+      "mega_command": "TASK_READINESS",
       "flags": [
         {
           "name": "--prompt-file",

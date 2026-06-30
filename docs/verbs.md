@@ -121,7 +121,7 @@ inferctl route code --prompt "summarize this" --json
 
 Decide whether automation may attempt a configured task.
 
-- Mega-command: `PLAN`
+- Mega-command: `TASK_READINESS`
 - JSON data schema: `#/schemas/preflight_report`
 - Exit codes: `0`, `1`, `3`, `4`
 - Emits data on failure: `true`
@@ -143,7 +143,7 @@ Decide whether automation may attempt a configured task.
 ### Example
 
 ```sh
-inferctl preflight --json
+inferctl preflight code --prompt-file prompt.txt --json
 ```
 
 ## `inferctl diff`

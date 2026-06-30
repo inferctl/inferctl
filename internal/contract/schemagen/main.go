@@ -173,6 +173,8 @@ func exampleForVerb(name string) string {
 		return "inferctl model qwen3:8b --json"
 	case "route":
 		return "inferctl route code --prompt \"summarize this\" --json"
+	case "preflight":
+		return "inferctl preflight code --prompt-file prompt.txt --json"
 	case "triage":
 		return "inferctl triage --json"
 	case "config show":
