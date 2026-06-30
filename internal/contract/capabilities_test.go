@@ -306,6 +306,60 @@ func TestDoctorGoldenIncludesRecommendedAction(t *testing.T) {
 	}
 }
 
+func TestStatusGoldenCoversAggregateSchema(t *testing.T) {
+	body := readString(t, "../../testdata/contract/status.golden.json")
+	var golden struct {
+		StatusSchemaVersion string `json:"status_schema_version"`
+		Summary             struct {
+			BackendsTotal      int `json:"backends_total"`
+			ModelsExposedTotal int `json:"models_exposed_total"`
+			ModelsLoadedTotal  int `json:"models_loaded_total"`
+			RoutesTotal        int `json:"routes_total"`
+			WarningsTotal      int `json:"warnings_total"`
+		} `json:"summary"`
+		Backends []struct {
+			Name      string `json:"name"`
+			Reachable bool   `json:"reachable"`
+			BaseURL   string `json:"base_url"`
+		} `json:"backends"`
+		Models struct {
+			Exposed []struct {
+				Name      string `json:"name"`
+				Backend   string `json:"backend"`
+				Loaded    bool   `json:"loaded"`
+				Available bool   `json:"available"`
+			} `json:"exposed"`
+			Loaded []struct {
+				Name    string `json:"name"`
+				Backend string `json:"backend"`
+			} `json:"loaded"`
+		} `json:"models"`
+		Routes []struct {
+			Task     string `json:"task"`
+			Decision struct {
+				SelectedModel string `json:"selected_model"`
+				IsFallback    bool   `json:"is_fallback"`
+				Reason        string `json:"reason"`
+			} `json:"decision"`
+		} `json:"routes"`
+		Warnings          []map[string]any `json:"warnings"`
+		RecommendedAction *struct {
+			Command string `json:"command"`
+		} `json:"recommended_action"`
+	}
+	if err := json.Unmarshal([]byte(body), &golden); err != nil {
+		t.Fatal(err)
+	}
+	if golden.StatusSchemaVersion == "" || golden.Summary.BackendsTotal == 0 || golden.Summary.ModelsExposedTotal == 0 ||
+		golden.Summary.ModelsLoadedTotal == 0 || golden.Summary.RoutesTotal == 0 || golden.Summary.WarningsTotal == 0 {
+		t.Fatalf("status golden summary should cover aggregate counts: %#v", golden.Summary)
+	}
+	if len(golden.Backends) == 0 || len(golden.Models.Exposed) == 0 || len(golden.Models.Loaded) == 0 ||
+		len(golden.Routes) == 0 || len(golden.Warnings) == 0 || golden.RecommendedAction == nil || golden.RecommendedAction.Command == "" {
+		t.Fatalf("status golden missing required aggregate sections")
+	}
+}
+
 func readString(t *testing.T, path string) string {
 	t.Helper()
 	data, err := os.ReadFile(path)

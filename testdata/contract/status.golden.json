@@ -1,0 +1,140 @@
+{
+  "status_schema_version": "0.1",
+  "contract_version": "0.1",
+  "captured_at_iso": "1970-01-01T00:00:00Z",
+  "summary": {
+    "backends_total": 2,
+    "backends_reachable": 1,
+    "models_exposed_total": 2,
+    "models_loaded_total": 1,
+    "routes_total": 1,
+    "routes_ready": 0,
+    "warnings_total": 2
+  },
+  "backends": [
+    {
+      "name": "llamacpp",
+      "kind": "llama.cpp",
+      "base_url": "http://127.0.0.1:8090",
+      "reachable": false,
+      "default": false,
+      "models_installed_count": null,
+      "models_loaded_count": null,
+      "error": "backend_unreachable"
+    },
+    {
+      "name": "ollama",
+      "kind": "ollama",
+      "base_url": "http://127.0.0.1:11434",
+      "reachable": true,
+      "default": true,
+      "models_installed_count": 1,
+      "models_loaded_count": 1,
+      "error": null
+    }
+  ],
+  "models": {
+    "exposed": [
+      {
+        "name": "fallback:8b",
+        "backend": "ollama",
+        "loaded": true,
+        "available": true
+      },
+      {
+        "name": "primary.gguf",
+        "backend": "llamacpp",
+        "loaded": false,
+        "available": false
+      }
+    ],
+    "loaded": [
+      {
+        "name": "fallback:8b",
+        "backend": "ollama",
+        "vram_bytes": 1,
+        "kv_cache_pressure_pct": null,
+        "loaded_at_iso": null,
+        "idle_seconds": null
+      }
+    ]
+  },
+  "routes": [
+    {
+      "task": "code",
+      "decision": {
+        "selected_model": "fallback:8b",
+        "selected_backend": "ollama",
+        "is_fallback": true,
+        "fallback_index": 0,
+        "ready": true,
+        "estimated_first_token_ms": null,
+        "estimated_total_ms": null,
+        "reason": "selected fallback because primary 'primary.gguf' is unavailable"
+      },
+      "candidates": [
+        {
+          "model": "primary.gguf",
+          "backend": "llamacpp",
+          "role": "primary",
+          "fallback_index": null,
+          "available": false,
+          "unavailability_reason": "backend_unreachable",
+          "loaded": false,
+          "estimated_first_token_ms": null
+        },
+        {
+          "model": "fallback:8b",
+          "backend": "ollama",
+          "role": "fallback",
+          "fallback_index": 0,
+          "available": true,
+          "unavailability_reason": null,
+          "loaded": true,
+          "estimated_first_token_ms": null
+        }
+      ],
+      "warnings": [
+        {
+          "code": "W_FALLBACK_USED",
+          "message": "routed to fallback 'fallback:8b' because primary 'primary.gguf' is unavailable",
+          "details": {
+            "task": "code",
+            "primary": "primary.gguf",
+            "selected": "fallback:8b",
+            "fallback_index": 0
+          }
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "code": "W_BACKEND_UNREACHABLE",
+      "message": "backend 'llamacpp' is unreachable",
+      "details": {
+        "backend": "llamacpp"
+      }
+    },
+    {
+      "code": "W_FALLBACK_USED",
+      "message": "routed to fallback 'fallback:8b' because primary 'primary.gguf' is unavailable",
+      "details": {
+        "task": "code",
+        "primary": "primary.gguf",
+        "selected": "fallback:8b",
+        "fallback_index": 0
+      }
+    }
+  ],
+  "recommended_action": {
+    "command": "inferctl route code --json",
+    "rationale": "Shows route candidates and fallback reason",
+    "alternatives": [
+      {
+        "command": "inferctl backends --filter llamacpp --json",
+        "rationale": "Inspect the unreachable primary backend"
+      }
+    ]
+  }
+}
