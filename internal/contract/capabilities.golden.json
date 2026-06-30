@@ -519,7 +519,7 @@
     },
     {
       "name": "dashboard",
-      "summary": "Run the Bubble Tea status dashboard backed by the public status feed.",
+      "summary": "Run the human Bubble Tea status dashboard backed by the public status feed.",
       "mega_command": "DIAGNOSE",
       "flags": [
         {

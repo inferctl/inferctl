@@ -23,7 +23,7 @@ func newDashboardCommand(jsonFlag *bool) *cobra.Command {
 	opts := dashboardOptions{interval: defaultStatusWatchInterval}
 	cmd := &cobra.Command{
 		Use:   "dashboard",
-		Short: "Run the status dashboard backed by the public status feed",
+		Short: "Run the human status dashboard backed by the public status feed",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if *jsonFlag {

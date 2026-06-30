@@ -104,6 +104,23 @@ func TestStatusCapabilitiesAdvertiseWatchContract(t *testing.T) {
 	}
 }
 
+func TestDashboardCapabilitiesRemainHumanOnly(t *testing.T) {
+	data, err := CapabilitiesData()
+	if err != nil {
+		t.Fatalf("CapabilitiesData() error = %v", err)
+	}
+	dashboard, ok := capabilityVerb(data, "dashboard")
+	if !ok {
+		t.Fatal("dashboard verb missing from capabilities")
+	}
+	if !strings.Contains(dashboard["summary"].(string), "human") {
+		t.Fatalf("dashboard summary does not document human boundary: %v", dashboard["summary"])
+	}
+	if _, ok := dashboard["output_schema_ref"]; ok {
+		t.Fatalf("dashboard should not advertise a machine output schema: %#v", dashboard)
+	}
+}
+
 func mapListContainsName(values []any, name string) bool {
 	for _, raw := range values {
 		value, ok := raw.(map[string]any)

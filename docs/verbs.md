@@ -220,7 +220,7 @@ inferctl status --json
 
 ## `inferctl dashboard`
 
-Run the Bubble Tea status dashboard backed by the public status feed.
+Run the human Bubble Tea status dashboard backed by the public status feed.
 
 - Mega-command: `DIAGNOSE`
 - Exit codes: `0`, `1`, `3`
