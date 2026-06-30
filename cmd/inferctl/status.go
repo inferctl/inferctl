@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"reflect"
 	"slices"
 	"strings"
 	"syscall"
@@ -85,22 +84,6 @@ type statusEvent struct {
 	Summary  string `json:"summary"`
 	Before   any    `json:"before"`
 	After    any    `json:"after"`
-}
-
-type statusBackendReachability struct {
-	Name      string  `json:"name"`
-	Kind      string  `json:"kind"`
-	Reachable bool    `json:"reachable"`
-	Error     *string `json:"error"`
-}
-
-type statusRouteSelection struct {
-	Task            string `json:"task"`
-	SelectedBackend string `json:"selected_backend"`
-	SelectedModel   string `json:"selected_model"`
-	IsFallback      bool   `json:"is_fallback"`
-	FallbackIndex   *int   `json:"fallback_index"`
-	Ready           bool   `json:"ready"`
 }
 
 type statusOptions struct {
@@ -200,114 +183,87 @@ func writeStatusEventBatch(cmd *cobra.Command, jsonFlag bool, previous, current 
 }
 
 func diffStatusSnapshots(before, after statusSnapshot) []statusEvent {
-	var events []statusEvent
-	events = append(events, diffBackendReachabilityEvents(before, after, len(events))...)
-	events = append(events, diffRouteSelectionEvents(before, after, len(events))...)
+	var changes []controlPlaneChange
+	changes = append(changes, classifyControlPlaneChanges(statusGlobalSnapshot(before), statusGlobalSnapshot(after))...)
+	for _, task := range commonStatusRouteTasks(before, after) {
+		changes = append(changes, classifyControlPlaneChanges(statusRouteSnapshot(before, task), statusRouteSnapshot(after, task))...)
+	}
+	rankChanges(changes)
+	events := make([]statusEvent, 0, len(changes))
+	for _, change := range changes {
+		events = append(events, statusEventFromChange(change))
+	}
 	return events
 }
 
-func diffBackendReachabilityEvents(before, after statusSnapshot, offset int) []statusEvent {
-	beforeByName := map[string]statusBackend{}
-	for _, backend := range before.Backends {
-		beforeByName[backend.Name] = backend
+func statusEventFromChange(change controlPlaneChange) statusEvent {
+	return statusEvent{
+		Sequence: change.Rank,
+		Kind:     change.Type + "_changed",
+		Subject:  change.Subject,
+		Severity: change.Severity,
+		Summary:  change.Explanation,
+		Before:   change.Before,
+		After:    change.After,
 	}
-	afterByName := map[string]statusBackend{}
-	var names []string
-	for _, backend := range after.Backends {
-		afterByName[backend.Name] = backend
-		if _, ok := beforeByName[backend.Name]; ok {
-			names = append(names, backend.Name)
-		}
+}
+
+func statusGlobalSnapshot(status statusSnapshot) controlPlaneSnapshot {
+	return controlPlaneSnapshot{
+		Task:                "status",
+		BackendReachability: statusBackendReachabilityAsControlPlane(status.Backends),
+		LoadedModels:        status.Models.Loaded,
+		Warnings:            status.Warnings,
+		RecommendedAction:   status.RecommendedAction,
 	}
-	slices.Sort(names)
-	events := make([]statusEvent, 0, len(names))
-	for _, name := range names {
-		beforeBackend := beforeByName[name]
-		afterBackend := afterByName[name]
-		if beforeBackend.Reachable == afterBackend.Reachable {
-			continue
-		}
-		severity := "medium"
-		direction := "reachable"
-		if !afterBackend.Reachable {
-			severity = "high"
-			direction = "unreachable"
-		}
-		events = append(events, statusEvent{
-			Sequence: offset + len(events) + 1,
-			Kind:     "backend_reachability_changed",
-			Subject:  "backend:" + name,
-			Severity: severity,
-			Summary:  fmt.Sprintf("backend %s became %s", name, direction),
-			Before:   statusBackendReachabilityFromBackend(beforeBackend),
-			After:    statusBackendReachabilityFromBackend(afterBackend),
+}
+
+func statusRouteSnapshot(status statusSnapshot, task string) controlPlaneSnapshot {
+	route, ok := statusRouteByTask(status, task)
+	if !ok {
+		return controlPlaneSnapshot{Task: task}
+	}
+	return controlPlaneSnapshot{
+		Task:          task,
+		RouteDecision: route.Decision,
+	}
+}
+
+func statusBackendReachabilityAsControlPlane(backends []statusBackend) []backendReachability {
+	out := make([]backendReachability, 0, len(backends))
+	for _, backend := range backends {
+		out = append(out, backendReachability{
+			Name:      backend.Name,
+			Kind:      backend.Kind,
+			Reachable: backend.Reachable,
+			Error:     backend.Error,
 		})
 	}
-	return events
+	return out
 }
 
-func diffRouteSelectionEvents(before, after statusSnapshot, offset int) []statusEvent {
-	beforeByTask := map[string]statusRoute{}
+func commonStatusRouteTasks(before, after statusSnapshot) []string {
+	beforeByTask := map[string]bool{}
 	for _, route := range before.Routes {
-		beforeByTask[route.Task] = route
+		beforeByTask[route.Task] = true
 	}
-	afterByTask := map[string]statusRoute{}
 	var tasks []string
 	for _, route := range after.Routes {
-		afterByTask[route.Task] = route
-		if _, ok := beforeByTask[route.Task]; ok {
+		if beforeByTask[route.Task] {
 			tasks = append(tasks, route.Task)
 		}
 	}
 	slices.Sort(tasks)
-	events := make([]statusEvent, 0, len(tasks))
-	for _, task := range tasks {
-		beforeSelection := statusRouteSelectionFromRoute(beforeByTask[task])
-		afterSelection := statusRouteSelectionFromRoute(afterByTask[task])
-		if reflect.DeepEqual(beforeSelection, afterSelection) {
-			continue
-		}
-		severity := "medium"
-		if beforeSelection.IsFallback != afterSelection.IsFallback || !afterSelection.Ready {
-			severity = "high"
-		}
-		events = append(events, statusEvent{
-			Sequence: offset + len(events) + 1,
-			Kind:     "route_selection_changed",
-			Subject:  "route:" + task,
-			Severity: severity,
-			Summary: fmt.Sprintf("route %s changed from %s/%s to %s/%s",
-				task,
-				beforeSelection.SelectedBackend,
-				beforeSelection.SelectedModel,
-				afterSelection.SelectedBackend,
-				afterSelection.SelectedModel,
-			),
-			Before: beforeSelection,
-			After:  afterSelection,
-		})
-	}
-	return events
+	return tasks
 }
 
-func statusBackendReachabilityFromBackend(backend statusBackend) statusBackendReachability {
-	return statusBackendReachability{
-		Name:      backend.Name,
-		Kind:      backend.Kind,
-		Reachable: backend.Reachable,
-		Error:     backend.Error,
+func statusRouteByTask(status statusSnapshot, task string) (statusRoute, bool) {
+	for _, route := range status.Routes {
+		if route.Task == task {
+			return route, true
+		}
 	}
-}
-
-func statusRouteSelectionFromRoute(route statusRoute) statusRouteSelection {
-	return statusRouteSelection{
-		Task:            route.Task,
-		SelectedBackend: route.Decision.SelectedBackend,
-		SelectedModel:   route.Decision.SelectedModel,
-		IsFallback:      route.Decision.IsFallback,
-		FallbackIndex:   route.Decision.FallbackIndex,
-		Ready:           route.Decision.Ready,
-	}
+	return statusRoute{}, false
 }
 
 func buildStatusSnapshot(ctx context.Context) (statusSnapshot, []envelope.Warning, []envelope.Command, *envelope.Error) {

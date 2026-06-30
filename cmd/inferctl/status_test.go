@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/inferctl/inferctl/internal/envelope"
 	"github.com/inferctl/inferctl/internal/testserver"
 	"github.com/inferctl/inferctl/pkg/inferctl"
 )
@@ -257,23 +258,56 @@ func TestStatusEventsRepresentBackendReachabilityAndRouteSelection(t *testing.T)
 	}
 
 	events := diffStatusSnapshots(before, after)
-	if len(events) != 2 {
-		t.Fatalf("events len = %d, want 2: %#v", len(events), events)
+	if len(events) != 3 {
+		t.Fatalf("events len = %d, want 3: %#v", len(events), events)
 	}
-	if events[0].Sequence != 1 || events[0].Kind != "backend_reachability_changed" || events[0].Subject != "backend:llamacpp" {
+	wantKinds := []string{"backend_reachability_changed", "fallback_status_changed", "selected_route_changed"}
+	for i, want := range wantKinds {
+		if events[i].Sequence != i+1 || events[i].Kind != want || events[i].Severity != "high" {
+			t.Fatalf("event[%d] = %#v want kind=%s", i, events[i], want)
+		}
+	}
+	if events[0].Subject != "llamacpp" || events[0].Before != "reachable" || events[0].After != "unreachable" {
 		t.Fatalf("backend event = %#v", events[0])
 	}
-	backendBefore := events[0].Before.(statusBackendReachability)
-	backendAfter := events[0].After.(statusBackendReachability)
-	if !backendBefore.Reachable || backendAfter.Reachable {
-		t.Fatalf("backend event before/after = %#v %#v", backendBefore, backendAfter)
+	if events[1].Subject != "code" || events[1].Before != false || events[1].After != true {
+		t.Fatalf("fallback event = %#v", events[1])
 	}
-	if events[1].Sequence != 2 || events[1].Kind != "route_selection_changed" || events[1].Subject != "route:code" {
-		t.Fatalf("route event = %#v", events[1])
+	if events[2].Subject != "code" || events[2].Before != "llamacpp/primary.gguf" || events[2].After != "ollama/fallback:8b" {
+		t.Fatalf("route event = %#v", events[2])
 	}
-	routeAfter := events[1].After.(statusRouteSelection)
-	if !routeAfter.IsFallback || routeAfter.SelectedBackend != "ollama" || routeAfter.SelectedModel != "fallback:8b" {
-		t.Fatalf("route after = %#v", routeAfter)
+}
+
+func TestStatusEventsUseSharedClassifierSemantics(t *testing.T) {
+	beforeStatus := statusSnapshot{
+		Backends: []statusBackend{{Name: "ollama", Kind: "ollama", Reachable: true}},
+		Routes: []statusRoute{{
+			Task:     "code",
+			Decision: inferctl.RouteDecision{SelectedBackend: "ollama", SelectedModel: "primary:70b", Ready: true},
+		}},
+		Warnings:          []envelope.Warning{{Code: "W_OLD", Message: "old warning"}},
+		RecommendedAction: &inferctl.RecommendedAction{Command: "inferctl model primary:70b --json"},
+	}
+	afterStatus := statusSnapshot{
+		Backends: []statusBackend{{Name: "ollama", Kind: "ollama", Reachable: false}},
+		Routes: []statusRoute{{
+			Task:     "code",
+			Decision: inferctl.RouteDecision{SelectedBackend: "ollama", SelectedModel: "fallback:8b", IsFallback: true, Ready: false},
+		}},
+		Warnings:          []envelope.Warning{{Code: "W_NEW", Message: "new warning"}},
+		RecommendedAction: &inferctl.RecommendedAction{Command: "inferctl doctor --json"},
+	}
+
+	events := diffStatusSnapshots(beforeStatus, afterStatus)
+	changes := append(classifyControlPlaneChanges(statusGlobalSnapshot(beforeStatus), statusGlobalSnapshot(afterStatus)), classifyControlPlaneChanges(statusRouteSnapshot(beforeStatus, "code"), statusRouteSnapshot(afterStatus, "code"))...)
+	rankChanges(changes)
+	if len(events) != len(changes) {
+		t.Fatalf("event/change length mismatch events=%#v changes=%#v", events, changes)
+	}
+	for i := range changes {
+		if events[i].Kind != changes[i].Type+"_changed" || events[i].Severity != changes[i].Severity || events[i].Summary != changes[i].Explanation {
+			t.Fatalf("event[%d]=%#v change=%#v", i, events[i], changes[i])
+		}
 	}
 }
 
@@ -284,11 +318,11 @@ func TestStatusEventBatchEnvelope(t *testing.T) {
 	events := []statusEvent{{
 		Sequence: 1,
 		Kind:     "backend_reachability_changed",
-		Subject:  "backend:ollama",
+		Subject:  "ollama",
 		Severity: "medium",
 		Summary:  "backend ollama became reachable",
-		Before:   statusBackendReachability{Name: "ollama", Kind: "ollama", Reachable: false},
-		After:    statusBackendReachability{Name: "ollama", Kind: "ollama", Reachable: true},
+		Before:   "unreachable",
+		After:    "reachable",
 	}}
 	cmd := newRootCommand()
 	var stdout, stderr bytes.Buffer

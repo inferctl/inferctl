@@ -397,7 +397,16 @@ func schemaDefinitions() map[string]any {
 		}),
 		"status_event": objectSchema([]string{"sequence", "kind", "subject", "severity", "summary", "before", "after"}, map[string]any{
 			"sequence": map[string]any{"type": "integer", "minimum": 1},
-			"kind":     map[string]any{"enum": []string{"backend_reachability_changed", "route_selection_changed"}},
+			"kind": map[string]any{"enum": []string{
+				"backend_reachability_changed",
+				"error_codes_changed",
+				"fallback_status_changed",
+				"loaded_model_count_changed",
+				"recommended_action_changed",
+				"selected_model_readiness_changed",
+				"selected_route_changed",
+				"warning_codes_changed",
+			}},
 			"subject":  map[string]any{"type": "string"},
 			"severity": map[string]any{"enum": []string{"high", "medium", "low"}},
 			"summary":  map[string]any{"type": "string"},

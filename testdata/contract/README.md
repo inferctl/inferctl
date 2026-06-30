@@ -69,8 +69,14 @@ Top-level event-batch fields:
 
 Committed event kinds:
 
-- `backend_reachability_changed`: `subject` is `backend:<name>` and
-  `before`/`after` use the `status_backend_reachability` shape.
-- `route_selection_changed`: `subject` is `route:<task>` and `before`/`after`
-  use the `status_route_selection` shape, including fallback and readiness
-  state.
+- `backend_reachability_changed`: backend reachability changed.
+- `selected_route_changed`: selected backend/model changed for a task.
+- `fallback_status_changed`: fallback use changed for a task.
+- `selected_model_readiness_changed`: selected model readiness changed.
+- `warning_codes_changed`: warning-code set changed.
+- `error_codes_changed`: error-code set changed.
+- `recommended_action_changed`: recommended command changed.
+- `loaded_model_count_changed`: loaded model count changed.
+
+Event severity, ranking, summaries, and before/after values are derived from
+the same control-plane change classifier used by `inferctl diff`.
