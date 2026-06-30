@@ -24,6 +24,16 @@ type backendEntry struct {
 	backend inferctl.Backend
 }
 
+type modelListRow struct {
+	Name           string  `json:"name"`
+	Backend        string  `json:"backend"`
+	SizeBytes      *int64  `json:"size_bytes"`
+	Digest         *string `json:"digest"`
+	InstalledAtISO *string `json:"installed_at_iso"`
+	Loaded         bool    `json:"loaded"`
+	Available      bool    `json:"available"`
+}
+
 func newBackendsCommand(jsonFlag *bool) *cobra.Command {
 	var filter string
 	var kind string
@@ -97,7 +107,7 @@ func newModelsCommand(jsonFlag *bool) *cobra.Command {
 			if errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
-			models := []inferctl.ModelInfo{}
+			models := []modelListRow{}
 			loadedCount := 0
 			for _, entry := range entries {
 				if loadedOnly {
@@ -110,7 +120,12 @@ func newModelsCommand(jsonFlag *bool) *cobra.Command {
 					}
 					loadedCount += len(loadedModels)
 					for _, model := range loadedModels {
-						models = append(models, inferctl.ModelInfo{Name: model.Name, Backend: model.Backend})
+						models = append(models, modelListRow{
+							Name:      model.Name,
+							Backend:   model.Backend,
+							Loaded:    true,
+							Available: true,
+						})
 					}
 					continue
 				}
@@ -122,10 +137,24 @@ func newModelsCommand(jsonFlag *bool) *cobra.Command {
 						}
 						continue
 					}
-					models = append(models, installedModels...)
+					loadedByModel := map[string]bool{}
 					loadedModels, err := entry.backend.ListLoadedModels(context.Background())
 					if err == nil {
 						loadedCount += len(loadedModels)
+						for _, model := range loadedModels {
+							loadedByModel[model.Name] = true
+						}
+					}
+					for _, model := range installedModels {
+						models = append(models, modelListRow{
+							Name:           model.Name,
+							Backend:        model.Backend,
+							SizeBytes:      model.SizeBytes,
+							Digest:         model.Digest,
+							InstalledAtISO: model.InstalledAtISO,
+							Loaded:         loadedByModel[model.Name],
+							Available:      true,
+						})
 					}
 				}
 			}

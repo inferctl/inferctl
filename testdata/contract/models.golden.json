@@ -5,7 +5,9 @@
       "backend": "ollama",
       "size_bytes": 1,
       "digest": null,
-      "installed_at_iso": null
+      "installed_at_iso": null,
+      "loaded": true,
+      "available": true
     }
   ],
   "total_count": 1,

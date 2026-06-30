@@ -53,6 +53,12 @@ func TestBackendsModelsAndModelCommands(t *testing.T) {
 		Data struct {
 			TotalCount  int `json:"total_count"`
 			LoadedCount int `json:"loaded_count"`
+			Models      []struct {
+				Name      string `json:"name"`
+				Backend   string `json:"backend"`
+				Loaded    bool   `json:"loaded"`
+				Available bool   `json:"available"`
+			} `json:"models"`
 		} `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(stdout), &modelsEnv); err != nil {
@@ -60,6 +66,32 @@ func TestBackendsModelsAndModelCommands(t *testing.T) {
 	}
 	if modelsEnv.Data.TotalCount != 2 || modelsEnv.Data.LoadedCount != 2 {
 		t.Fatalf("models data = %#v", modelsEnv.Data)
+	}
+	if !hasModelRow(modelsEnv.Data.Models, "qwen3:8b", "ollama", true, true) ||
+		!hasModelRow(modelsEnv.Data.Models, "coder.gguf", "llamacpp", true, true) {
+		t.Fatalf("models rows missing loaded/available state: %#v", modelsEnv.Data.Models)
+	}
+
+	stdout, _, err = executeForTest("models", "--loaded", "--json")
+	if err != nil {
+		t.Fatalf("models --loaded error = %v stdout=%s", err, stdout)
+	}
+	var loadedEnv struct {
+		Data struct {
+			Models []struct {
+				Name      string `json:"name"`
+				Backend   string `json:"backend"`
+				Loaded    bool   `json:"loaded"`
+				Available bool   `json:"available"`
+			} `json:"models"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &loadedEnv); err != nil {
+		t.Fatal(err)
+	}
+	if !hasModelRow(loadedEnv.Data.Models, "qwen3:8b", "ollama", true, true) ||
+		!hasModelRow(loadedEnv.Data.Models, "coder.gguf", "llamacpp", true, true) {
+		t.Fatalf("loaded models rows missing state: %#v", loadedEnv.Data.Models)
 	}
 
 	stdout, _, err = executeForTest("model", "qwen3:8b", "--json")
@@ -273,6 +305,20 @@ func hasBackendKind(backends []struct {
 }, kind string) bool {
 	for _, backend := range backends {
 		if backend.Kind == kind {
+			return true
+		}
+	}
+	return false
+}
+
+func hasModelRow(rows []struct {
+	Name      string `json:"name"`
+	Backend   string `json:"backend"`
+	Loaded    bool   `json:"loaded"`
+	Available bool   `json:"available"`
+}, name, backend string, loaded, available bool) bool {
+	for _, row := range rows {
+		if row.Name == name && row.Backend == backend && row.Loaded == loaded && row.Available == available {
 			return true
 		}
 	}

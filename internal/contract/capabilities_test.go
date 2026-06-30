@@ -242,6 +242,27 @@ func TestConfigShowGoldenRedactsSecrets(t *testing.T) {
 	}
 }
 
+func TestModelsGoldenIncludesLoadedState(t *testing.T) {
+	body := readString(t, "../../testdata/contract/models.golden.json")
+	var golden struct {
+		Models []struct {
+			Name      string `json:"name"`
+			Backend   string `json:"backend"`
+			Loaded    bool   `json:"loaded"`
+			Available bool   `json:"available"`
+		} `json:"models"`
+	}
+	if err := json.Unmarshal([]byte(body), &golden); err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range golden.Models {
+		if row.Name == "qwen3:8b" && row.Backend == "ollama" && row.Loaded && row.Available {
+			return
+		}
+	}
+	t.Fatalf("models golden should include representative loaded/available row: %#v", golden.Models)
+}
+
 func readString(t *testing.T, path string) string {
 	t.Helper()
 	data, err := os.ReadFile(path)
