@@ -75,8 +75,9 @@ as the default loop, then trigger `.github/workflows/ci.yml` with
 `workflow_dispatch` only when you specifically want a hosted re-run.
 
 The demo scripts run against deterministic fixture servers and do not require
-local Ollama or llama.cpp. The fourth demo prints a Markdown preflight report
-that an agent runner could emit before starting a local model job:
+local Ollama or llama.cpp. The fourth demo exercises `inferctl preflight` as
+the product-owned JSON and Markdown readiness command an agent runner can call
+before starting a local model job:
 
 ```sh
 examples/demo-1-install-moment.sh
