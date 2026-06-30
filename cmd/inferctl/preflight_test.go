@@ -79,6 +79,9 @@ func TestPreflightFallbackPolicy(t *testing.T) {
 	if blocked.OK || blocked.Data.Runnability.Runnable || blocked.Data.Runnability.ExitCode != exitUserInput {
 		t.Fatalf("blocked envelope = %#v", blocked)
 	}
+	if blocked.Data.Runnability.Status != runnabilityPolicyBlock || blocked.Data.RunnabilityStatus != runnabilityPolicyBlock {
+		t.Fatalf("blocked runnability status = %#v", blocked.Data.Runnability)
+	}
 	if !strings.Contains(stdout, "E_PREFLIGHT_POLICY_BLOCKED") || !blocked.Data.RouteDecision.IsFallback {
 		t.Fatalf("blocked stdout = %s", stdout)
 	}
@@ -108,6 +111,9 @@ func TestPreflightRequireReady(t *testing.T) {
 	env := decodePreflightEnvelope(t, stdout)
 	if env.OK || env.Data.Runnability.Runnable || !env.Data.Policy.RequireReady {
 		t.Fatalf("require-ready envelope = %#v", env)
+	}
+	if env.Data.Runnability.Status != runnabilityPolicyBlock || env.Data.RunnabilityStatus != runnabilityPolicyBlock {
+		t.Fatalf("require-ready runnability status = %#v", env.Data.Runnability)
 	}
 }
 
@@ -158,14 +164,17 @@ func TestPreflightInvocationAndEnvironmentErrors(t *testing.T) {
 	if err == nil || !strings.Contains(stdout, "E_UNKNOWN_TASK") {
 		t.Fatalf("unknown task stdout=%s err=%v", stdout, err)
 	}
+	assertPreflightErrorEnvelope(t, stdout, exitUserInput, runnabilityInvocationBlock, "E_UNKNOWN_TASK")
 	stdout, _, err = executeForTest("preflight", "code", "--prompt", "a", "--from-stdin", "--json")
 	if err == nil || !strings.Contains(stdout, "E_INVALID_ARG") || !strings.Contains(stdout, "remove all but one prompt source flag") {
 		t.Fatalf("multiple prompt sources stdout=%s err=%v", stdout, err)
 	}
+	assertPreflightErrorEnvelope(t, stdout, exitUserInput, runnabilityInvocationBlock, "E_INVALID_ARG")
 	stdout, _, err = executeForTest("preflight", "code", "--prompt-file", filepath.Join(t.TempDir(), "missing.txt"), "--json")
 	if err == nil || !strings.Contains(stdout, "E_CONFIG_UNREADABLE") {
 		t.Fatalf("unreadable prompt stdout=%s err=%v", stdout, err)
 	}
+	assertPreflightErrorEnvelope(t, stdout, exitEnvironment, runnabilityConfigError, "E_CONFIG_UNREADABLE")
 }
 
 func TestPreflightInvalidConfigAndNoRouteExitClasses(t *testing.T) {
@@ -178,7 +187,46 @@ func TestPreflightInvalidConfigAndNoRouteExitClasses(t *testing.T) {
 	if err == nil || !strings.Contains(stdout, "E_CONFIG_INVALID") {
 		t.Fatalf("invalid config stdout=%s err=%v", stdout, err)
 	}
-	assertEnvelopeExitCode(t, stdout, exitEnvironment)
+	assertPreflightErrorEnvelope(t, stdout, exitEnvironment, runnabilityConfigError, "E_CONFIG_INVALID")
+
+	t.Run("missing config", func(t *testing.T) {
+		home := t.TempDir()
+		t.Setenv("HOME", home)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, "xdg"))
+		t.Setenv("INFERCTL_CONFIG", filepath.Join(home, "missing.toml"))
+		stdout, _, err := executeForTest("preflight", "code", "--json")
+		if err == nil || !strings.Contains(stdout, "E_CONFIG_MISSING") {
+			t.Fatalf("missing config stdout=%s err=%v", stdout, err)
+		}
+		assertPreflightErrorEnvelope(t, stdout, exitEnvironment, runnabilityConfigError, "E_CONFIG_MISSING")
+	})
+
+	t.Run("unreadable config", func(t *testing.T) {
+		dirPath := filepath.Join(t.TempDir(), "config-as-directory.toml")
+		if err := os.Mkdir(dirPath, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		t.Setenv("INFERCTL_CONFIG", dirPath)
+		stdout, _, err := executeForTest("preflight", "code", "--json")
+		if err == nil || !strings.Contains(stdout, "E_CONFIG_UNREADABLE") {
+			t.Fatalf("unreadable config stdout=%s err=%v", stdout, err)
+		}
+		assertPreflightErrorEnvelope(t, stdout, exitEnvironment, runnabilityConfigError, "E_CONFIG_UNREADABLE")
+	})
+
+	t.Run("validation failure", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "inferctl.toml")
+		cfg := strings.Replace(writeDoctorConfigBody(doctorConfigOptions{OllamaURL: "http://127.0.0.1:11434"}), "max_context_tokens = 8192", "max_context_tokens = 0", 1)
+		if err := os.WriteFile(path, []byte(cfg), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		t.Setenv("INFERCTL_CONFIG", path)
+		stdout, _, err := executeForTest("preflight", "code", "--json")
+		if err == nil || !strings.Contains(stdout, "E_CONFIG_VALIDATION_FAILED") {
+			t.Fatalf("validation failure stdout=%s err=%v", stdout, err)
+		}
+		assertPreflightErrorEnvelope(t, stdout, exitEnvironment, runnabilityConfigError, "E_CONFIG_VALIDATION_FAILED")
+	})
 
 	server := testserver.New(testserver.Fixture{Kind: testserver.KindOllama, Models: []testserver.Model{{Name: "other:8b"}}})
 	defer server.Close()
@@ -191,17 +239,23 @@ func TestPreflightInvalidConfigAndNoRouteExitClasses(t *testing.T) {
 	if err == nil || !strings.Contains(stdout, "E_NO_ROUTE_AVAILABLE") {
 		t.Fatalf("no route stdout=%s err=%v", stdout, err)
 	}
-	assertEnvelopeExitCode(t, stdout, exitTransient)
+	assertPreflightErrorEnvelope(t, stdout, exitTransient, runnabilityTransientError, "E_NO_ROUTE_AVAILABLE")
 }
 
 type preflightEnvelopeForTest struct {
 	OK       bool               `json:"ok"`
 	Data     preflightReport    `json:"data"`
 	Commands []preflightCommand `json:"commands"`
+	Errors   []preflightError   `json:"errors"`
 }
 
 type preflightCommand struct {
 	Command string `json:"command"`
+}
+
+type preflightError struct {
+	Code     string `json:"code"`
+	ExitCode int    `json:"exit_code"`
 }
 
 func decodePreflightEnvelope(t *testing.T, stdout string) preflightEnvelopeForTest {
@@ -225,6 +279,20 @@ func assertEnvelopeExitCode(t *testing.T, stdout string, want int) {
 	}
 	if len(env.Errors) == 0 || env.Errors[0].ExitCode != want {
 		t.Fatalf("exit code = %#v want %d", env.Errors, want)
+	}
+}
+
+func assertPreflightErrorEnvelope(t *testing.T, stdout string, wantExit int, wantStatus, wantCode string) {
+	t.Helper()
+	env := decodePreflightEnvelope(t, stdout)
+	if env.OK || env.Data.Runnable || env.Data.Runnability.Runnable {
+		t.Fatalf("expected failed preflight envelope, got %#v", env)
+	}
+	if env.Data.Runnability.ExitCode != wantExit || env.Data.Runnability.Status != wantStatus || env.Data.RunnabilityStatus != wantStatus {
+		t.Fatalf("runnability = %#v want exit=%d status=%s", env.Data.Runnability, wantExit, wantStatus)
+	}
+	if len(env.Errors) == 0 || env.Errors[0].Code != wantCode || env.Errors[0].ExitCode != wantExit {
+		t.Fatalf("errors = %#v want code=%s exit=%d", env.Errors, wantCode, wantExit)
 	}
 }
 
