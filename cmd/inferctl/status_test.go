@@ -8,12 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
 	"github.com/inferctl/inferctl/internal/envelope"
 	"github.com/inferctl/inferctl/internal/testserver"
 	"github.com/inferctl/inferctl/pkg/inferctl"
+	"github.com/spf13/cobra"
 )
 
 func TestStatusJSONEnvelopeMatchesGolden(t *testing.T) {
@@ -196,10 +198,7 @@ func TestStatusWatchJSONEmitsRepeatedSnapshotsAndStopsOnContextCancel(t *testing
 		t.Fatal("status watch did not stop after context cancellation")
 	}
 
-	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
-	if len(lines) < 2 {
-		t.Fatalf("status watch emitted %d envelopes, want at least 2: %q", len(lines), out.String())
-	}
+	lines := assertCompleteJSONLines(t, out.String(), 2)
 	for _, line := range lines {
 		var env struct {
 			OK   bool           `json:"ok"`
@@ -211,6 +210,152 @@ func TestStatusWatchJSONEmitsRepeatedSnapshotsAndStopsOnContextCancel(t *testing
 		if !env.OK || env.Data.StatusFrameSchemaVersion != statusFrameSchemaVersion {
 			t.Fatalf("unexpected watch envelope: %#v", env)
 		}
+	}
+}
+
+func TestStatusWatchEventsEmitsNewlineDelimitedEventBatch(t *testing.T) {
+	t.Setenv("INFERCTL_TEST_DETERMINISTIC", "1")
+	previousWriter := writeStatusSnapshotWatch
+	t.Cleanup(func() { writeStatusSnapshotWatch = previousWriter })
+
+	snapshots := []statusSnapshot{
+		{
+			StatusFrameSchemaVersion: statusFrameSchemaVersion,
+			ContractVersion:          "0.1",
+			CapturedAtISO:            "2026-06-30T15:00:00Z",
+			Backends:                 []statusBackend{{Name: "ollama", Kind: "ollama", Reachable: true}},
+		},
+		{
+			StatusFrameSchemaVersion: statusFrameSchemaVersion,
+			ContractVersion:          "0.1",
+			CapturedAtISO:            "2026-06-30T15:00:01Z",
+			Backends:                 []statusBackend{{Name: "ollama", Kind: "ollama", Reachable: false}},
+		},
+	}
+	var writes int
+	writeStatusSnapshotWatch = func(ctx context.Context, cmd *cobra.Command, jsonFlag bool) (statusSnapshot, error) {
+		index := writes
+		if index >= len(snapshots) {
+			index = len(snapshots) - 1
+		}
+		writes++
+		snapshot := snapshots[index]
+		return snapshot, writeData(cmd, jsonFlag, snapshot, func() error { return nil })
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	out := &cancelAfterLinesWriter{after: 3, cancel: cancel}
+	var stderr bytes.Buffer
+	cmd := newRootCommand()
+	cmd.SetContext(ctx)
+	cmd.SetOut(out)
+	cmd.SetErr(&stderr)
+	cmd.SetArgs([]string{"status", "--json", "--watch", "--events", "--interval", "1ms"})
+
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Execute()
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("status watch events error = %v stderr=%s stdout=%s", err, stderr.String(), out.String())
+		}
+	case <-time.After(time.Second):
+		cancel()
+		t.Fatal("status watch events did not stop after context cancellation")
+	}
+
+	lines := assertCompleteJSONLines(t, out.String(), 3)
+	var batchEnv struct {
+		OK   bool             `json:"ok"`
+		Data statusEventBatch `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(lines[2]), &batchEnv); err != nil {
+		t.Fatalf("unmarshal status event batch: %v\n%s", err, lines[2])
+	}
+	if !batchEnv.OK || batchEnv.Data.EventSchemaVersion != statusEventSchemaVersion || len(batchEnv.Data.Events) != 1 {
+		t.Fatalf("status event batch envelope = %#v", batchEnv)
+	}
+	if got := batchEnv.Data.Events[0]; got.Kind != "backend_reachability_changed" || got.Subject != "ollama" || got.After != "unreachable" {
+		t.Fatalf("status event = %#v", got)
+	}
+}
+
+func TestStatusWatchExitsCleanlyOnSignalCancellation(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		signal os.Signal
+	}{
+		{name: "sigint", signal: os.Interrupt},
+		{name: "sigterm", signal: syscall.SIGTERM},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			previousNotify := statusSignalNotifyContext
+			previousWriter := writeStatusSnapshotWatch
+			t.Cleanup(func() {
+				statusSignalNotifyContext = previousNotify
+				writeStatusSnapshotWatch = previousWriter
+			})
+
+			signalCh := make(chan os.Signal, 1)
+			var registered bool
+			statusSignalNotifyContext = func(parent context.Context, signals ...os.Signal) (context.Context, context.CancelFunc) {
+				if signalListContains(signals, os.Interrupt) && signalListContains(signals, syscall.SIGTERM) {
+					registered = true
+				}
+				ctx, cancel := context.WithCancel(parent)
+				go func() {
+					select {
+					case sig := <-signalCh:
+						if sig == tc.signal {
+							cancel()
+						}
+					case <-parent.Done():
+						cancel()
+					}
+				}()
+				return ctx, cancel
+			}
+			writeStatusSnapshotWatch = func(ctx context.Context, cmd *cobra.Command, jsonFlag bool) (statusSnapshot, error) {
+				snapshot := statusSnapshot{
+					StatusFrameSchemaVersion: statusFrameSchemaVersion,
+					ContractVersion:          "0.1",
+					CapturedAtISO:            "2026-06-30T15:00:00Z",
+				}
+				return snapshot, writeData(cmd, jsonFlag, snapshot, func() error { return nil })
+			}
+
+			var triggerOnce sync.Once
+			out := &cancelAfterLinesWriter{after: 1, cancel: func() {
+				triggerOnce.Do(func() { signalCh <- tc.signal })
+			}}
+			var stderr bytes.Buffer
+			cmd := newRootCommand()
+			cmd.SetOut(out)
+			cmd.SetErr(&stderr)
+			cmd.SetArgs([]string{"status", "--json", "--watch", "--interval", "1ms"})
+
+			done := make(chan error, 1)
+			go func() {
+				done <- cmd.Execute()
+			}()
+
+			select {
+			case err := <-done:
+				if err != nil {
+					t.Fatalf("status watch signal error = %v stderr=%s stdout=%s", err, stderr.String(), out.String())
+				}
+			case <-time.After(time.Second):
+				t.Fatal("status watch did not stop after signal cancellation")
+			}
+			if !registered {
+				t.Fatal("status watch did not register SIGINT and SIGTERM cancellation")
+			}
+			assertCompleteJSONLines(t, out.String(), 1)
+		})
 	}
 }
 
@@ -341,6 +486,7 @@ func TestStatusEventBatchEnvelope(t *testing.T) {
 	if !env.OK || env.Data.EventSchemaVersion != statusEventSchemaVersion || len(env.Data.Events) != 1 {
 		t.Fatalf("event batch envelope = %#v", env)
 	}
+	assertJSONSubsetGolden(t, "status_event_batch.golden.json", env.Data)
 }
 
 func TestStatusEventsRequireWatch(t *testing.T) {
@@ -377,6 +523,32 @@ func (w *cancelAfterLinesWriter) String() string {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	return w.buf.String()
+}
+
+func assertCompleteJSONLines(t *testing.T, output string, minLines int) []string {
+	t.Helper()
+	if !strings.HasSuffix(output, "\n") {
+		t.Fatalf("status watch output ended with a partial JSON record: %q", output)
+	}
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	if len(lines) < minLines {
+		t.Fatalf("status watch emitted %d envelopes, want at least %d: %q", len(lines), minLines, output)
+	}
+	for _, line := range lines {
+		if !json.Valid([]byte(line)) {
+			t.Fatalf("status watch emitted invalid JSON record: %q", line)
+		}
+	}
+	return lines
+}
+
+func signalListContains(signals []os.Signal, want os.Signal) bool {
+	for _, signal := range signals {
+		if signal == want {
+			return true
+		}
+	}
+	return false
 }
 
 func hasStatusBackendKind(backends []statusBackend, kind string) bool {

@@ -23,6 +23,11 @@ const defaultStatusWatchInterval = 2 * time.Second
 
 const statusEventSchemaVersion = "0.1"
 
+var (
+	statusSignalNotifyContext = signal.NotifyContext
+	writeStatusSnapshotWatch  = writeStatusSnapshot
+)
+
 type statusSnapshot struct {
 	StatusFrameSchemaVersion string                      `json:"status_frame_schema_version"`
 	ContractVersion          string                      `json:"contract_version"`
@@ -119,9 +124,9 @@ func newStatusCommand(jsonFlag *bool) *cobra.Command {
 }
 
 func runStatusWatch(cmd *cobra.Command, jsonFlag bool, opts statusOptions) error {
-	ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+	ctx, stop := statusSignalNotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	previous, err := writeStatusSnapshot(ctx, cmd, jsonFlag)
+	previous, err := writeStatusSnapshotWatch(ctx, cmd, jsonFlag)
 	if err != nil {
 		return err
 	}
@@ -132,7 +137,10 @@ func runStatusWatch(cmd *cobra.Command, jsonFlag bool, opts statusOptions) error
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			current, err := writeStatusSnapshot(ctx, cmd, jsonFlag)
+			if err := ctx.Err(); err != nil {
+				return nil
+			}
+			current, err := writeStatusSnapshotWatch(ctx, cmd, jsonFlag)
 			if err != nil {
 				return err
 			}

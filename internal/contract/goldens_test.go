@@ -30,6 +30,7 @@ func TestVerbGoldens(t *testing.T) {
 		"route.golden.json",
 		"snapshot.golden.json",
 		"status.golden.json",
+		"status_event_batch.golden.json",
 		"triage.clean.golden.json",
 		"triage.errors.golden.json",
 		"version.golden.json",

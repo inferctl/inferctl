@@ -71,10 +71,66 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 	}
 }
 
+func TestStatusCapabilitiesAdvertiseWatchContract(t *testing.T) {
+	data, err := CapabilitiesData()
+	if err != nil {
+		t.Fatalf("CapabilitiesData() error = %v", err)
+	}
+	status, ok := capabilityVerb(data, "status")
+	if !ok {
+		t.Fatal("status verb missing from capabilities")
+	}
+	if status["output_schema_ref"] != "#/schemas/status_frame" {
+		t.Fatalf("status output schema = %v", status["output_schema_ref"])
+	}
+	exitCodes, ok := status["exit_codes"].([]any)
+	if !ok {
+		t.Fatalf("status exit_codes type = %T", status["exit_codes"])
+	}
+	for _, code := range []int{0, 1, 3, 4} {
+		if !numberListContains(exitCodes, code) {
+			t.Fatalf("status exit_codes missing %d: %#v", code, exitCodes)
+		}
+	}
+	schemas, ok := data["schemas"].(map[string]any)
+	if !ok {
+		t.Fatalf("schemas type = %T", data["schemas"])
+	}
+	if _, ok := schemas["status_frame"]; !ok {
+		t.Fatal("status_frame schema missing from capabilities")
+	}
+	if _, ok := schemas["status_event_batch"]; !ok {
+		t.Fatal("status_event_batch schema missing from capabilities")
+	}
+}
+
 func mapListContainsName(values []any, name string) bool {
 	for _, raw := range values {
 		value, ok := raw.(map[string]any)
 		if ok && value["name"] == name {
+			return true
+		}
+	}
+	return false
+}
+
+func capabilityVerb(data map[string]any, name string) (map[string]any, bool) {
+	verbs, ok := data["verbs"].([]any)
+	if !ok {
+		return nil, false
+	}
+	for _, raw := range verbs {
+		verb, ok := raw.(map[string]any)
+		if ok && verb["name"] == name {
+			return verb, true
+		}
+	}
+	return nil, false
+}
+
+func numberListContains(values []any, want int) bool {
+	for _, raw := range values {
+		if value, ok := raw.(float64); ok && int(value) == want {
 			return true
 		}
 	}

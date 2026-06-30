@@ -1,0 +1,17 @@
+{
+  "event_schema_version": "0.1",
+  "contract_version": "0.1",
+  "captured_at_iso": "2026-06-30T15:00:01Z",
+  "since_captured_at_iso": "2026-06-30T15:00:00Z",
+  "events": [
+    {
+      "sequence": 1,
+      "kind": "backend_reachability_changed",
+      "subject": "ollama",
+      "severity": "medium",
+      "summary": "backend ollama became reachable",
+      "before": "unreachable",
+      "after": "reachable"
+    }
+  ]
+}

@@ -411,12 +411,14 @@ func schemaDefinitions() map[string]any {
 			"severity": map[string]any{"enum": []string{"high", "medium", "low"}},
 			"summary":  map[string]any{"type": "string"},
 			"before": map[string]any{"oneOf": []map[string]any{
-				{"$ref": "#/definitions/status_backend_reachability"},
-				{"$ref": "#/definitions/status_route_selection"},
+				{"type": "string"},
+				{"type": "boolean"},
+				{"type": "integer"},
 			}},
 			"after": map[string]any{"oneOf": []map[string]any{
-				{"$ref": "#/definitions/status_backend_reachability"},
-				{"$ref": "#/definitions/status_route_selection"},
+				{"type": "string"},
+				{"type": "boolean"},
+				{"type": "integer"},
 			}},
 		}),
 		"status_event_batch": objectSchema([]string{

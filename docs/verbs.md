@@ -202,7 +202,7 @@ Emit an aggregate live-state status snapshot.
 
 - Mega-command: `DIAGNOSE`
 - JSON data schema: `#/schemas/status_frame`
-- Exit codes: `0`, `3`, `4`
+- Exit codes: `0`, `1`, `3`, `4`
 - Emits data on failure: `false`
 
 ### Flags
