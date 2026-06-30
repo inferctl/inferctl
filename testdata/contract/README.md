@@ -41,3 +41,29 @@ Top-level fields:
 The status feed is read-only. It aggregates the same non-inference probes used
 by `doctor`, `models`, and `route`; it must not run inference, warm models, load
 models, or create a hidden data-plane request path.
+
+## Status Change Event Schema
+
+`inferctl status --json --watch --events` emits the normal newline-delimited
+status snapshot envelopes. After each changed snapshot, it also emits a JSON
+envelope whose `data` matches `#/definitions/status_event_batch`.
+
+Event batches are derived by diffing consecutive status snapshots. They do not
+run a separate probe path.
+
+Top-level event-batch fields:
+
+- `event_schema_version`: schema version for status change events.
+- `contract_version`: inferctl machine-contract version.
+- `captured_at_iso`: the current snapshot time.
+- `since_captured_at_iso`: the previous snapshot time used as the diff base.
+- `events`: ordered change records, each with `sequence`, `kind`, `subject`,
+  `severity`, `summary`, `before`, and `after`.
+
+Committed event kinds:
+
+- `backend_reachability_changed`: `subject` is `backend:<name>` and
+  `before`/`after` use the `status_backend_reachability` shape.
+- `route_selection_changed`: `subject` is `route:<task>` and `before`/`after`
+  use the `status_route_selection` shape, including fallback and readiness
+  state.

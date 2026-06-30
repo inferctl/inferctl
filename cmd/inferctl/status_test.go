@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/inferctl/inferctl/internal/testserver"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 func TestStatusJSONEnvelopeMatchesGolden(t *testing.T) {
@@ -150,6 +151,102 @@ func TestStatusWatchRejectsNonPositiveInterval(t *testing.T) {
 	}
 	if !strings.Contains(stdout, `"code":"E_INVALID_ARG"`) {
 		t.Fatalf("status watch interval error = %s", stdout)
+	}
+}
+
+func TestStatusEventsRepresentBackendReachabilityAndRouteSelection(t *testing.T) {
+	fallbackIndex := 0
+	before := statusSnapshot{
+		CapturedAtISO: "2026-06-30T15:00:00Z",
+		Backends: []statusBackend{
+			{Name: "llamacpp", Kind: "llama.cpp", Reachable: true},
+			{Name: "ollama", Kind: "ollama", Reachable: true},
+		},
+		Routes: []statusRoute{{
+			Task:     "code",
+			Decision: inferctl.RouteDecision{SelectedBackend: "llamacpp", SelectedModel: "primary.gguf", Ready: true},
+		}},
+	}
+	errText := "backend_unreachable"
+	after := statusSnapshot{
+		CapturedAtISO: "2026-06-30T15:00:01Z",
+		Backends: []statusBackend{
+			{Name: "llamacpp", Kind: "llama.cpp", Reachable: false, Error: &errText},
+			{Name: "ollama", Kind: "ollama", Reachable: true},
+		},
+		Routes: []statusRoute{{
+			Task: "code",
+			Decision: inferctl.RouteDecision{
+				SelectedBackend: "ollama",
+				SelectedModel:   "fallback:8b",
+				IsFallback:      true,
+				FallbackIndex:   &fallbackIndex,
+				Ready:           true,
+			},
+		}},
+	}
+
+	events := diffStatusSnapshots(before, after)
+	if len(events) != 2 {
+		t.Fatalf("events len = %d, want 2: %#v", len(events), events)
+	}
+	if events[0].Sequence != 1 || events[0].Kind != "backend_reachability_changed" || events[0].Subject != "backend:llamacpp" {
+		t.Fatalf("backend event = %#v", events[0])
+	}
+	backendBefore := events[0].Before.(statusBackendReachability)
+	backendAfter := events[0].After.(statusBackendReachability)
+	if !backendBefore.Reachable || backendAfter.Reachable {
+		t.Fatalf("backend event before/after = %#v %#v", backendBefore, backendAfter)
+	}
+	if events[1].Sequence != 2 || events[1].Kind != "route_selection_changed" || events[1].Subject != "route:code" {
+		t.Fatalf("route event = %#v", events[1])
+	}
+	routeAfter := events[1].After.(statusRouteSelection)
+	if !routeAfter.IsFallback || routeAfter.SelectedBackend != "ollama" || routeAfter.SelectedModel != "fallback:8b" {
+		t.Fatalf("route after = %#v", routeAfter)
+	}
+}
+
+func TestStatusEventBatchEnvelope(t *testing.T) {
+	t.Setenv("INFERCTL_TEST_DETERMINISTIC", "1")
+	before := statusSnapshot{ContractVersion: "0.1", CapturedAtISO: "2026-06-30T15:00:00Z"}
+	after := statusSnapshot{ContractVersion: "0.1", CapturedAtISO: "2026-06-30T15:00:01Z"}
+	events := []statusEvent{{
+		Sequence: 1,
+		Kind:     "backend_reachability_changed",
+		Subject:  "backend:ollama",
+		Severity: "medium",
+		Summary:  "backend ollama became reachable",
+		Before:   statusBackendReachability{Name: "ollama", Kind: "ollama", Reachable: false},
+		After:    statusBackendReachability{Name: "ollama", Kind: "ollama", Reachable: true},
+	}}
+	cmd := newRootCommand()
+	var stdout, stderr bytes.Buffer
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+	if err := writeStatusEventBatch(cmd.Command, true, before, after, events); err != nil {
+		t.Fatalf("write event batch error = %v stderr=%s", err, stderr.String())
+	}
+	var env struct {
+		OK   bool             `json:"ok"`
+		Data statusEventBatch `json:"data"`
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &env); err != nil {
+		t.Fatalf("unmarshal event batch: %v\n%s", err, stdout.String())
+	}
+	if !env.OK || env.Data.EventSchemaVersion != statusEventSchemaVersion || len(env.Data.Events) != 1 {
+		t.Fatalf("event batch envelope = %#v", env)
+	}
+}
+
+func TestStatusEventsRequireWatch(t *testing.T) {
+	t.Setenv("INFERCTL_CONFIG", writeTempConfig(t))
+	stdout, _, err := executeForTest("status", "--json", "--events")
+	if err == nil {
+		t.Fatalf("status accepted --events without --watch: %s", stdout)
+	}
+	if !strings.Contains(stdout, `"code":"E_INVALID_ARG"`) || !strings.Contains(stdout, `--watch`) {
+		t.Fatalf("status --events error = %s", stdout)
 	}
 }
 

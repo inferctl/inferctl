@@ -209,6 +209,7 @@ Emit an aggregate live-state status snapshot.
 
 - `--json` type=`bool` default=`false`
 - `--watch` type=`bool` default=`false`
+- `--events` type=`bool` default=`false`
 - `--interval` type=`duration` default=`2s`
 
 ### Example

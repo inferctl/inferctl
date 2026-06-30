@@ -162,6 +162,9 @@ func commandSchemas() map[string]any {
 		"status_snapshot": map[string]any{
 			"$ref": "#/definitions/status_snapshot",
 		},
+		"status_event_batch": map[string]any{
+			"$ref": "#/definitions/status_event_batch",
+		},
 		"config_view":        configViewSchema(),
 		"config_validation":  configValidationSchema(),
 		"config_explanation": configExplanationSchema(),
@@ -379,6 +382,51 @@ func schemaDefinitions() map[string]any {
 			"routes":             arrayOf(map[string]any{"type": "object"}),
 			"warnings":           arrayOf(map[string]any{"$ref": "#/definitions/warning"}),
 			"recommended_action": nullable("object"),
+		}),
+		"status_backend_reachability": objectSchema([]string{"name", "kind", "reachable", "error"}, map[string]any{
+			"name":      map[string]any{"type": "string"},
+			"kind":      map[string]any{"type": "string"},
+			"reachable": map[string]any{"type": "boolean"},
+			"error":     nullable("string"),
+		}),
+		"status_route_selection": objectSchema([]string{"task", "selected_backend", "selected_model", "is_fallback", "fallback_index", "ready"}, map[string]any{
+			"task":             map[string]any{"type": "string"},
+			"selected_backend": map[string]any{"type": "string"},
+			"selected_model":   map[string]any{"type": "string"},
+			"is_fallback":      map[string]any{"type": "boolean"},
+			"fallback_index":   nullable("integer"),
+			"ready":            map[string]any{"type": "boolean"},
+		}),
+		"status_event": objectSchema([]string{"sequence", "kind", "subject", "severity", "summary", "before", "after"}, map[string]any{
+			"sequence": map[string]any{"type": "integer", "minimum": 1},
+			"kind":     map[string]any{"enum": []string{"backend_reachability_changed", "route_selection_changed"}},
+			"subject":  map[string]any{"type": "string"},
+			"severity": map[string]any{"enum": []string{"high", "medium", "low"}},
+			"summary":  map[string]any{"type": "string"},
+			"before": map[string]any{"oneOf": []map[string]any{
+				{"$ref": "#/definitions/status_backend_reachability"},
+				{"$ref": "#/definitions/status_route_selection"},
+			}},
+			"after": map[string]any{"oneOf": []map[string]any{
+				{"$ref": "#/definitions/status_backend_reachability"},
+				{"$ref": "#/definitions/status_route_selection"},
+			}},
+		}),
+		"status_event_batch": objectSchema([]string{
+			"event_schema_version",
+			"contract_version",
+			"captured_at_iso",
+			"since_captured_at_iso",
+			"events",
+		}, map[string]any{
+			"event_schema_version": map[string]any{"type": "string"},
+			"contract_version":     map[string]any{"type": "string"},
+			"captured_at_iso":      map[string]any{"type": "string", "format": "date-time"},
+			"since_captured_at_iso": map[string]any{
+				"type":   "string",
+				"format": "date-time",
+			},
+			"events": arrayOf(map[string]any{"$ref": "#/definitions/status_event"}),
 		}),
 		"control_plane_change": objectSchema([]string{"rank", "type", "subject", "severity", "before", "after", "explanation"}, map[string]any{
 			"rank":        map[string]any{"type": "integer", "minimum": 1},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
 	"slices"
 	"strings"
 	"syscall"
@@ -19,6 +20,8 @@ import (
 const statusSchemaVersion = "0.1"
 
 const defaultStatusWatchInterval = 2 * time.Second
+
+const statusEventSchemaVersion = "0.1"
 
 type statusSnapshot struct {
 	StatusSchemaVersion string                      `json:"status_schema_version"`
@@ -65,9 +68,44 @@ type statusRoute struct {
 	Warnings   []envelope.Warning        `json:"warnings"`
 }
 
+type statusEventBatch struct {
+	EventSchemaVersion string        `json:"event_schema_version"`
+	ContractVersion    string        `json:"contract_version"`
+	CapturedAtISO      string        `json:"captured_at_iso"`
+	SinceCapturedAtISO string        `json:"since_captured_at_iso"`
+	Events             []statusEvent `json:"events"`
+}
+
+type statusEvent struct {
+	Sequence int    `json:"sequence"`
+	Kind     string `json:"kind"`
+	Subject  string `json:"subject"`
+	Severity string `json:"severity"`
+	Summary  string `json:"summary"`
+	Before   any    `json:"before"`
+	After    any    `json:"after"`
+}
+
+type statusBackendReachability struct {
+	Name      string  `json:"name"`
+	Kind      string  `json:"kind"`
+	Reachable bool    `json:"reachable"`
+	Error     *string `json:"error"`
+}
+
+type statusRouteSelection struct {
+	Task            string `json:"task"`
+	SelectedBackend string `json:"selected_backend"`
+	SelectedModel   string `json:"selected_model"`
+	IsFallback      bool   `json:"is_fallback"`
+	FallbackIndex   *int   `json:"fallback_index"`
+	Ready           bool   `json:"ready"`
+}
+
 type statusOptions struct {
 	watch    bool
 	interval time.Duration
+	events   bool
 }
 
 func newStatusCommand(jsonFlag *bool) *cobra.Command {
@@ -80,43 +118,59 @@ func newStatusCommand(jsonFlag *bool) *cobra.Command {
 			if opts.interval <= 0 {
 				return writeError(cmd, *jsonFlag, invalidArg("--interval", opts.interval.String(), "positive duration such as 2s", nil))
 			}
-			if opts.watch {
-				return runStatusWatch(cmd, *jsonFlag, opts.interval)
+			if opts.events && !opts.watch {
+				return writeError(cmd, *jsonFlag, invalidArg("--events", "true", "only valid with --watch", []string{"--watch"}))
 			}
-			return writeStatusSnapshot(cmd.Context(), cmd, *jsonFlag)
+			if opts.watch {
+				return runStatusWatch(cmd, *jsonFlag, opts)
+			}
+			_, err := writeStatusSnapshot(cmd.Context(), cmd, *jsonFlag)
+			return err
 		},
 	}
 	cmd.Flags().BoolVar(&opts.watch, "watch", false, "emit status snapshots continuously")
 	cmd.Flags().DurationVar(&opts.interval, "interval", opts.interval, "watch polling interval")
+	cmd.Flags().BoolVar(&opts.events, "events", false, "emit event batches for status changes during watch")
 	return cmd
 }
 
-func runStatusWatch(cmd *cobra.Command, jsonFlag bool, interval time.Duration) error {
+func runStatusWatch(cmd *cobra.Command, jsonFlag bool, opts statusOptions) error {
 	ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	if err := writeStatusSnapshot(ctx, cmd, jsonFlag); err != nil {
+	previous, err := writeStatusSnapshot(ctx, cmd, jsonFlag)
+	if err != nil {
 		return err
 	}
-	ticker := time.NewTicker(interval)
+	ticker := time.NewTicker(opts.interval)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			if err := writeStatusSnapshot(ctx, cmd, jsonFlag); err != nil {
+			current, err := writeStatusSnapshot(ctx, cmd, jsonFlag)
+			if err != nil {
 				return err
 			}
+			if opts.events {
+				events := diffStatusSnapshots(previous, current)
+				if len(events) > 0 {
+					if err := writeStatusEventBatch(cmd, jsonFlag, previous, current, events); err != nil {
+						return err
+					}
+				}
+			}
+			previous = current
 		}
 	}
 }
 
-func writeStatusSnapshot(ctx context.Context, cmd *cobra.Command, jsonFlag bool) error {
+func writeStatusSnapshot(ctx context.Context, cmd *cobra.Command, jsonFlag bool) (statusSnapshot, error) {
 	snapshot, warnings, commands, errObj := buildStatusSnapshot(ctx)
 	if errObj != nil {
-		return writeError(cmd, jsonFlag, *errObj)
+		return statusSnapshot{}, writeError(cmd, jsonFlag, *errObj)
 	}
-	return writeDataWithDiagnostics(cmd, jsonFlag, snapshot, warnings, commands, func() error {
+	err := writeDataWithDiagnostics(cmd, jsonFlag, snapshot, warnings, commands, func() error {
 		fmt.Fprintf(cmd.OutOrStdout(), "status: %d/%d backends reachable, %d loaded models, %d route(s)\n",
 			snapshot.Summary.BackendsReachable,
 			snapshot.Summary.BackendsTotal,
@@ -125,6 +179,134 @@ func writeStatusSnapshot(ctx context.Context, cmd *cobra.Command, jsonFlag bool)
 		)
 		return nil
 	})
+	return snapshot, err
+}
+
+func writeStatusEventBatch(cmd *cobra.Command, jsonFlag bool, previous, current statusSnapshot, events []statusEvent) error {
+	batch := statusEventBatch{
+		EventSchemaVersion: statusEventSchemaVersion,
+		ContractVersion:    current.ContractVersion,
+		CapturedAtISO:      current.CapturedAtISO,
+		SinceCapturedAtISO: previous.CapturedAtISO,
+		Events:             events,
+	}
+	return writeDataWithDiagnostics(cmd, jsonFlag, batch, nil, nil, func() error {
+		for _, event := range events {
+			fmt.Fprintf(cmd.OutOrStdout(), "event: %s %s\n", event.Kind, event.Summary)
+		}
+		return nil
+	})
+}
+
+func diffStatusSnapshots(before, after statusSnapshot) []statusEvent {
+	var events []statusEvent
+	events = append(events, diffBackendReachabilityEvents(before, after, len(events))...)
+	events = append(events, diffRouteSelectionEvents(before, after, len(events))...)
+	return events
+}
+
+func diffBackendReachabilityEvents(before, after statusSnapshot, offset int) []statusEvent {
+	beforeByName := map[string]statusBackend{}
+	for _, backend := range before.Backends {
+		beforeByName[backend.Name] = backend
+	}
+	afterByName := map[string]statusBackend{}
+	var names []string
+	for _, backend := range after.Backends {
+		afterByName[backend.Name] = backend
+		if _, ok := beforeByName[backend.Name]; ok {
+			names = append(names, backend.Name)
+		}
+	}
+	slices.Sort(names)
+	events := make([]statusEvent, 0, len(names))
+	for _, name := range names {
+		beforeBackend := beforeByName[name]
+		afterBackend := afterByName[name]
+		if beforeBackend.Reachable == afterBackend.Reachable {
+			continue
+		}
+		severity := "medium"
+		direction := "reachable"
+		if !afterBackend.Reachable {
+			severity = "high"
+			direction = "unreachable"
+		}
+		events = append(events, statusEvent{
+			Sequence: offset + len(events) + 1,
+			Kind:     "backend_reachability_changed",
+			Subject:  "backend:" + name,
+			Severity: severity,
+			Summary:  fmt.Sprintf("backend %s became %s", name, direction),
+			Before:   statusBackendReachabilityFromBackend(beforeBackend),
+			After:    statusBackendReachabilityFromBackend(afterBackend),
+		})
+	}
+	return events
+}
+
+func diffRouteSelectionEvents(before, after statusSnapshot, offset int) []statusEvent {
+	beforeByTask := map[string]statusRoute{}
+	for _, route := range before.Routes {
+		beforeByTask[route.Task] = route
+	}
+	afterByTask := map[string]statusRoute{}
+	var tasks []string
+	for _, route := range after.Routes {
+		afterByTask[route.Task] = route
+		if _, ok := beforeByTask[route.Task]; ok {
+			tasks = append(tasks, route.Task)
+		}
+	}
+	slices.Sort(tasks)
+	events := make([]statusEvent, 0, len(tasks))
+	for _, task := range tasks {
+		beforeSelection := statusRouteSelectionFromRoute(beforeByTask[task])
+		afterSelection := statusRouteSelectionFromRoute(afterByTask[task])
+		if reflect.DeepEqual(beforeSelection, afterSelection) {
+			continue
+		}
+		severity := "medium"
+		if beforeSelection.IsFallback != afterSelection.IsFallback || !afterSelection.Ready {
+			severity = "high"
+		}
+		events = append(events, statusEvent{
+			Sequence: offset + len(events) + 1,
+			Kind:     "route_selection_changed",
+			Subject:  "route:" + task,
+			Severity: severity,
+			Summary: fmt.Sprintf("route %s changed from %s/%s to %s/%s",
+				task,
+				beforeSelection.SelectedBackend,
+				beforeSelection.SelectedModel,
+				afterSelection.SelectedBackend,
+				afterSelection.SelectedModel,
+			),
+			Before: beforeSelection,
+			After:  afterSelection,
+		})
+	}
+	return events
+}
+
+func statusBackendReachabilityFromBackend(backend statusBackend) statusBackendReachability {
+	return statusBackendReachability{
+		Name:      backend.Name,
+		Kind:      backend.Kind,
+		Reachable: backend.Reachable,
+		Error:     backend.Error,
+	}
+}
+
+func statusRouteSelectionFromRoute(route statusRoute) statusRouteSelection {
+	return statusRouteSelection{
+		Task:            route.Task,
+		SelectedBackend: route.Decision.SelectedBackend,
+		SelectedModel:   route.Decision.SelectedModel,
+		IsFallback:      route.Decision.IsFallback,
+		FallbackIndex:   route.Decision.FallbackIndex,
+		Ready:           route.Decision.Ready,
+	}
 }
 
 func buildStatusSnapshot(ctx context.Context) (statusSnapshot, []envelope.Warning, []envelope.Command, *envelope.Error) {

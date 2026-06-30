@@ -498,6 +498,11 @@
           "default": false
         },
         {
+          "name": "--events",
+          "type": "bool",
+          "default": false
+        },
+        {
           "name": "--interval",
           "type": "duration",
           "default": "2s"
@@ -1102,6 +1107,10 @@
     "status_snapshot": {
       "$ref": "#/generated/status_snapshot",
       "title": "StatusSnapshot"
+    },
+    "status_event_batch": {
+      "$ref": "#/generated/status_event_batch",
+      "title": "StatusEventBatch"
     }
   },
   "error_codes": {
