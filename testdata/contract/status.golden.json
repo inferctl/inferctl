@@ -5,11 +5,11 @@
   "summary": {
     "backends_total": 2,
     "backends_reachable": 1,
-    "models_exposed_total": 2,
+    "models_exposed_total": 1,
     "models_loaded_total": 1,
     "routes_total": 1,
-    "routes_ready": 0,
-    "warnings_total": 2
+    "routes_ready": 1,
+    "warnings_total": 3
   },
   "backends": [
     {
@@ -38,14 +38,11 @@
       {
         "name": "fallback:8b",
         "backend": "ollama",
+        "size_bytes": 1,
+        "digest": null,
+        "installed_at_iso": null,
         "loaded": true,
         "available": true
-      },
-      {
-        "name": "primary.gguf",
-        "backend": "llamacpp",
-        "loaded": false,
-        "available": false
       }
     ],
     "loaded": [
@@ -96,13 +93,21 @@
       ],
       "warnings": [
         {
+          "code": "W_BACKEND_UNREACHABLE",
+          "message": "backend 'llamacpp' is unreachable",
+          "details": {
+            "backend": "llamacpp",
+            "error": "GET /v1/models returned HTTP 503"
+          }
+        },
+        {
           "code": "W_FALLBACK_USED",
           "message": "routed to fallback 'fallback:8b' because primary 'primary.gguf' is unavailable",
           "details": {
-            "task": "code",
+            "fallback_index": 0,
             "primary": "primary.gguf",
             "selected": "fallback:8b",
-            "fallback_index": 0
+            "task": "code"
           }
         }
       ]
@@ -113,27 +118,40 @@
       "code": "W_BACKEND_UNREACHABLE",
       "message": "backend 'llamacpp' is unreachable",
       "details": {
-        "backend": "llamacpp"
+        "backend": "llamacpp",
+        "error": "GET /v1/models returned HTTP 503"
+      }
+    },
+    {
+      "code": "W_MODEL_NOT_INSTALLED",
+      "message": "primary model 'primary.gguf' is not installed on a reachable backend",
+      "details": {
+        "backend": "llamacpp",
+        "model": "primary.gguf",
+        "task": "code"
       }
     },
     {
       "code": "W_FALLBACK_USED",
       "message": "routed to fallback 'fallback:8b' because primary 'primary.gguf' is unavailable",
       "details": {
-        "task": "code",
         "primary": "primary.gguf",
         "selected": "fallback:8b",
-        "fallback_index": 0
+        "task": "code"
       }
     }
   ],
   "recommended_action": {
-    "command": "inferctl route code --json",
-    "rationale": "Shows route candidates and fallback reason",
+    "command": "inferctl backends --filter llamacpp --json",
+    "rationale": "Surfaces backend reachability and model counts",
     "alternatives": [
       {
-        "command": "inferctl backends --filter llamacpp --json",
-        "rationale": "Inspect the unreachable primary backend"
+        "command": "inferctl route code --json",
+        "rationale": "Shows all candidates considered and constraint checks"
+      },
+      {
+        "command": "inferctl model fallback:8b --json",
+        "rationale": "Show placements, capabilities, and routing usage for the selected model"
       }
     ]
   }

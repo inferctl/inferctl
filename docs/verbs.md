@@ -143,7 +143,7 @@ Decide whether automation may attempt a configured task.
 ### Example
 
 ```sh
-inferctl preflight code --prompt-file prompt.txt --json
+inferctl preflight --json
 ```
 
 ## `inferctl diff`
@@ -167,8 +167,7 @@ Compare two inferctl control-plane snapshots.
 ### Example
 
 ```sh
-inferctl diff --before before.json --after after.json --json
-inferctl diff --task code --since 24h --json
+inferctl diff --json
 ```
 
 ## `inferctl snapshot`
@@ -194,11 +193,27 @@ Capture a comparable inferctl control-plane snapshot.
 ### Example
 
 ```sh
-inferctl snapshot --task code --prompt-file prompt.txt --output snapshot.json
-inferctl snapshot --task code --store --retention-limit 20
+inferctl snapshot --json
 ```
 
-Stored snapshots are explicit: `snapshot --store` writes raw snapshot artifacts under `INFERCTL_SNAPSHOT_DIR` when set, otherwise under the platform state directory. Retention keeps the newest N snapshots per task and stored artifacts use the same prompt redaction policy as stdout and `--output`.
+## `inferctl status`
+
+Emit an aggregate live-state status snapshot.
+
+- Mega-command: `DIAGNOSE`
+- JSON data schema: `#/schemas/status_snapshot`
+- Exit codes: `0`, `3`, `4`
+- Emits data on failure: `false`
+
+### Flags
+
+- `--json` type=`bool` default=`false`
+
+### Example
+
+```sh
+inferctl status --json
+```
 
 ## `inferctl config`
 

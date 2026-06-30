@@ -483,6 +483,25 @@
       "emits_data_on_failure": false
     },
     {
+      "name": "status",
+      "summary": "Emit an aggregate live-state status snapshot.",
+      "mega_command": "DIAGNOSE",
+      "flags": [
+        {
+          "name": "--json",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "exit_codes": [
+        0,
+        3,
+        4
+      ],
+      "output_schema_ref": "#/schemas/status_snapshot",
+      "emits_data_on_failure": false
+    },
+    {
       "name": "config",
       "namespace_only": true,
       "summary": "Namespace for config show, schema, validate, explain, init, set, and patch. Not directly invokable."
@@ -1069,6 +1088,10 @@
     "warning_details": {
       "$ref": "#/generated/warning_details",
       "title": "WarningDetails"
+    },
+    "status_snapshot": {
+      "$ref": "#/generated/status_snapshot",
+      "title": "StatusSnapshot"
     }
   },
   "error_codes": {

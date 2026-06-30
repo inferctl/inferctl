@@ -60,7 +60,7 @@ func TestCapabilitiesDataLoadsGolden(t *testing.T) {
 			emitsDataOnFailure = append(emitsDataOnFailure, verb["name"].(string))
 		}
 	}
-	if invokable != 21 {
+	if invokable != 22 {
 		t.Fatalf("invokable count = %d", invokable)
 	}
 	if !configNamespace {
