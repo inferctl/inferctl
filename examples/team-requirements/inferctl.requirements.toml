@@ -1,0 +1,9 @@
+[tasks.code]
+prompt_file = "prompt.txt"
+selected_model_any_of = ["qwen-coder-32b.gguf", "qwen3:8b"]
+allow_fallback = true
+require_ready = false
+
+[backends.ollama]
+required = true
+require_reachable = true
