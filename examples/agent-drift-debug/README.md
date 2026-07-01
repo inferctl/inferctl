@@ -14,8 +14,73 @@ pair, `fixtures/config-change-before.snapshot.json` and
 `fixtures/config-change-after.snapshot.json`, shows a route/config change while
 both backends remain reachable.
 
-This demo is about inferctl routing state, not model output quality. It does not
-run inference, install models, start daemons, warm models, or mutate config.
+Your agent did not necessarily get worse. Its local inference route changed.
+This demo is about inferctl routing state, not answer quality or model
+intelligence.
+
+Current output for the default fixture pair:
+
+```text
+Local inference drift detected
+summary: 8 change(s), 3 high
+
+Route changed:
+- before: qwen-coder-32b.gguf on llamacpp_large
+- after:  qwen3:8b on ollama_small
+- reason: selected route changed from qwen-coder-32b.gguf on llamacpp_large to qwen3:8b on ollama_small
+- fallback: fallback introduced
+
+Backend reachability changed:
+- llamacpp_large: reachable -> unreachable:backend_unreachable (backend reachability changed (backend_unreachable))
+
+Readiness and inventory changed:
+- installed_model_count installed_models: 2 -> 1 (installed model count changed)
+- loaded_model_count loaded_models: 2 -> 1 (loaded model count changed)
+
+Diagnostics changed:
+- warning_codes W_BACKEND_UNREACHABLE:  -> present (warning code set changed)
+- warning_codes W_FALLBACK_USED:  -> present (warning code set changed)
+- recommended_action code: inferctl model qwen-coder-32b.gguf --json -> inferctl backends --filter llamacpp_large --json (recommended action changed)
+```
+
+This grouped output is current behavior and is covered by
+`goldens/reachability-drift.txt`.
+
+## Workflow
+
+The deterministic baseline is file-to-file `diff` over committed or captured
+snapshot artifacts. Snapshots are redacted control-plane artifacts: they contain
+task identity, prompt metadata, route decisions, candidate reasons, backend
+reachability, model inventory summaries, warnings, errors, and recommended
+actions. They do not contain prompt text.
+
+Optional live capture uses the same snapshot/diff contract:
+
+```sh
+inferctl snapshot --task code --prompt-file task.txt --output last-good.snapshot.json
+inferctl snapshot --task code --prompt-file task.txt --output today.snapshot.json
+inferctl diff --before last-good.snapshot.json --after today.snapshot.json
+```
+
+Stored or relative-date flows are only convenience wrappers around the same
+captured snapshot comparison:
+
+```sh
+inferctl snapshot --task code --prompt-file task.txt --store
+inferctl diff --task code --since 24h
+```
+
+Use `route --explain` for the current route decision, `preflight` when
+automation needs pass/fail readiness, and `diff` when comparing two captured
+control-plane states.
+
+Non-goals:
+
+- no inference
+- no model install, pull, load, or warmup
+- no daemon management
+- no config mutation
+- no prompt-output comparison
 
 Run the fixture checks:
 
