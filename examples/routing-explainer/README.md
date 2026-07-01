@@ -54,3 +54,14 @@ inferctl would choose and why. `route --json` is the structured form for tools
 and tests. Use `preflight` when automation needs pass/fail readiness behavior
 before attempting work.
 
+`route --explain` does not run inference. It answers which configured local
+route inferctl would choose for a task, why that route was selected, which
+candidates were considered, and which constraints shaped the decision. It does
+not judge answer quality, rewrite prompts, call the selected model, start
+backends, repair services, or warm models.
+
+Use `route --json` when tools need the route decision object, candidate list,
+warnings, and commands in a machine-readable form. Use `preflight` when an
+automated workflow needs pass/fail readiness behavior before starting work. Use
+`diff` when the question is what changed between two captured control-plane
+states.
