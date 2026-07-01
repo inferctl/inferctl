@@ -8,6 +8,7 @@ import (
 
 	"github.com/inferctl/inferctl/internal/config"
 	"github.com/inferctl/inferctl/internal/envelope"
+	"github.com/inferctl/inferctl/internal/render"
 	"github.com/inferctl/inferctl/pkg/inferctl"
 	"github.com/spf13/cobra"
 )
@@ -90,10 +91,18 @@ func newRouteCommand(jsonFlag *bool) *cobra.Command {
 			}
 			report, warnings, commands, noRoute := buildRouteReport(context.Background(), result.Config, args[0], routeCfg, entries, input)
 			if noRoute != nil {
+				mode := render.SelectMode(render.Options{JSONFlag: *jsonFlag, Env: envMap()})
+				if mode != render.ModeJSON {
+					if err := writeRouteNoRouteHuman(cmd, report, warnings, commands, *noRoute); err != nil {
+						return err
+					}
+					writeErrorDiagnostic(cmd, *noRoute)
+					return exitError(noRoute.ExitCode)
+				}
 				return writeError(cmd, *jsonFlag, *noRoute)
 			}
 			return writeDataWithDiagnostics(cmd, *jsonFlag, report, warnings, commands, func() error {
-				return writeRouteHuman(cmd, report, explain, quiet)
+				return writeRouteHuman(cmd, report, warnings, commands, explain, quiet)
 			})
 		},
 	}
@@ -135,8 +144,15 @@ func buildRouteReport(ctx context.Context, cfg config.Config, task string, route
 			warnings = append(warnings, backendWarning("W_BACKEND_UNREACHABLE", entry.name, "backend '"+entry.name+"' is unreachable", err))
 		}
 	}
+	constraints := routeConstraints(cfg, input, state.loadedCount)
 	if selected == nil {
-		return routeReport{}, warnings, nil, noRouteAvailableError(task, candidates)
+		report := routeReport{
+			Task:        task,
+			Input:       input,
+			Candidates:  candidates,
+			Constraints: constraints,
+		}
+		return report, warnings, routeCommands(report), noRouteAvailableError(task, candidates)
 	}
 	if selected.Role == "fallback" {
 		warnings = append(warnings, envelope.Warning{
@@ -152,7 +168,6 @@ func buildRouteReport(ctx context.Context, cfg config.Config, task string, route
 			Details: map[string]any{"task": task, "model": selected.Model, "backend": selected.Backend, "estimated_warmup_ms": nil},
 		})
 	}
-	constraints := routeConstraints(cfg, input, state.loadedCount)
 	if constraints.ContextPct >= 90 {
 		warnings = append(warnings, envelope.Warning{
 			Code:    "W_CONTEXT_NEAR_LIMIT",
@@ -289,7 +304,7 @@ func routeConstraints(cfg config.Config, input routeInput, loadedCount int) infe
 
 func routeCommands(report routeReport) []envelope.Command {
 	var commands []envelope.Command
-	if !report.Decision.Ready {
+	if report.Decision.SelectedModel != "" && !report.Decision.Ready {
 		commands = append(commands, envelope.Command{
 			Label:              "Warm the selected model",
 			Command:            "inferctl warmup " + report.Decision.SelectedModel,
@@ -316,11 +331,19 @@ func routeCommands(report routeReport) []envelope.Command {
 			Rationale: "Compare the prompt estimate with the configured context budget",
 		})
 	}
-	commands = append(commands, envelope.Command{
-		Label:     "Inspect selected model",
-		Command:   "inferctl model " + report.Decision.SelectedModel + " --json",
-		Rationale: "Show placements, capabilities, and routing usage for the selected model",
-	})
+	if report.Decision.SelectedModel != "" {
+		commands = append(commands, envelope.Command{
+			Label:     "Inspect selected model",
+			Command:   "inferctl model " + report.Decision.SelectedModel + " --json",
+			Rationale: "Show placements, capabilities, and routing usage for the selected model",
+		})
+	} else {
+		commands = append(commands, envelope.Command{
+			Label:     "Inspect configuration and backends",
+			Command:   "inferctl doctor --json",
+			Rationale: "Review why no route candidate is currently available",
+		})
+	}
 	if len(commands) > 6 {
 		commands = commands[:6]
 	}
@@ -370,29 +393,84 @@ func noRouteAvailableError(task string, candidates []inferctl.RouteCandidate) *e
 	}
 }
 
-func writeRouteHuman(cmd *cobra.Command, report routeReport, explain, quiet bool) error {
+func writeRouteHuman(cmd *cobra.Command, report routeReport, warnings []envelope.Warning, commands []envelope.Command, explain, quiet bool) error {
 	if quiet {
 		fmt.Fprintf(cmd.OutOrStdout(), "%s\t%s\t%s\n", report.Task, report.Decision.SelectedBackend, report.Decision.SelectedModel)
 		return nil
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "%s -> %s/%s\n", report.Task, report.Decision.SelectedBackend, report.Decision.SelectedModel)
+	suffix := ""
+	if report.Decision.IsFallback {
+		suffix = " (fallback)"
+	}
+	fmt.Fprintf(cmd.OutOrStdout(), "selected: %s on %s%s\n", report.Decision.SelectedModel, report.Decision.SelectedBackend, suffix)
 	fmt.Fprintf(cmd.OutOrStdout(), "reason: %s\n", report.Decision.Reason)
 	if !explain {
 		return nil
 	}
-	fmt.Fprintln(cmd.OutOrStdout(), "candidates")
-	for _, candidate := range report.Candidates {
+	writeRouteCandidateTable(cmd, report.Candidates)
+	if report.Input.Source != "none" {
+		fmt.Fprintln(cmd.OutOrStdout(), "\nprompt:")
+		fmt.Fprintf(cmd.OutOrStdout(), "  %d estimated tokens / %d max context tokens\n", report.Input.EstimatedTokens, report.Constraints.MaxContextTokens)
+	}
+	writeRouteWarnings(cmd, warnings)
+	if action := currentRouteCommand(commands); action != "" {
+		fmt.Fprintf(cmd.OutOrStdout(), "\nnext: %s\n", action)
+	}
+	return nil
+}
+
+func writeRouteNoRouteHuman(cmd *cobra.Command, report routeReport, warnings []envelope.Warning, commands []envelope.Command, errObj envelope.Error) error {
+	fmt.Fprintf(cmd.OutOrStdout(), "selected: none\n")
+	fmt.Fprintf(cmd.OutOrStdout(), "reason: %s\n", errObj.Message)
+	writeRouteCandidateTable(cmd, report.Candidates)
+	if report.Input.Source != "none" {
+		fmt.Fprintln(cmd.OutOrStdout(), "\nprompt:")
+		fmt.Fprintf(cmd.OutOrStdout(), "  %d estimated tokens / %d max context tokens\n", report.Input.EstimatedTokens, report.Constraints.MaxContextTokens)
+	}
+	writeRouteWarnings(cmd, warnings)
+	if action := currentRouteCommand(commands); action != "" {
+		fmt.Fprintf(cmd.OutOrStdout(), "\nnext: %s\n", action)
+	}
+	return nil
+}
+
+func writeRouteCandidateTable(cmd *cobra.Command, candidates []inferctl.RouteCandidate) {
+	fmt.Fprintln(cmd.OutOrStdout(), "\ncandidates:")
+	fmt.Fprintln(cmd.OutOrStdout(), "  role      backend          model                  status")
+	for _, candidate := range candidates {
 		status := "available"
 		if !candidate.Available && candidate.UnavailabilityReason != nil {
 			status = *candidate.UnavailabilityReason
+		} else if candidate.Available && !candidate.Loaded {
+			status = "available_not_ready"
+		} else if candidate.Loaded {
+			status = "selected_ready"
 		}
 		backend := ""
 		if candidate.Backend != nil {
 			backend = *candidate.Backend
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "- %s\t%s\t%s\tloaded=%v\n", candidate.Model, backend, status, candidate.Loaded)
+		fmt.Fprintf(cmd.OutOrStdout(), "  %-8s %-16s %-22s %s\n", candidate.Role, backend, candidate.Model, status)
 	}
-	return nil
+}
+
+func writeRouteWarnings(cmd *cobra.Command, warnings []envelope.Warning) {
+	if len(warnings) == 0 {
+		return
+	}
+	fmt.Fprintln(cmd.OutOrStdout(), "\nwarnings:")
+	for _, warning := range warnings {
+		fmt.Fprintf(cmd.OutOrStdout(), "- %s: %s\n", warning.Code, warning.Message)
+	}
+}
+
+func currentRouteCommand(commands []envelope.Command) string {
+	for _, command := range commands {
+		if command.AvailableInVersion == nil {
+			return command.Command
+		}
+	}
+	return ""
 }
 
 func derefString(value *string) string {

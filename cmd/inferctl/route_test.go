@@ -61,6 +61,41 @@ func TestRouteFallbackSuccess(t *testing.T) {
 	}
 }
 
+func TestRouteHumanExplanationFormat(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "fallback:8b"}},
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeDoctorConfig(t, doctorConfigOptions{
+		OllamaURL: server.URL,
+		Primary:   "primary:70b",
+		Fallback:  "fallback:8b",
+	}))
+
+	stdout, _, err := executeForTest("route", "code", "--prompt", "secret prompt text")
+	if err != nil {
+		t.Fatalf("route human error = %v stdout=%s", err, stdout)
+	}
+	assertOrderedSubstrings(t, stdout, []string{
+		"selected: fallback:8b on ollama (fallback)",
+		"reason: selected fallback because primary 'primary:70b' is unavailable",
+		"candidates:",
+		"role      backend",
+		"primary  ollama",
+		"fallback ollama",
+		"prompt:",
+		"5 estimated tokens / 8192 max context tokens",
+		"warnings:",
+		"W_FALLBACK_USED",
+		"W_MODEL_NOT_LOADED",
+		"next: inferctl model fallback:8b --json",
+	})
+	if strings.Contains(stdout, "secret prompt text") || strings.Contains(stdout, "inferctl warmup") {
+		t.Fatalf("human output leaked prompt or future command:\n%s", stdout)
+	}
+}
+
 func TestRouteNoRouteAvailable(t *testing.T) {
 	server := testserver.New(testserver.Fixture{Kind: testserver.KindOllama, Models: []testserver.Model{{Name: "other:8b"}}})
 	defer server.Close()
@@ -76,6 +111,22 @@ func TestRouteNoRouteAvailable(t *testing.T) {
 	}
 	if !strings.Contains(stdout, "E_NO_ROUTE_AVAILABLE") || !strings.Contains(stdout, "inferctl doctor") {
 		t.Fatalf("unexpected no-route envelope: %s", stdout)
+	}
+
+	stdout, stderr, err := executeForTest("route", "code")
+	if err == nil {
+		t.Fatal("expected human no-route error")
+	}
+	assertOrderedSubstrings(t, stdout, []string{
+		"selected: none",
+		"reason: no candidate model for task 'code' is reachable",
+		"candidates:",
+		"primary  ollama",
+		"fallback                  fallback:8b",
+		"next: inferctl doctor --json",
+	})
+	if !strings.Contains(stderr, "no candidate model for task 'code' is reachable") || !strings.Contains(stderr, "exit: 4") {
+		t.Fatalf("stderr missing no-route diagnostic:\n%s", stderr)
 	}
 }
 
@@ -97,6 +148,17 @@ func TestRoutePromptFileAndNearLimit(t *testing.T) {
 		t.Fatalf("input/constraints = %#v %#v", env.Data.Input, env.Data.Constraints)
 	}
 	assertRouteWarningCode(t, env.Warnings, "W_CONTEXT_NEAR_LIMIT")
+
+	stdout, _, err = executeForTest("route", "code", "--prompt-file", promptPath)
+	if err != nil {
+		t.Fatalf("route human prompt-file error = %v stdout=%s", err, stdout)
+	}
+	if !strings.Contains(stdout, "10 estimated tokens / 10 max context tokens") {
+		t.Fatalf("human prompt metadata missing:\n%s", stdout)
+	}
+	if strings.Contains(stdout, promptPath) || strings.Contains(stdout, strings.Repeat("a", 40)) {
+		t.Fatalf("human output leaked prompt path or content:\n%s", stdout)
+	}
 }
 
 func TestRouteStdin(t *testing.T) {
@@ -155,6 +217,18 @@ func assertRouteWarningCode(t *testing.T, warnings []struct {
 		}
 	}
 	t.Fatalf("missing warning %s in %#v", code, warnings)
+}
+
+func assertOrderedSubstrings(t *testing.T, text string, wants []string) {
+	t.Helper()
+	offset := 0
+	for _, want := range wants {
+		idx := strings.Index(text[offset:], want)
+		if idx < 0 {
+			t.Fatalf("missing %q after offset %d in:\n%s", want, offset, text)
+		}
+		offset += idx + len(want)
+	}
 }
 
 func executeForTestWithInput(input string, args ...string) (string, string, error) {
