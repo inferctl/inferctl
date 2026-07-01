@@ -22,3 +22,11 @@ its own inference step.
 The wrapper relies on the command exit code. It does not parse human output and
 does not call `doctor`, `route`, or `triage` separately.
 
+Run the deterministic harness from a source checkout:
+
+```sh
+./examples/preflight-gate/test.sh
+```
+
+The harness uses repository fixture servers and temporary configs. It does not
+require Ollama, llama.cpp, LM Studio, MLX, or remote endpoints.
