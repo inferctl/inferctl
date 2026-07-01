@@ -52,6 +52,35 @@ Use the same command and let your CI system decide how to publish the file:
 The script writes `inferctl-preflight.md` by default. Uploading that file as an
 annotation or artifact is CI-owned behavior, not inferctl-owned behavior.
 
+## Policy Boundary
+
+inferctl emits local inference state. Your CI system decides where to publish
+that Markdown and whether a job should continue.
+
+preflight does not run the model, post pull request comments, call GitHub,
+Buildkite, GitLab, or hosted services, or manage CI annotations. The same
+Markdown can be redirected to any summary, annotation, artifact, or comment
+tooling that your workflow owns.
+
+Fallback policy is controlled by preflight flags and ordinary shell behavior:
+
+```sh
+# Warning-only fallback: Markdown is still emitted and the job may continue.
+inferctl preflight code_review \
+  --prompt-file sample-pr-review-prompt.txt \
+  --allow-fallback \
+  --format markdown >> "$SUMMARY_FILE"
+
+# Blocking fallback: omit --allow-fallback and let set -e fail the step.
+inferctl preflight code_review \
+  --prompt-file sample-pr-review-prompt.txt \
+  --format markdown >> "$SUMMARY_FILE"
+```
+
+For a stricter gate that decides whether an automation step should run, use the
+Preflight Gate example in `examples/preflight-gate/`. This example is only the
+CI summary packaging for the same preflight decision.
+
 Generated samples and regression checks must come from real
 `inferctl preflight --format markdown` output or checked fixture output. If the
 preflight formatter changes, update this example from command output rather than
