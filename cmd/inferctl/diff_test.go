@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/inferctl/inferctl/internal/envelope"
 	"github.com/inferctl/inferctl/pkg/inferctl"
+	"github.com/spf13/cobra"
 )
 
 func TestDiffFileToFileClassifiesDomainChanges(t *testing.T) {
@@ -61,8 +63,44 @@ func TestDiffHumanOutputUsesSameChanges(t *testing.T) {
 	if err != nil {
 		t.Fatalf("human diff error = %v stdout=%s", err, stdout)
 	}
-	if !strings.Contains(stdout, "selected_route") || !strings.Contains(stdout, "fallback_status") {
-		t.Fatalf("human output = %s", stdout)
+	assertOrderedSubstrings(t, stdout, []string{
+		"Local inference drift detected",
+		"Route changed:",
+		"- before: primary:70b on ollama",
+		"- after:  fallback:8b on ollama",
+		"- reason: selected route changed from primary:70b on ollama to fallback:8b on ollama",
+		"- fallback: fallback introduced",
+	})
+	if strings.Contains(stdout, "next:") {
+		t.Fatalf("human diff should not invent a next diagnostic:\n%s", stdout)
+	}
+}
+
+func TestDiffHumanOutputSortsByRankBeforeGrouping(t *testing.T) {
+	report := diffReport{
+		Summary: diffSummary{Total: 3, High: 3},
+		Changes: []controlPlaneChange{
+			{Rank: 3, Type: "backend_reachability", Subject: "llamacpp", Severity: "high", Before: "reachable", After: "unreachable:backend_unreachable", Explanation: "backend reachability changed (backend_unreachable)"},
+			{Rank: 1, Type: "selected_route", Subject: "code", Severity: "high", Before: "llamacpp/primary.gguf", After: "ollama/fallback:8b", Explanation: "selected route changed from primary.gguf on llamacpp to fallback:8b on ollama"},
+			{Rank: 2, Type: "fallback_status", Subject: "code", Severity: "high", Before: false, After: true, Explanation: "fallback introduced"},
+		},
+	}
+	var stdout bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&stdout)
+	if err := writeDiffHuman(cmd, report); err != nil {
+		t.Fatal(err)
+	}
+	got := stdout.String()
+	assertOrderedSubstrings(t, got, []string{
+		"Route changed:",
+		"- before: primary.gguf on llamacpp",
+		"- fallback: fallback introduced",
+		"Backend reachability changed:",
+		"- llamacpp: reachable -> unreachable:backend_unreachable",
+	})
+	if strings.Contains(got, "next:") {
+		t.Fatalf("human output = %s", got)
 	}
 }
 

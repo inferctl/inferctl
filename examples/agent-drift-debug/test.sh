@@ -45,6 +45,9 @@ inferctl diff \
   --before "$EXAMPLE_DIR/fixtures/last-good.snapshot.json" \
   --after "$EXAMPLE_DIR/fixtures/today.snapshot.json" \
   >"$TMP/reachability-drift.txt"
-grep -F "selected_route code: llamacpp_large/qwen-coder-32b.gguf -> ollama_small/qwen3:8b" "$TMP/reachability-drift.txt" >/dev/null
+grep -F "Local inference drift detected" "$TMP/reachability-drift.txt" >/dev/null
+grep -F "Route changed:" "$TMP/reachability-drift.txt" >/dev/null
+grep -F -- "- before: qwen-coder-32b.gguf on llamacpp_large" "$TMP/reachability-drift.txt" >/dev/null
+grep -F -- "- after:  qwen3:8b on ollama_small" "$TMP/reachability-drift.txt" >/dev/null
 
 echo "agent drift fixtures ok"

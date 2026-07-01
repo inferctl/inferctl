@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/inferctl/inferctl/internal/envelope"
 	"github.com/spf13/cobra"
@@ -202,16 +203,120 @@ func summarizeDiffChanges(changes []controlPlaneChange) diffSummary {
 }
 
 func writeDiffHuman(cmd *cobra.Command, report diffReport) error {
-	fmt.Fprintf(cmd.OutOrStdout(), "diff: %d change(s), %d high\n", report.Summary.Total, report.Summary.High)
 	if len(report.Changes) == 0 {
+		fmt.Fprintf(cmd.OutOrStdout(), "diff: %d change(s), %d high\n", report.Summary.Total, report.Summary.High)
 		fmt.Fprintln(cmd.OutOrStdout(), "no domain-significant control-plane changes")
 		return nil
 	}
-	limit := min(5, len(report.Changes))
-	top := append([]controlPlaneChange{}, report.Changes[:limit]...)
-	slices.SortFunc(top, func(a, b controlPlaneChange) int { return a.Rank - b.Rank })
-	for _, change := range top {
-		fmt.Fprintf(cmd.OutOrStdout(), "- [%s] %s %s: %v -> %v (%s)\n", change.Severity, change.Type, change.Subject, change.Before, change.After, change.Explanation)
-	}
+	changes := rankedDiffChanges(report.Changes)
+	fmt.Fprintln(cmd.OutOrStdout(), "Local inference drift detected")
+	fmt.Fprintf(cmd.OutOrStdout(), "summary: %d change(s), %d high\n", report.Summary.Total, report.Summary.High)
+	writeDiffRouteGroup(cmd, changes)
+	writeDiffReachabilityGroup(cmd, changes)
+	writeDiffReadinessInventoryGroup(cmd, changes)
+	writeDiffOtherGroup(cmd, changes)
 	return nil
+}
+
+func rankedDiffChanges(changes []controlPlaneChange) []controlPlaneChange {
+	out := append([]controlPlaneChange{}, changes...)
+	slices.SortFunc(out, func(a, b controlPlaneChange) int { return a.Rank - b.Rank })
+	return out
+}
+
+func writeDiffRouteGroup(cmd *cobra.Command, changes []controlPlaneChange) {
+	route, hasRoute := firstDiffChange(changes, "selected_route")
+	fallback, hasFallback := firstDiffChange(changes, "fallback_status")
+	if !hasRoute && !hasFallback {
+		return
+	}
+	fmt.Fprintln(cmd.OutOrStdout(), "\nRoute changed:")
+	if hasRoute {
+		beforeBackend, beforeModel := splitRouteChangeValue(route.Before)
+		afterBackend, afterModel := splitRouteChangeValue(route.After)
+		fmt.Fprintf(cmd.OutOrStdout(), "- before: %s on %s\n", beforeModel, beforeBackend)
+		fmt.Fprintf(cmd.OutOrStdout(), "- after:  %s on %s\n", afterModel, afterBackend)
+		fmt.Fprintf(cmd.OutOrStdout(), "- reason: %s\n", route.Explanation)
+	}
+	if hasFallback {
+		fmt.Fprintf(cmd.OutOrStdout(), "- fallback: %s\n", fallback.Explanation)
+	}
+}
+
+func writeDiffReachabilityGroup(cmd *cobra.Command, changes []controlPlaneChange) {
+	items := diffChangesOfType(changes, "backend_reachability")
+	if len(items) == 0 {
+		return
+	}
+	fmt.Fprintln(cmd.OutOrStdout(), "\nBackend reachability changed:")
+	for _, change := range items {
+		fmt.Fprintf(cmd.OutOrStdout(), "- %s: %v -> %v (%s)\n", change.Subject, change.Before, change.After, change.Explanation)
+	}
+}
+
+func writeDiffReadinessInventoryGroup(cmd *cobra.Command, changes []controlPlaneChange) {
+	items := diffChangesOfTypes(changes, "selected_model_readiness", "installed_model_count", "loaded_model_count")
+	if len(items) == 0 {
+		return
+	}
+	fmt.Fprintln(cmd.OutOrStdout(), "\nReadiness and inventory changed:")
+	for _, change := range items {
+		fmt.Fprintf(cmd.OutOrStdout(), "- %s %s: %v -> %v (%s)\n", change.Type, change.Subject, change.Before, change.After, change.Explanation)
+	}
+}
+
+func writeDiffOtherGroup(cmd *cobra.Command, changes []controlPlaneChange) {
+	items := diffChangesOfTypes(changes, "warning_codes", "error_codes", "recommended_action")
+	if len(items) == 0 {
+		return
+	}
+	fmt.Fprintln(cmd.OutOrStdout(), "\nDiagnostics changed:")
+	for _, change := range items {
+		fmt.Fprintf(cmd.OutOrStdout(), "- %s %s: %v -> %v (%s)\n", change.Type, change.Subject, change.Before, change.After, change.Explanation)
+	}
+}
+
+func firstDiffChange(changes []controlPlaneChange, typ string) (controlPlaneChange, bool) {
+	for _, change := range changes {
+		if change.Type == typ {
+			return change, true
+		}
+	}
+	return controlPlaneChange{}, false
+}
+
+func diffChangesOfType(changes []controlPlaneChange, typ string) []controlPlaneChange {
+	var out []controlPlaneChange
+	for _, change := range changes {
+		if change.Type == typ {
+			out = append(out, change)
+		}
+	}
+	return out
+}
+
+func diffChangesOfTypes(changes []controlPlaneChange, types ...string) []controlPlaneChange {
+	allowed := map[string]bool{}
+	for _, typ := range types {
+		allowed[typ] = true
+	}
+	var out []controlPlaneChange
+	for _, change := range changes {
+		if allowed[change.Type] {
+			out = append(out, change)
+		}
+	}
+	return out
+}
+
+func splitRouteChangeValue(value any) (string, string) {
+	text, ok := value.(string)
+	if !ok {
+		return "", fmt.Sprint(value)
+	}
+	backend, model, ok := strings.Cut(text, "/")
+	if !ok {
+		return "", text
+	}
+	return backend, model
 }
