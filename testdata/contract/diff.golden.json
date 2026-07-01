@@ -2,30 +2,30 @@
   "changes": [
     {
       "rank": 1,
+      "type": "selected_route",
+      "subject": "code",
+      "severity": "high",
+      "before": "ollama/primary:70b",
+      "after": "ollama/fallback:8b",
+      "explanation": "selected route changed from primary:70b on ollama to fallback:8b on ollama"
+    },
+    {
+      "rank": 2,
+      "type": "fallback_status",
+      "subject": "code",
+      "severity": "high",
+      "before": false,
+      "after": true,
+      "explanation": "fallback introduced"
+    },
+    {
+      "rank": 3,
       "type": "backend_reachability",
       "subject": "ollama",
       "severity": "high",
       "before": "reachable",
       "after": "unreachable",
       "explanation": "backend reachability changed"
-    },
-    {
-      "rank": 2,
-      "type": "error_codes",
-      "subject": "E_NO_ROUTE_AVAILABLE",
-      "severity": "high",
-      "before": "",
-      "after": "present",
-      "explanation": "error code set changed"
-    },
-    {
-      "rank": 3,
-      "type": "fallback_status",
-      "subject": "code",
-      "severity": "high",
-      "before": false,
-      "after": true,
-      "explanation": "fallback status changed"
     }
   ],
   "summary": {

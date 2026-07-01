@@ -406,20 +406,20 @@ func TestStatusEventsRepresentBackendReachabilityAndRouteSelection(t *testing.T)
 	if len(events) != 3 {
 		t.Fatalf("events len = %d, want 3: %#v", len(events), events)
 	}
-	wantKinds := []string{"backend_reachability_changed", "fallback_status_changed", "selected_route_changed"}
+	wantKinds := []string{"selected_route_changed", "fallback_status_changed", "backend_reachability_changed"}
 	for i, want := range wantKinds {
 		if events[i].Sequence != i+1 || events[i].Kind != want || events[i].Severity != "high" {
 			t.Fatalf("event[%d] = %#v want kind=%s", i, events[i], want)
 		}
 	}
-	if events[0].Subject != "llamacpp" || events[0].Before != "reachable" || events[0].After != "unreachable" {
-		t.Fatalf("backend event = %#v", events[0])
+	if events[0].Subject != "code" || events[0].Before != "llamacpp/primary.gguf" || events[0].After != "ollama/fallback:8b" {
+		t.Fatalf("route event = %#v", events[0])
 	}
 	if events[1].Subject != "code" || events[1].Before != false || events[1].After != true {
 		t.Fatalf("fallback event = %#v", events[1])
 	}
-	if events[2].Subject != "code" || events[2].Before != "llamacpp/primary.gguf" || events[2].After != "ollama/fallback:8b" {
-		t.Fatalf("route event = %#v", events[2])
+	if events[2].Subject != "llamacpp" || events[2].Before != "reachable" || events[2].After != "unreachable:backend_unreachable" {
+		t.Fatalf("backend event = %#v", events[2])
 	}
 }
 

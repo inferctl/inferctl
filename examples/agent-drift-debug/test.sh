@@ -26,7 +26,7 @@ inferctl diff \
 
 jq -e '.data.changes[] | select(.type == "selected_route" and .before == "llamacpp_large/qwen-coder-32b.gguf" and .after == "ollama_small/qwen3:8b")' "$TMP/reachability-drift.json" >/dev/null
 jq -e '.data.changes[] | select(.type == "fallback_status" and .before == false and .after == true)' "$TMP/reachability-drift.json" >/dev/null
-jq -e '.data.changes[] | select(.type == "backend_reachability" and .subject == "llamacpp_large" and .before == "reachable" and .after == "unreachable")' "$TMP/reachability-drift.json" >/dev/null
+jq -e '.data.changes[] | select(.type == "backend_reachability" and .subject == "llamacpp_large" and .before == "reachable" and .after == "unreachable:backend_unreachable")' "$TMP/reachability-drift.json" >/dev/null
 jq -e '.data.changes[] | select(.type == "loaded_model_count" and .before == 2 and .after == 1)' "$TMP/reachability-drift.json" >/dev/null
 jq -e '.data.changes[] | select(.type == "recommended_action" and .after == "inferctl backends --filter llamacpp_large --json")' "$TMP/reachability-drift.json" >/dev/null
 
