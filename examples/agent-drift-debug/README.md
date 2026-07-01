@@ -8,8 +8,20 @@ inferctl diff \
   --after fixtures/today.snapshot.json
 ```
 
+The committed default pair shows `llamacpp_large/qwen-coder-32b.gguf` becoming
+unreachable, causing `code` to fall back to `ollama_small/qwen3:8b`. A second
+pair, `fixtures/config-change-before.snapshot.json` and
+`fixtures/config-change-after.snapshot.json`, shows a route/config change while
+both backends remain reachable.
+
 This demo is about inferctl routing state, not model output quality. It does not
 run inference, install models, start daemons, warm models, or mutate config.
+
+Run the fixture checks:
+
+```sh
+./test.sh
+```
 
 ## Snapshot Fixture Contract
 

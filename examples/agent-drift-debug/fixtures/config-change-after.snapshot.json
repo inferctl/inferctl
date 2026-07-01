@@ -1,0 +1,103 @@
+{
+  "snapshot_schema_version": "0.1",
+  "contract_version": "0.1",
+  "inferctl_version": "dev",
+  "captured_at_iso": "2026-07-01T15:00:00Z",
+  "task": "code",
+  "prompt": {
+    "source_kind": "file",
+    "source": "file",
+    "prompt_chars": 60,
+    "estimated_tokens": 15,
+    "content_sha256": "76432ff49d03e7d644ec0647789146e9d127883ea82feb52dff3f589882c258e",
+    "filename": "task.txt",
+    "basename": "task.txt"
+  },
+  "route_decision": {
+    "selected_model": "qwen-coder-32b.gguf",
+    "selected_backend": "llamacpp_large",
+    "is_fallback": false,
+    "fallback_index": null,
+    "ready": true,
+    "estimated_first_token_ms": null,
+    "estimated_total_ms": null,
+    "reason": "primary model is available"
+  },
+  "route_candidates": [
+    {
+      "model": "qwen-coder-32b.gguf",
+      "backend": "llamacpp_large",
+      "role": "primary",
+      "fallback_index": null,
+      "available": true,
+      "unavailability_reason": null,
+      "loaded": true,
+      "estimated_first_token_ms": null
+    },
+    {
+      "model": "qwen3:8b",
+      "backend": "ollama_small",
+      "role": "fallback",
+      "fallback_index": 0,
+      "available": true,
+      "unavailability_reason": null,
+      "loaded": true,
+      "estimated_first_token_ms": null
+    }
+  ],
+  "backend_reachability": [
+    {
+      "name": "llamacpp_large",
+      "kind": "llama.cpp",
+      "reachable": true,
+      "base_url": "http://fixture.invalid/llamacpp_large"
+    },
+    {
+      "name": "ollama_small",
+      "kind": "ollama",
+      "reachable": true,
+      "base_url": "http://fixture.invalid/ollama_small"
+    }
+  ],
+  "loaded_models": [
+    {
+      "name": "qwen-coder-32b.gguf",
+      "backend": "llamacpp_large",
+      "vram_bytes": null,
+      "kv_cache_pressure_pct": null,
+      "loaded_at_iso": null,
+      "idle_seconds": null
+    },
+    {
+      "name": "qwen3:8b",
+      "backend": "ollama_small",
+      "vram_bytes": 1,
+      "kv_cache_pressure_pct": null,
+      "loaded_at_iso": null,
+      "idle_seconds": null
+    }
+  ],
+  "installed_models": [
+    {
+      "name": "qwen-coder-32b.gguf",
+      "backend": "llamacpp_large",
+      "size_bytes": null,
+      "digest": null,
+      "installed_at_iso": null
+    },
+    {
+      "name": "qwen3:8b",
+      "backend": "ollama_small",
+      "size_bytes": 1,
+      "digest": null,
+      "installed_at_iso": null
+    }
+  ],
+  "warnings": [],
+  "errors": [],
+  "recommended_action": {
+    "command": "inferctl model qwen-coder-32b.gguf --json",
+    "rationale": "Show placements, capabilities, and routing usage for the selected model",
+    "alternatives": null
+  }
+}

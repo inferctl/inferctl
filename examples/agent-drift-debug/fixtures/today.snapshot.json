@@ -1,0 +1,121 @@
+{
+  "snapshot_schema_version": "0.1",
+  "contract_version": "0.1",
+  "inferctl_version": "dev",
+  "captured_at_iso": "2026-07-01T14:00:00Z",
+  "task": "code",
+  "prompt": {
+    "source_kind": "file",
+    "source": "file",
+    "prompt_chars": 60,
+    "estimated_tokens": 15,
+    "content_sha256": "76432ff49d03e7d644ec0647789146e9d127883ea82feb52dff3f589882c258e",
+    "filename": "task.txt",
+    "basename": "task.txt"
+  },
+  "route_decision": {
+    "selected_model": "qwen3:8b",
+    "selected_backend": "ollama_small",
+    "is_fallback": true,
+    "fallback_index": 0,
+    "ready": true,
+    "estimated_first_token_ms": null,
+    "estimated_total_ms": null,
+    "reason": "selected fallback because primary 'qwen-coder-32b.gguf' is unavailable"
+  },
+  "route_candidates": [
+    {
+      "model": "qwen-coder-32b.gguf",
+      "backend": "llamacpp_large",
+      "role": "primary",
+      "fallback_index": null,
+      "available": false,
+      "unavailability_reason": "backend_unreachable",
+      "loaded": false,
+      "estimated_first_token_ms": null
+    },
+    {
+      "model": "qwen3:8b",
+      "backend": "ollama_small",
+      "role": "fallback",
+      "fallback_index": 0,
+      "available": true,
+      "unavailability_reason": null,
+      "loaded": true,
+      "estimated_first_token_ms": null
+    }
+  ],
+  "backend_reachability": [
+    {
+      "name": "llamacpp_large",
+      "kind": "llama.cpp",
+      "reachable": false,
+      "base_url": "http://fixture.invalid/llamacpp_large",
+      "error": "backend_unreachable"
+    },
+    {
+      "name": "ollama_small",
+      "kind": "ollama",
+      "reachable": true,
+      "base_url": "http://fixture.invalid/ollama_small"
+    }
+  ],
+  "loaded_models": [
+    {
+      "name": "qwen3:8b",
+      "backend": "ollama_small",
+      "vram_bytes": 1,
+      "kv_cache_pressure_pct": null,
+      "loaded_at_iso": null,
+      "idle_seconds": null
+    }
+  ],
+  "installed_models": [
+    {
+      "name": "qwen3:8b",
+      "backend": "ollama_small",
+      "size_bytes": 1,
+      "digest": null,
+      "installed_at_iso": null
+    }
+  ],
+  "warnings": [
+    {
+      "code": "W_BACKEND_UNREACHABLE",
+      "message": "backend 'llamacpp_large' is unreachable",
+      "details": {
+        "backend": "llamacpp_large",
+        "error_class": "connection_refused"
+      }
+    },
+    {
+      "code": "W_BACKEND_UNREACHABLE",
+      "message": "backend 'llamacpp_large' is unreachable",
+      "details": {
+        "backend": "llamacpp_large",
+        "error_class": "connection_refused"
+      }
+    },
+    {
+      "code": "W_FALLBACK_USED",
+      "message": "routed to fallback 'qwen3:8b' because primary 'qwen-coder-32b.gguf' is unavailable",
+      "details": {
+        "fallback_index": 0,
+        "primary": "qwen-coder-32b.gguf",
+        "selected": "qwen3:8b",
+        "task": "code"
+      }
+    }
+  ],
+  "errors": [],
+  "recommended_action": {
+    "command": "inferctl backends --filter llamacpp_large --json",
+    "rationale": "See when the primary becomes available again",
+    "alternatives": [
+      {
+        "command": "inferctl model qwen3:8b --json",
+        "rationale": "Show placements, capabilities, and routing usage for the selected model"
+      }
+    ]
+  }
+}
