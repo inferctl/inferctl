@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/inferctl/inferctl/internal/testserver"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 func TestRoutePrimarySuccess(t *testing.T) {
@@ -93,6 +94,58 @@ func TestRouteHumanExplanationFormat(t *testing.T) {
 	})
 	if strings.Contains(stdout, "secret prompt text") || strings.Contains(stdout, "inferctl warmup") {
 		t.Fatalf("human output leaked prompt or future command:\n%s", stdout)
+	}
+}
+
+func TestRouteHumanOutputMatchesJSONDecision(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "fallback:8b"}},
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeDoctorConfig(t, doctorConfigOptions{
+		OllamaURL: server.URL,
+		Primary:   "primary:70b",
+		Fallback:  "fallback:8b",
+	}))
+
+	jsonOut, _, err := executeForTest("route", "code", "--prompt", "hello world", "--json")
+	if err != nil {
+		t.Fatalf("route json error = %v stdout=%s", err, jsonOut)
+	}
+	env := decodeRouteEnvelope(t, jsonOut)
+	humanOut, _, err := executeForTest("route", "code", "--prompt", "hello world")
+	if err != nil {
+		t.Fatalf("route human error = %v stdout=%s", err, humanOut)
+	}
+
+	selectedLine := "selected: " + env.Data.Decision.SelectedModel + " on " + env.Data.Decision.SelectedBackend
+	if env.Data.Decision.IsFallback {
+		selectedLine += " (fallback)"
+	}
+	assertOrderedSubstrings(t, humanOut, []string{
+		selectedLine,
+		"reason: " + env.Data.Decision.Reason,
+		"candidates:",
+	})
+	for _, candidate := range env.Data.Candidates {
+		for _, fragment := range routeCandidateFragments(candidate) {
+			if !strings.Contains(humanOut, fragment) {
+				t.Fatalf("human output missing candidate fragment %q from JSON %#v:\n%s", fragment, candidate, humanOut)
+			}
+		}
+		if !strings.Contains(humanOut, routeCandidateStatus(candidate)) {
+			t.Fatalf("human output missing candidate from JSON %#v:\n%s", candidate, humanOut)
+		}
+	}
+	for _, warning := range env.Warnings {
+		if !strings.Contains(humanOut, warning.Code) {
+			t.Fatalf("human output missing warning %s from JSON:\n%s", warning.Code, humanOut)
+		}
+	}
+	next := firstCurrentCommand(env.Commands)
+	if next == "" || !strings.Contains(humanOut, "next: "+next) {
+		t.Fatalf("human output next command does not match JSON commands %q:\n%s", next, humanOut)
 	}
 }
 
@@ -196,6 +249,10 @@ type routeEnvelopeForTest struct {
 	Warnings []struct {
 		Code string `json:"code"`
 	} `json:"warnings"`
+	Commands []struct {
+		Command            string  `json:"command"`
+		AvailableInVersion *string `json:"available_in_version"`
+	} `json:"commands"`
 }
 
 func decodeRouteEnvelope(t *testing.T, stdout string) routeEnvelopeForTest {
@@ -229,6 +286,38 @@ func assertOrderedSubstrings(t *testing.T, text string, wants []string) {
 		}
 		offset += idx + len(want)
 	}
+}
+
+func routeCandidateFragments(candidate inferctl.RouteCandidate) []string {
+	fragments := []string{candidate.Role, candidate.Model}
+	if candidate.Backend != nil {
+		fragments = append(fragments, *candidate.Backend)
+	}
+	return fragments
+}
+
+func routeCandidateStatus(candidate inferctl.RouteCandidate) string {
+	status := "available"
+	if !candidate.Available && candidate.UnavailabilityReason != nil {
+		status = *candidate.UnavailabilityReason
+	} else if candidate.Available && !candidate.Loaded {
+		status = "available_not_ready"
+	} else if candidate.Loaded {
+		status = "selected_ready"
+	}
+	return status
+}
+
+func firstCurrentCommand(commands []struct {
+	Command            string  `json:"command"`
+	AvailableInVersion *string `json:"available_in_version"`
+}) string {
+	for _, command := range commands {
+		if command.AvailableInVersion == nil {
+			return command.Command
+		}
+	}
+	return ""
 }
 
 func executeForTestWithInput(input string, args ...string) (string, string, error) {
