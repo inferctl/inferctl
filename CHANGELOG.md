@@ -23,6 +23,9 @@ gates are cleared.
   intended public install path.
 - Aligned active README, install, release, public-readiness, agent, and
   contribution docs with the v0.2.2 Apache-licensed public-readiness posture.
+- Preflight clean negative readiness decisions now use exit `5` instead of
+  invocation exit `1`: `E_PREFLIGHT_POLICY_BLOCKED` and deterministic no-route
+  preflight results mean "do not run this task now", not "fix the invocation".
 
 ### Removed
 

@@ -123,7 +123,7 @@ Decide whether automation may attempt a configured task.
 
 - Mega-command: `TASK_READINESS`
 - JSON data schema: `#/schemas/preflight_report`
-- Exit codes: `0`, `1`, `3`, `4`
+- Exit codes: `0`, `1`, `3`, `4`, `5`
 - Emits data on failure: `true`
 
 ### Args

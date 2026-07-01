@@ -1,7 +1,7 @@
 {
   "tool": "inferctl",
   "binary": "inferctl",
-  "contract_version": "0.1",
+  "contract_version": "0.2",
   "features": [
     "json_envelope",
     "stderr_error_mirror",
@@ -375,7 +375,8 @@
         0,
         1,
         3,
-        4
+        4,
+        5
       ],
       "output_schema_ref": "#/schemas/preflight_report",
       "emits_data_on_failure": true
@@ -1273,7 +1274,7 @@
     },
     "E_PREFLIGHT_POLICY_BLOCKED": {
       "status": "v0.2",
-      "exit_code": 1,
+      "exit_code": 5,
       "retryable": false,
       "message_template": "preflight policy blocks task '<task>': <reason>",
       "details_schema_ref": "#/schemas/error_details/E_PREFLIGHT_POLICY_BLOCKED"

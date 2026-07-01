@@ -76,7 +76,7 @@ func TestPreflightFallbackPolicy(t *testing.T) {
 		t.Fatal("fallback should be blocked without --allow-fallback")
 	}
 	blocked := decodePreflightEnvelope(t, stdout)
-	if blocked.OK || blocked.Data.Runnability.Runnable || blocked.Data.Runnability.ExitCode != exitUserInput {
+	if blocked.OK || blocked.Data.Runnability.Runnable || blocked.Data.Runnability.ExitCode != exitConflict {
 		t.Fatalf("blocked envelope = %#v", blocked)
 	}
 	if blocked.Data.Runnability.Status != runnabilityPolicyBlock || blocked.Data.RunnabilityStatus != runnabilityPolicyBlock {
@@ -114,6 +114,9 @@ func TestPreflightRequireReady(t *testing.T) {
 	}
 	if env.Data.Runnability.Status != runnabilityPolicyBlock || env.Data.RunnabilityStatus != runnabilityPolicyBlock {
 		t.Fatalf("require-ready runnability status = %#v", env.Data.Runnability)
+	}
+	if env.Data.Runnability.ExitCode != exitConflict {
+		t.Fatalf("require-ready exit = %d want %d", env.Data.Runnability.ExitCode, exitConflict)
 	}
 }
 
@@ -239,7 +242,62 @@ func TestPreflightInvalidConfigAndNoRouteExitClasses(t *testing.T) {
 	if err == nil || !strings.Contains(stdout, "E_NO_ROUTE_AVAILABLE") {
 		t.Fatalf("no route stdout=%s err=%v", stdout, err)
 	}
-	assertPreflightErrorEnvelope(t, stdout, exitTransient, runnabilityTransientError, "E_NO_ROUTE_AVAILABLE")
+	assertPreflightErrorEnvelope(t, stdout, exitConflict, runnabilityReadinessBlock, "E_NO_ROUTE_AVAILABLE")
+}
+
+func TestPreflightCommandExitTaxonomy(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "fallback:8b"}},
+		Loaded: []testserver.LoadedModel{{Name: "fallback:8b"}},
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeDoctorConfig(t, doctorConfigOptions{
+		OllamaURL: server.URL,
+		Primary:   "primary:70b",
+		Fallback:  "fallback:8b",
+	}))
+
+	for _, tc := range []struct {
+		name       string
+		args       []string
+		wantExit   int
+		wantStatus string
+		wantCode   string
+	}{
+		{
+			name:       "policy fallback block",
+			args:       []string{"preflight", "code", "--json"},
+			wantExit:   exitConflict,
+			wantStatus: runnabilityPolicyBlock,
+			wantCode:   "E_PREFLIGHT_POLICY_BLOCKED",
+		},
+		{
+			name:       "invocation error",
+			args:       []string{"preflight", "unknown", "--json"},
+			wantExit:   exitUserInput,
+			wantStatus: runnabilityInvocationBlock,
+			wantCode:   "E_UNKNOWN_TASK",
+		},
+		{
+			name:       "config environment error",
+			args:       []string{"preflight", "code", "--prompt-file", filepath.Join(t.TempDir(), "missing.txt"), "--json"},
+			wantExit:   exitEnvironment,
+			wantStatus: runnabilityConfigError,
+			wantCode:   "E_CONFIG_UNREADABLE",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout, stderr, err := executeForTest(tc.args...)
+			if err == nil {
+				t.Fatalf("expected error for %s", tc.name)
+			}
+			assertPreflightErrorEnvelope(t, stdout, tc.wantExit, tc.wantStatus, tc.wantCode)
+			if !strings.Contains(stderr, "exit: ") {
+				t.Fatalf("stderr missing exit diagnostic: %s", stderr)
+			}
+		})
+	}
 }
 
 type preflightEnvelopeForTest struct {

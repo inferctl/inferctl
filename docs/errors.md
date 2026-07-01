@@ -22,7 +22,7 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 | `E_MISSING_ARG` | v0.1 | 1 | false | verb '<verb>' requires <arg_name> | `#/schemas/error_details/E_MISSING_ARG` |
 | `E_NO_BACKENDS_CONFIGURED` | v0.1 | 3 | false | config at <path> defines no backends | `#/schemas/error_details/E_NO_BACKENDS_CONFIGURED` |
 | `E_NO_ROUTE_AVAILABLE` | v0.1 | 4 | true | no candidate model for task '<task>' is reachable | `#/schemas/error_details/E_NO_ROUTE_AVAILABLE` |
-| `E_PREFLIGHT_POLICY_BLOCKED` | v0.2 | 1 | false | preflight policy blocks task '<task>': <reason> | `#/schemas/error_details/E_PREFLIGHT_POLICY_BLOCKED` |
+| `E_PREFLIGHT_POLICY_BLOCKED` | v0.2 | 5 | false | preflight policy blocks task '<task>': <reason> | `#/schemas/error_details/E_PREFLIGHT_POLICY_BLOCKED` |
 | `E_UNKNOWN_BACKEND` | v0.1 | 1 | false | no backend named '<backend>' in config | `#/schemas/error_details/E_UNKNOWN_BACKEND` |
 | `E_UNKNOWN_FLAG` | v0.1 | 1 | false | unknown flag '<flag>' for verb '<verb>' | `#/schemas/error_details/E_UNKNOWN_FLAG` |
 | `E_UNKNOWN_MODEL` | v0.1 | 1 | false | model '<model>' not found on any reachable backend | `#/schemas/error_details/E_UNKNOWN_MODEL` |

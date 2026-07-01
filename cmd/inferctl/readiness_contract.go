@@ -23,6 +23,7 @@ const (
 	runnabilityRunnable        = "runnable"
 	runnabilityInvocationBlock = "invocation_blocked"
 	runnabilityPolicyBlock     = "policy_blocked"
+	runnabilityReadinessBlock  = "readiness_blocked"
 	runnabilityConfigError     = "config_error"
 	runnabilityTransientError  = "transient_error"
 )

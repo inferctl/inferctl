@@ -147,7 +147,8 @@ func runPreflight(ctx context.Context, cmd *cobra.Command, task string, opts pre
 	routeInput := routeInput{PromptChars: meta.PromptChars, EstimatedTokens: meta.EstimatedTokens, Source: meta.Source}
 	route, warnings, commands, noRoute := buildRouteReport(ctx, result.Config, task, routeCfg, entries, routeInput)
 	if noRoute != nil {
-		return errorPreflightReport(task, meta, opts, *noRoute), warnings, commands, noRoute
+		errObj := preflightNoRouteError(*noRoute)
+		return errorPreflightReport(task, meta, opts, errObj), warnings, commands, &errObj
 	}
 	commands = preflightCommands(task, route, commands)
 	report := preflightReport{
@@ -189,6 +190,8 @@ func errorPreflightReport(task string, prompt promptMetadata, opts preflightOpti
 		status = runnabilityConfigError
 	case exitTransient:
 		status = runnabilityTransientError
+	case exitConflict:
+		status = runnabilityReadinessBlock
 	}
 	if errObj.Code == "E_PREFLIGHT_POLICY_BLOCKED" {
 		status = runnabilityPolicyBlock
@@ -268,10 +271,16 @@ func preflightPolicyBlockedError(task, reason string) envelope.Error {
 		Code:       "E_PREFLIGHT_POLICY_BLOCKED",
 		Message:    reason,
 		DidYouMean: stringPtr("inferctl preflight " + task + " --allow-fallback"),
-		ExitCode:   exitUserInput,
+		ExitCode:   exitConflict,
 		Retryable:  false,
 		Details:    map[string]any{"task": task, "reason": reason},
 	}
+}
+
+func preflightNoRouteError(errObj envelope.Error) envelope.Error {
+	errObj.ExitCode = exitConflict
+	errObj.Retryable = false
+	return errObj
 }
 
 func writePreflightResult(cmd *cobra.Command, jsonFlag bool, format string, report preflightReport, warnings []envelope.Warning, commands []envelope.Command, errObj envelope.Error) error {
