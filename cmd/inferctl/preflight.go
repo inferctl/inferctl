@@ -315,8 +315,8 @@ func writePreflightHuman(cmd *cobra.Command, report preflightReport, format stri
 		fmt.Fprintf(cmd.OutOrStdout(), "## inferctl preflight: %s\n\n", report.Task)
 		fmt.Fprintf(cmd.OutOrStdout(), "- Runnability: `%s`\n", report.Runnability.Status)
 		fmt.Fprintf(cmd.OutOrStdout(), "- Selected route: `%s/%s`\n", report.RouteDecision.SelectedBackend, report.RouteDecision.SelectedModel)
-		fmt.Fprintf(cmd.OutOrStdout(), "- Ready: `%v`\n", report.RouteDecision.Ready)
-		fmt.Fprintf(cmd.OutOrStdout(), "- Fallback: `%v`\n", report.RouteDecision.IsFallback)
+		fmt.Fprintf(cmd.OutOrStdout(), "- Readiness: configured=`true` reachable=`%v` ready=`%v`\n", report.RouteDecision.SelectedBackend != "", report.RouteDecision.Ready)
+		fmt.Fprintf(cmd.OutOrStdout(), "- Fallback: `%s`\n", preflightFallbackState(report))
 		if len(report.Warnings) > 0 {
 			fmt.Fprintln(cmd.OutOrStdout(), "- Warnings:")
 			for _, warning := range report.Warnings {
@@ -329,9 +329,24 @@ func writePreflightHuman(cmd *cobra.Command, report preflightReport, format stri
 		return nil
 	}
 	fmt.Fprintf(cmd.OutOrStdout(), "preflight: %s %s\n", report.Task, report.Runnability.Status)
-	fmt.Fprintf(cmd.OutOrStdout(), "route: %s/%s ready=%v fallback=%v\n", report.RouteDecision.SelectedBackend, report.RouteDecision.SelectedModel, report.RouteDecision.Ready, report.RouteDecision.IsFallback)
+	fmt.Fprintf(cmd.OutOrStdout(), "route: %s/%s\n", report.RouteDecision.SelectedBackend, report.RouteDecision.SelectedModel)
+	fmt.Fprintf(cmd.OutOrStdout(), "readiness: configured=true reachable=%v ready=%v\n", report.RouteDecision.SelectedBackend != "", report.RouteDecision.Ready)
+	fmt.Fprintf(cmd.OutOrStdout(), "fallback: %s\n", preflightFallbackState(report))
+	if len(report.Warnings) > 0 {
+		fmt.Fprintln(cmd.OutOrStdout(), "warnings:")
+		for _, warning := range report.Warnings {
+			fmt.Fprintf(cmd.OutOrStdout(), "- %s: %s\n", warning.Code, warning.Message)
+		}
+	}
 	if report.RecommendedAction != nil {
 		fmt.Fprintf(cmd.OutOrStdout(), "next: %s\n", report.RecommendedAction.Command)
 	}
 	return nil
+}
+
+func preflightFallbackState(report preflightReport) string {
+	if report.RouteDecision.IsFallback {
+		return "selected"
+	}
+	return "not selected"
 }

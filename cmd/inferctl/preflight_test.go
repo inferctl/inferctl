@@ -55,6 +55,7 @@ func TestPreflightPrimaryReady(t *testing.T) {
 		"runnability":              env.Data.Runnability,
 		"policy":                   env.Data.Policy,
 		"warnings":                 env.Data.Warnings,
+		"recommended_action":       env.Data.RecommendedAction,
 	})
 }
 
@@ -151,6 +152,46 @@ func TestPreflightPromptSourcesAndMarkdown(t *testing.T) {
 	}
 	if !strings.Contains(stdout, "## inferctl preflight: code") || strings.Contains(stdout, "abcd") {
 		t.Fatalf("markdown output = %s", stdout)
+	}
+	for _, want := range []string{
+		"- Readiness: configured=`true` reachable=`true` ready=`true`",
+		"- Fallback: `not selected`",
+		"- Recommended action: `inferctl route code --json`",
+	} {
+		if !strings.Contains(stdout, want) {
+			t.Fatalf("markdown output missing %q:\n%s", want, stdout)
+		}
+	}
+}
+
+func TestPreflightHumanOutputUsesReportData(t *testing.T) {
+	server := testserver.New(testserver.Fixture{
+		Kind:   testserver.KindOllama,
+		Models: []testserver.Model{{Name: "fallback:8b"}},
+		Loaded: []testserver.LoadedModel{{Name: "fallback:8b"}},
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_CONFIG", writeDoctorConfig(t, doctorConfigOptions{
+		OllamaURL: server.URL,
+		Primary:   "primary:70b",
+		Fallback:  "fallback:8b",
+	}))
+
+	stdout, _, err := executeForTest("preflight", "code", "--allow-fallback")
+	if err != nil {
+		t.Fatalf("human preflight error = %v stdout=%s", err, stdout)
+	}
+	for _, want := range []string{
+		"preflight: code runnable",
+		"route: ollama/fallback:8b",
+		"readiness: configured=true reachable=true ready=true",
+		"fallback: selected",
+		"W_FALLBACK_USED",
+		"next: inferctl route code --json",
+	} {
+		if !strings.Contains(stdout, want) {
+			t.Fatalf("human output missing %q:\n%s", want, stdout)
+		}
 	}
 }
 
