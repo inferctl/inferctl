@@ -1,0 +1,16 @@
+name: inferctl preflight summary
+
+on:
+  pull_request:
+
+jobs:
+  local-inference-preflight:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Append inferctl preflight summary
+        run: |
+          set -euo pipefail
+          inferctl preflight code_review \
+            --prompt-file examples/ci-markdown-summary/sample-pr-review-prompt.txt \
+            --format markdown >> "$GITHUB_STEP_SUMMARY"
