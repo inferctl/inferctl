@@ -1,0 +1,20 @@
+Local inference drift detected
+summary: 8 change(s), 3 high
+
+Route changed:
+- before: qwen-coder-32b.gguf on llamacpp_large
+- after:  qwen3:8b on ollama_small
+- reason: selected route changed from qwen-coder-32b.gguf on llamacpp_large to qwen3:8b on ollama_small
+- fallback: fallback introduced
+
+Backend reachability changed:
+- llamacpp_large: reachable -> unreachable:backend_unreachable (backend reachability changed (backend_unreachable))
+
+Readiness and inventory changed:
+- installed_model_count installed_models: 2 -> 1 (installed model count changed)
+- loaded_model_count loaded_models: 2 -> 1 (loaded model count changed)
+
+Diagnostics changed:
+- warning_codes W_BACKEND_UNREACHABLE:  -> present (warning code set changed)
+- warning_codes W_FALLBACK_USED:  -> present (warning code set changed)
+- recommended_action code: inferctl model qwen-coder-32b.gguf --json -> inferctl backends --filter llamacpp_large --json (recommended action changed)

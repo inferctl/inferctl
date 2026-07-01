@@ -1,0 +1,94 @@
+{
+  "before": {
+    "task": "code",
+    "snapshot_schema_version": "0.1",
+    "inferctl_version": "dev",
+    "captured_at_iso": "2026-06-30T14:00:00Z"
+  },
+  "after": {
+    "task": "code",
+    "snapshot_schema_version": "0.1",
+    "inferctl_version": "dev",
+    "captured_at_iso": "2026-07-01T14:00:00Z"
+  },
+  "summary": {
+    "total": 8,
+    "high": 3,
+    "medium": 3,
+    "low": 2
+  },
+  "changes": [
+    {
+      "rank": 1,
+      "type": "selected_route",
+      "subject": "code",
+      "severity": "high",
+      "before": "llamacpp_large/qwen-coder-32b.gguf",
+      "after": "ollama_small/qwen3:8b",
+      "explanation": "selected route changed from qwen-coder-32b.gguf on llamacpp_large to qwen3:8b on ollama_small"
+    },
+    {
+      "rank": 2,
+      "type": "fallback_status",
+      "subject": "code",
+      "severity": "high",
+      "before": false,
+      "after": true,
+      "explanation": "fallback introduced"
+    },
+    {
+      "rank": 3,
+      "type": "backend_reachability",
+      "subject": "llamacpp_large",
+      "severity": "high",
+      "before": "reachable",
+      "after": "unreachable:backend_unreachable",
+      "explanation": "backend reachability changed (backend_unreachable)"
+    },
+    {
+      "rank": 4,
+      "type": "warning_codes",
+      "subject": "W_BACKEND_UNREACHABLE",
+      "severity": "medium",
+      "before": "",
+      "after": "present",
+      "explanation": "warning code set changed"
+    },
+    {
+      "rank": 5,
+      "type": "warning_codes",
+      "subject": "W_FALLBACK_USED",
+      "severity": "medium",
+      "before": "",
+      "after": "present",
+      "explanation": "warning code set changed"
+    },
+    {
+      "rank": 6,
+      "type": "recommended_action",
+      "subject": "code",
+      "severity": "medium",
+      "before": "inferctl model qwen-coder-32b.gguf --json",
+      "after": "inferctl backends --filter llamacpp_large --json",
+      "explanation": "recommended action changed"
+    },
+    {
+      "rank": 7,
+      "type": "installed_model_count",
+      "subject": "installed_models",
+      "severity": "low",
+      "before": 2,
+      "after": 1,
+      "explanation": "installed model count changed"
+    },
+    {
+      "rank": 8,
+      "type": "loaded_model_count",
+      "subject": "loaded_models",
+      "severity": "low",
+      "before": 2,
+      "after": 1,
+      "explanation": "loaded model count changed"
+    }
+  ]
+}

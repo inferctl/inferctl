@@ -1,0 +1,40 @@
+{
+  "before": {
+    "task": "code",
+    "snapshot_schema_version": "0.1",
+    "inferctl_version": "dev",
+    "captured_at_iso": "2026-06-30T15:00:00Z"
+  },
+  "after": {
+    "task": "code",
+    "snapshot_schema_version": "0.1",
+    "inferctl_version": "dev",
+    "captured_at_iso": "2026-07-01T15:00:00Z"
+  },
+  "summary": {
+    "total": 2,
+    "high": 1,
+    "medium": 1,
+    "low": 0
+  },
+  "changes": [
+    {
+      "rank": 1,
+      "type": "selected_route",
+      "subject": "code",
+      "severity": "high",
+      "before": "ollama_small/qwen3:8b",
+      "after": "llamacpp_large/qwen-coder-32b.gguf",
+      "explanation": "selected route changed from qwen3:8b on ollama_small to qwen-coder-32b.gguf on llamacpp_large"
+    },
+    {
+      "rank": 2,
+      "type": "recommended_action",
+      "subject": "code",
+      "severity": "medium",
+      "before": "inferctl model qwen3:8b --json",
+      "after": "inferctl model qwen-coder-32b.gguf --json",
+      "explanation": "recommended action changed"
+    }
+  ]
+}

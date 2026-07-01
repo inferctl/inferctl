@@ -1,0 +1,10 @@
+Local inference drift detected
+summary: 2 change(s), 1 high
+
+Route changed:
+- before: qwen3:8b on ollama_small
+- after:  qwen-coder-32b.gguf on llamacpp_large
+- reason: selected route changed from qwen3:8b on ollama_small to qwen-coder-32b.gguf on llamacpp_large
+
+Diagnostics changed:
+- recommended_action code: inferctl model qwen3:8b --json -> inferctl model qwen-coder-32b.gguf --json (recommended action changed)
