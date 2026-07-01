@@ -1,0 +1,3 @@
+Review the current change for correctness, test coverage, and user-facing
+behavior. Focus on local inference routing, preflight readiness, and safe
+diagnostics.
