@@ -348,9 +348,38 @@ func dedupeCommands(commands []envelope.Command) []envelope.Command {
 func backendWarning(code, backend, message string, err error) envelope.Warning {
 	details := map[string]any{"backend": backend}
 	if err != nil {
-		details["error"] = err.Error()
+		details["error_class"] = backendErrorClass(err)
 	}
 	return envelope.Warning{Code: code, Message: message, Details: details}
+}
+
+func backendErrorClass(err error) string {
+	if err == nil {
+		return "unknown"
+	}
+	msg := strings.ToLower(err.Error())
+	switch {
+	case strings.Contains(msg, "connection refused"):
+		return "connection_refused"
+	case strings.Contains(msg, "deadline exceeded"), strings.Contains(msg, "timeout"):
+		return "timeout"
+	case strings.Contains(msg, "no such host"):
+		return "dns_error"
+	case strings.Contains(msg, "http 401"):
+		return "http_401"
+	case strings.Contains(msg, "http 403"):
+		return "http_403"
+	case strings.Contains(msg, "http 404"):
+		return "http_404"
+	case strings.Contains(msg, "http 429"):
+		return "http_429"
+	case strings.Contains(msg, "http 503"):
+		return "http_503"
+	case strings.Contains(msg, "http "):
+		return "http_error"
+	default:
+		return "backend_error"
+	}
 }
 
 func noBackendsError(result *config.Result) envelope.Error {

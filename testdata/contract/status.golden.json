@@ -96,7 +96,7 @@
           "message": "backend 'llamacpp' is unreachable",
           "details": {
             "backend": "llamacpp",
-            "error": "GET /v1/models returned HTTP 503"
+            "error_class": "http_503"
           }
         },
         {
@@ -118,7 +118,7 @@
       "message": "backend 'llamacpp' is unreachable",
       "details": {
         "backend": "llamacpp",
-        "error": "GET /v1/models returned HTTP 503"
+        "error_class": "http_503"
       }
     },
     {

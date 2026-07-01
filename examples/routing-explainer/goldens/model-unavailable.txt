@@ -1,0 +1,15 @@
+selected: qwen3:8b on ollama (fallback)
+reason: selected fallback because primary 'primary:70b' is unavailable
+
+candidates:
+  role      backend          model                  status
+  primary  ollama           primary:70b            not_installed
+  fallback ollama           qwen3:8b               selected_ready
+
+prompt:
+  15 estimated tokens / 8192 max context tokens
+
+warnings:
+- W_FALLBACK_USED: routed to fallback 'qwen3:8b' because primary 'primary:70b' is unavailable
+
+next: inferctl model qwen3:8b --json

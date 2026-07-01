@@ -1,0 +1,14 @@
+selected: qwen3:8b on ollama
+reason: primary model is available
+
+candidates:
+  role      backend          model                  status
+  primary  ollama           qwen3:8b               selected_ready
+
+prompt:
+  10 estimated tokens / 10 max context tokens
+
+warnings:
+- W_CONTEXT_NEAR_LIMIT: prompt is near the configured context limit
+
+next: inferctl config show --key profile.max_context_tokens --json

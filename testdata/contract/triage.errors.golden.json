@@ -34,7 +34,7 @@
       },
       "details": {
         "backend": "ollama",
-        "error": "GET /api/version returned HTTP 503"
+        "error_class": "http_503"
       }
     },
     {

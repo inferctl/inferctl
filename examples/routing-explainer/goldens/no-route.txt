@@ -1,0 +1,12 @@
+selected: none
+reason: no candidate model for task 'code' is reachable
+
+candidates:
+  role      backend          model                  status
+  primary  ollama           primary:70b            not_installed
+  fallback                  fallback:8b            not_installed
+
+prompt:
+  15 estimated tokens / 8192 max context tokens
+
+next: inferctl doctor --json
