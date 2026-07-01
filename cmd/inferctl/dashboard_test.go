@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/inferctl/inferctl/pkg/inferctl"
 )
 
 func TestDashboardStatusFeedArgsUsePublicStatusWatchFeed(t *testing.T) {
@@ -75,6 +77,48 @@ func TestDashboardParsesErrorEnvelope(t *testing.T) {
 	msg := dashboardRecordFromEnvelope(line)
 	if msg.err == nil || !strings.Contains(msg.err.Error(), "status feed failed") {
 		t.Fatalf("error msg = %#v", msg)
+	}
+}
+
+func TestDashboardViewShowsFallbackAndNewestEventsFirst(t *testing.T) {
+	model := dashboardModel{
+		source: statusFeedSource{Binary: "inferctl", Interval: 2 * time.Second},
+		snapshot: &statusSnapshot{
+			Summary: statusSummary{BackendsTotal: 2, BackendsReachable: 1, ModelsExposedTotal: 1, ModelsLoadedTotal: 1, RoutesTotal: 1, RoutesReady: 1, WarningsTotal: 2},
+			Backends: []statusBackend{
+				{Name: "llamacpp", Kind: "llama.cpp", BaseURL: "http://127.0.0.1:8080", Reachable: false},
+				{Name: "ollama", Kind: "ollama", BaseURL: "http://127.0.0.1:11434", Reachable: true},
+			},
+			Routes: []statusRoute{{
+				Task: "code",
+				Decision: inferctl.RouteDecision{
+					SelectedBackend: "ollama",
+					SelectedModel:   "fallback:8b",
+					Ready:           true,
+					IsFallback:      true,
+					Reason:          "selected fallback because primary is unavailable",
+				},
+			}},
+		},
+		events: []statusEvent{
+			{Severity: "medium", Summary: "older event"},
+			{Severity: "high", Summary: "newest event"},
+		},
+	}
+	view := model.View()
+	for _, want := range []string{
+		"Backends 1/2 reachable",
+		"down llamacpp",
+		"code             ollama/fallback:8b",
+		"yes    yes",
+		"dashboard is read-only",
+	} {
+		if !strings.Contains(view, want) {
+			t.Fatalf("dashboard view missing %q:\n%s", want, view)
+		}
+	}
+	if strings.Index(view, "newest event") > strings.Index(view, "older event") {
+		t.Fatalf("events not newest-first:\n%s", view)
 	}
 }
 

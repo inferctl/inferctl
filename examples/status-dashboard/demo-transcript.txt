@@ -1,0 +1,36 @@
+$ inferctl status --json | jq '.data.summary'
+{
+  "backends_total": 2,
+  "backends_reachable": 1,
+  "models_exposed_total": 1,
+  "models_loaded_total": 1,
+  "routes_total": 1,
+  "routes_ready": 1,
+  "warnings_total": 3
+}
+
+$ inferctl status --json --watch --events --interval 200ms
+{"ok":true,"data":{"status_frame_schema_version":"0.1","summary":{"backends_total":2,"backends_reachable":1,"routes_total":1,"routes_ready":1,"warnings_total":3},"routes":[{"task":"code","decision":{"selected_backend":"ollama","selected_model":"fallback:8b","is_fallback":true,"ready":true}}]}}
+{"ok":true,"data":{"event_schema_version":"0.1","events":[{"kind":"backend_reachability_changed","severity":"medium","summary":"backend llamacpp became reachable"},{"kind":"fallback_status_changed","severity":"high","summary":"route code stopped using fallback"},{"kind":"selected_route_changed","severity":"high","summary":"route code changed from ollama/fallback:8b to llamacpp/primary.gguf"}]}}
+
+$ inferctl dashboard --interval 2s
+inferctl dashboard
+source: inferctl status --json --watch --events --interval 2s
+
+Backends 2/2 reachable   Models 2 loaded / 2 exposed   Routes 1/1 ready   Warnings 0
+
+Backends
+  STATE  NAME             KIND           BASE URL
+  up   llamacpp         llama.cpp      http://127.0.0.1:<primary-port>
+  up   ollama           ollama         http://127.0.0.1:<fallback-port>
+
+Routes
+  TASK             SELECTED                    READY  FALLBACK  REASON
+  code             llamacpp/primary.gguf       yes    no        primary model is available
+
+Recent Events
+  [high] route code changed from ollama/fallback:8b to llamacpp/primary.gguf
+  [high] route code stopped using fallback
+  [medium] backend llamacpp became reachable
+
+q or ctrl+c exits; dashboard is read-only

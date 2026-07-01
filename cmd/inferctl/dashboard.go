@@ -136,7 +136,7 @@ func (m dashboardModel) View() string {
 		return b.String()
 	}
 	s := m.snapshot.Summary
-	fmt.Fprintf(&b, "backends: %d/%d reachable   models: %d loaded / %d exposed   routes: %d/%d ready   warnings: %d\n\n",
+	fmt.Fprintf(&b, "Backends %d/%d reachable   Models %d loaded / %d exposed   Routes %d/%d ready   Warnings %d\n\n",
 		s.BackendsReachable,
 		s.BackendsTotal,
 		s.ModelsLoadedTotal,
@@ -146,31 +146,46 @@ func (m dashboardModel) View() string {
 		s.WarningsTotal,
 	)
 	b.WriteString("Backends\n")
+	b.WriteString("  STATE  NAME             KIND           BASE URL\n")
 	for _, backend := range m.snapshot.Backends {
-		marker := "ok"
-		if !backend.Reachable {
-			marker = "down"
-		}
+		marker := dashboardBackendState(backend)
 		fmt.Fprintf(&b, "  %-4s %-16s %-14s %s\n", marker, backend.Name, backend.Kind, backend.BaseURL)
 	}
 	b.WriteString("\nRoutes\n")
+	b.WriteString("  TASK             SELECTED                    READY  FALLBACK  REASON\n")
 	for _, route := range m.snapshot.Routes {
-		fmt.Fprintf(&b, "  %-16s -> %s/%s ready=%v fallback=%v\n",
+		selected := route.Decision.SelectedBackend + "/" + route.Decision.SelectedModel
+		fmt.Fprintf(&b, "  %-16s %-27s %-5s  %-8s  %s\n",
 			route.Task,
-			route.Decision.SelectedBackend,
-			route.Decision.SelectedModel,
-			route.Decision.Ready,
-			route.Decision.IsFallback,
+			selected,
+			dashboardBool(route.Decision.Ready),
+			dashboardBool(route.Decision.IsFallback),
+			route.Decision.Reason,
 		)
 	}
 	if len(m.events) > 0 {
-		b.WriteString("\nEvents\n")
-		for _, event := range m.events {
+		b.WriteString("\nRecent Events\n")
+		for i := len(m.events) - 1; i >= 0; i-- {
+			event := m.events[i]
 			fmt.Fprintf(&b, "  [%s] %s\n", event.Severity, event.Summary)
 		}
 	}
-	b.WriteString("\nq or ctrl+c to quit\n")
+	b.WriteString("\nq or ctrl+c exits; dashboard is read-only\n")
 	return b.String()
+}
+
+func dashboardBackendState(backend statusBackend) string {
+	if backend.Reachable {
+		return "up"
+	}
+	return "down"
+}
+
+func dashboardBool(value bool) string {
+	if value {
+		return "yes"
+	}
+	return "no"
 }
 
 type dashboardFeed struct {
