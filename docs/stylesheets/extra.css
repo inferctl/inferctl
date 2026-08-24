@@ -1,0 +1,136 @@
+/* Starlight-inspired skin over mkdocs-material, in inferctl brand colors */
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #0b0d10;
+  --md-primary-fg-color--light: #0b0d10;
+  --md-primary-fg-color--dark: #0b0d10;
+  --md-primary-bg-color: #e6edf3;
+  --md-accent-fg-color: #4d9bc4;
+  --md-accent-fg-color--transparent: #4d9bc41a;
+  --md-default-bg-color: #0b0d10;
+  --md-default-fg-color: #e6edf3;
+  --md-default-fg-color--light: #9da7b3;
+  --md-default-fg-color--lighter: #6e7681;
+  --md-typeset-a-color: #4d9bc4;
+  --md-code-bg-color: #161b22;
+  --md-code-fg-color: #e6edf3;
+  --md-footer-bg-color: #0b0d10;
+  --md-footer-fg-color: #6e7681;
+  --md-hairline-color: #21262d;
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #f5f1ed;
+  --md-primary-fg-color--light: #f5f1ed;
+  --md-primary-fg-color--dark: #f5f1ed;
+  --md-primary-bg-color: #2a2521;
+  --md-accent-fg-color: #b87333;
+  --md-accent-fg-color--transparent: #b873331a;
+  --md-default-bg-color: #f5f1ed;
+  --md-default-fg-color: #2a2521;
+  --md-default-fg-color--light: #5c5650;
+  --md-default-fg-color--lighter: #8a837c;
+  --md-typeset-a-color: #b87333;
+  --md-code-bg-color: #ece6df;
+  --md-code-fg-color: #2a2521;
+  --md-footer-bg-color: #f5f1ed;
+  --md-footer-fg-color: #8a837c;
+  --md-hairline-color: #ded5cb;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+.md-typeset code, .md-typeset pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background-color: #0b0d10;
+  border-bottom: 1px solid #21262d;
+  box-shadow: none;
+}
+
+[data-md-color-scheme="default"] .md-header {
+  background-color: #f5f1ed;
+  color: #2a2521;
+  border-bottom: 1px solid #ded5cb;
+  box-shadow: none;
+}
+
+.md-header .md-header__title {
+  visibility: hidden;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg,
+.md-nav__button.md-logo img,
+.md-nav__button.md-logo svg {
+  width: auto;
+}
+
+.md-tabs {
+  display: none;
+}
+
+.md-nav__link--active {
+  background: none;
+  color: #4d9bc4 !important;
+  border-left: 2px solid #4d9bc4;
+  padding-left: .6rem;
+  margin-left: -.6rem;
+}
+
+.md-nav__item .md-nav__link:hover {
+  color: #4d9bc4;
+}
+
+.md-sidebar {
+  font-size: .75rem;
+}
+
+.md-nav--secondary .md-nav__title {
+  font-size: .65rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #6e7681;
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+  border-radius: 8px;
+  background-color: #161b22;
+}
+
+[data-md-color-scheme="default"] .md-search__input {
+  border-radius: 8px;
+  background-color: #ece6df;
+}
+
+.md-typeset pre > code {
+  border-radius: 8px;
+  border: 1px solid var(--md-hairline-color);
+}
+
+.md-typeset .highlight {
+  border-radius: 8px;
+  border: 1px solid var(--md-hairline-color);
+}
+
+.md-typeset {
+  line-height: 1.7;
+}
+
+.md-content__inner {
+  max-width: 46rem;
+}
+
+[data-md-color-scheme="slate"] .md-footer,
+[data-md-color-scheme="slate"] .md-footer-meta {
+  background-color: #0b0d10;
+}
+
+[data-md-color-scheme="default"] .md-footer,
+[data-md-color-scheme="default"] .md-footer-meta {
+  background-color: #f5f1ed;
+}

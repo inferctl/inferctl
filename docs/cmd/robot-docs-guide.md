@@ -1,0 +1,1 @@
+../../cmd/inferctl/robot_docs_guide.md
