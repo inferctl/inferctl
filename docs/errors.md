@@ -1,3 +1,10 @@
+---
+title: Error Catalog
+description: Find inferctl error and warning codes with remediation guidance.
+bucket: project
+order: 40
+---
+
 # inferctl error catalog
 
 Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go generate ./internal/contract`.

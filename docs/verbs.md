@@ -1,3 +1,10 @@
+---
+title: Command Reference
+description: Review inferctl commands, arguments, flags, and examples.
+bucket: guides
+order: 30
+---
+
 # inferctl v0.1 verbs
 
 Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go generate ./internal/contract`.

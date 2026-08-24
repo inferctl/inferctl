@@ -1,3 +1,10 @@
+---
+title: Landscape
+description: See where inferctl fits in the local inference tooling stack.
+bucket: project
+order: 10
+---
+
 # The local-inference landscape
 
 Most "X vs Y" arguments about local LLM tooling are really layer confusion — someone comparing a runtime to a gateway, or a proxy to a control plane. They aren't rivals; they do different jobs at different levels of the stack. Here's the whole stack, so you can see which tools compete and which compose.
@@ -43,4 +50,4 @@ That's why "why isn't inferctl just a gateway?" has a clean answer: a gateway *i
 
 ## Zoom in
 
-For a head-to-head of inferctl against the two tools it's most often confused with — Ollama CLI and llama-swap — see [Comparison](comparison.md).
+For a head-to-head of inferctl against the two tools it's most often confused with — Ollama CLI and llama-swap — see [Comparison](/docs/comparison/).

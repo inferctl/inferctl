@@ -1,3 +1,10 @@
+---
+title: Public Readiness
+description: Review the current public release posture for inferctl.
+bucket: project
+order: 60
+---
+
 # Public-Readiness Decision Memo
 
 This memo records the v0.2.2 public-readiness posture.

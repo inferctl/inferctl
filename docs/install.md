@@ -1,3 +1,10 @@
+---
+title: Install
+description: Install inferctl from source or with the Go toolchain.
+bucket: guides
+order: 10
+---
+
 # Installing inferctl
 
 inferctl is installed from source with the Go toolchain. This project does not currently publish release binaries,

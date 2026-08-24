@@ -1,3 +1,10 @@
+---
+title: Lineage
+description: Learn how inferctl relates to the Ozhiaki tool family.
+bucket: project
+order: 70
+---
+
 # inferctl lineage
 
 inferctl is an independent Go implementation. The inference-router idea that

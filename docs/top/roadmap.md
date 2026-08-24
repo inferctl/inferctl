@@ -1,3 +1,10 @@
+---
+title: Roadmap
+description: Track delivered work, current work, and planned inferctl changes.
+bucket: project
+order: 50
+---
+
 # Roadmap
 
 Public-facing snapshot of where inferctl is headed. Not exhaustive — the working plan lives in the repo issue tracker.
@@ -23,7 +30,7 @@ Public-facing snapshot of where inferctl is headed. Not exhaustive — the worki
 
 ## Explicitly out of scope
 
-- inferctl does not proxy, retry, log, or otherwise touch inference traffic. It reports and routes at the control-plane level only — see [Agent Guide](../agent-guide.md) for the boundary.
+- inferctl does not proxy, retry, log, or otherwise touch inference traffic. It reports and routes at the control-plane level only — see the [Agent Guide](/docs/agent-guide/) for the boundary.
 
 ## Feedback
 

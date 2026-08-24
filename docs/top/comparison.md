@@ -1,7 +1,18 @@
+---
+title: Comparison
+description: Compare inferctl with local inference CLIs, process swappers, and proxies.
+bucket: project
+order: 20
+---
+
 # inferctl vs Ollama CLI vs llama-swap
 
-!!! info "inferctl is not a proxy"
-    Inference traffic never passes through inferctl. It runs out-of-band — inspecting backends, deciding routes, and reporting — while calls flow directly from your app to the backend. Tools like LiteLLM or Mozilla's Otari sit *in* the request path (data plane); inferctl sits *beside* it (control plane). For the full stack and where each layer fits, see [Landscape](landscape.md).
+> **inferctl is not a proxy.** Inference traffic never passes through inferctl.
+> It runs out-of-band — inspecting backends, deciding routes, and reporting —
+> while calls flow directly from your app to the backend. Tools like LiteLLM or
+> Mozilla's Otari sit *in* the request path (data plane); inferctl sits *beside*
+> it (control plane). For the full stack and where each layer fits, see
+> [Landscape](/docs/landscape/).
 
 Three tools, three jobs. Picking the wrong one means fighting the tool.
 

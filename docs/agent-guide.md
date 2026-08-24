@@ -1,3 +1,10 @@
+---
+title: Agent Guide
+description: Use inferctl safely from automated and agent-driven workflows.
+bucket: guides
+order: 20
+---
+
 # inferctl Agent Guide
 
 This guide is for agents that need repeatable local-model routing decisions without running inference. Prefer `--json` for every command you automate; the JSON envelope keeps `data`, `warnings`, `commands`, and `errors` separate.
