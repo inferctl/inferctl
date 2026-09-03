@@ -1,8 +1,9 @@
 # Releasing inferctl
 
-v0.2.2 is a public-readiness release with Go-toolchain installation only. Do
-not publish binaries, installers, Homebrew formulae, Scoop manifests, GoReleaser
-artifacts, or release archives for this launch posture.
+The current public tag is v0.3.0. The next release version must be selected
+before this procedure starts. This release posture uses Go-toolchain
+installation only. Do not publish binaries, installers, Homebrew formulae,
+Scoop manifests, GoReleaser artifacts, or release archives.
 
 GitHub Actions verification is intentionally manual-only for this phase. Treat
 local verification as the default release gate and use hosted Actions runs only
@@ -16,19 +17,21 @@ Use this sequence to validate a local release candidate:
 git status --short
 go generate ./internal/contract
 scripts/check-contract-goldens.sh
+scripts/check-public-readiness.sh
 go test ./...
 go vet ./...
 go build ./...
 examples/demo-1-install-moment.sh
 examples/demo-2-route-explained.sh
 examples/demo-3-agent-loop.sh
-git tag v0.2.2-rc.1
+examples/demo-4-agent-preflight-report.sh
+git tag <version>-rc.1
 ```
 
 If you push an RC tag, validate `go install` from a clean shell:
 
 ```sh
-go install github.com/inferctl/inferctl/cmd/inferctl@v0.2.2-rc.1
+go install github.com/inferctl/inferctl/cmd/inferctl@<version>-rc.1
 inferctl version --json | jq .data.tool_version
 ```
 
@@ -43,22 +46,24 @@ surface.
 
 ## Publish Source Tag
 
-When publishing v0.2.2, use a fresh reviewed commit and tag:
+After the release version is approved, use a fresh reviewed commit and tag:
 
 ```sh
 git status --short
 go generate ./internal/contract
 scripts/check-contract-goldens.sh
+scripts/check-public-readiness.sh
 go test ./...
 go vet ./...
 go build ./...
 examples/demo-1-install-moment.sh
 examples/demo-2-route-explained.sh
 examples/demo-3-agent-loop.sh
-git tag -a v0.2.2 -m "inferctl v0.2.2"
+examples/demo-4-agent-preflight-report.sh
+git tag -a <version> -m "inferctl <version>"
 git push origin main
-git push origin v0.2.2
-go install github.com/inferctl/inferctl/cmd/inferctl@v0.2.2
+git push origin <version>
+go install github.com/inferctl/inferctl/cmd/inferctl@<version>
 go install github.com/inferctl/inferctl/cmd/inferctl@latest
 ```
 
@@ -70,7 +75,7 @@ The public install path is Go toolchain only.
 For a local-only RC tag:
 
 ```sh
-git tag -d v0.2.2-rc.1
+git tag -d <version>-rc.1
 rm -rf dist/
 ```
 
@@ -78,6 +83,6 @@ For a pushed public tag, delete only after deciding how to communicate the
 replacement release:
 
 ```sh
-git push origin :refs/tags/v0.2.2
-git tag -d v0.2.2
+git push origin :refs/tags/<version>
+git tag -d <version>
 ```

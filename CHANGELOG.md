@@ -8,8 +8,14 @@ gates are cleared.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-03
+
 ### Added
 
+- Added `preflight`, `snapshot`, `diff`, `status`, and `dashboard` to the
+  current source branch. These commands are not yet in a tag after v0.2.2.
+- Added deterministic agent, readiness, routing, drift, status, editor, and CI
+  examples for the current source branch.
 - Added curated verified-run artifact packs for generic `openai_compat`,
   LM Studio headless on Linux, and MLX on macOS arm64.
 - Documented verified provider workflow coverage across Ollama, llama.cpp,
@@ -26,6 +32,8 @@ gates are cleared.
 - Preflight clean negative readiness decisions now use exit `5` instead of
   invocation exit `1`: `E_PREFLIGHT_POLICY_BLOCKED` and deterministic no-route
   preflight results mean "do not run this task now", not "fix the invocation".
+- Clarified the difference between the current source branch and the v0.2.2
+  public tag in the install, roadmap, and release documentation.
 
 ### Removed
 

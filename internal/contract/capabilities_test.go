@@ -271,7 +271,8 @@ func TestPackagingDocsAndScriptsMatchExamplesDecision(t *testing.T) {
 		"No Windows installer, Scoop manifest, zip archive, or PATH mutation workflow",
 		"examples/` scripts remain source-only checkout artifacts",
 		"not packaged",
-		"tool_version: \"0.2.2\"",
+		"VERSION=vX.Y.Z",
+		"installed version must match `VERSION`",
 	}
 	for _, text := range required {
 		if !strings.Contains(install, text) {
@@ -307,6 +308,22 @@ func TestCapabilitiesDocsCoverCodesAndVerbs(t *testing.T) {
 	}
 	errorsDoc := readString(t, "../../docs/errors.md")
 	verbsDoc := readString(t, "../../docs/verbs.md")
+	for _, text := range []string{
+		"title: Error Catalog",
+		"bucket: project",
+	} {
+		if !strings.Contains(errorsDoc, text) {
+			t.Fatalf("docs/errors.md missing site metadata %q", text)
+		}
+	}
+	for _, text := range []string{
+		"title: Command Reference",
+		"bucket: guides",
+	} {
+		if !strings.Contains(verbsDoc, text) {
+			t.Fatalf("docs/verbs.md missing site metadata %q", text)
+		}
+	}
 	for code := range caps.ErrorCodes {
 		if !strings.Contains(errorsDoc, "`"+code+"`") {
 			t.Fatalf("docs/errors.md missing error code %s", code)

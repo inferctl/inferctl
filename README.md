@@ -14,10 +14,13 @@ Licensed under Apache 2.0 (see LICENSE and NOTICE).
 - Diagnoses backend health with `inferctl doctor`.
 - Lists configured backends and models without running inference.
 - Explains route selection with `inferctl route <task>`.
+- Checks whether automation can start with `inferctl preflight <task>`.
+- Captures, compares, and monitors control-plane state with `snapshot`, `diff`,
+  and `status`.
 - Shows, validates, and explains the v0.1 config format.
 - Emits a machine-readable contract with `inferctl capabilities --json`.
 
-v0.2.2 supports read-only adapters for Ollama, llama.cpp, generic
+The v0.3.0 tag supports read-only adapters for Ollama, llama.cpp, generic
 OpenAI-compatible `/v1/models` servers, LM Studio, and MLX. Remote
 authenticated `openai_compat` configuration is supported, but warmup, release,
 lock management, latency collection, and live inference execution are
@@ -53,7 +56,7 @@ inferctl version --json | jq .data.tool_version
 ```
 
 No release binaries, Homebrew formula, Scoop manifest, installer, or archive
-builds are published for v0.2.2.
+builds are published for v0.3.0.
 
 ### Local Checkout Build
 

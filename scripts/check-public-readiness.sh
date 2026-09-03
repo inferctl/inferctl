@@ -74,7 +74,10 @@ require_clean_grep "generic absolute home paths outside intentional tests" \
   '/Users/|/home/' \
   -- \
   ':(exclude)scripts/check-public-readiness.sh' \
-  ':(exclude)internal/contract/capabilities_test.go'
+  ':(exclude)internal/contract/capabilities_test.go' \
+  ':(exclude)examples/agent-drift-debug/test.sh' \
+  ':(exclude)examples/agent-drift-debug/validate-fixtures.sh' \
+  ':(exclude)examples/ci-markdown-summary/test.sh'
 
 section "beads"
 

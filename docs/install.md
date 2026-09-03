@@ -35,11 +35,12 @@ Expected result: local source builds normally report `tool_version: "dev"`.
 After pushing a public source tag, validate it from a clean shell:
 
 ```sh
-go install github.com/inferctl/inferctl/cmd/inferctl@v0.2.2
+VERSION=vX.Y.Z
+go install github.com/inferctl/inferctl/cmd/inferctl@"$VERSION"
 inferctl version --json | jq .data.tool_version
 ```
 
-Expected result: tagged installs should report `tool_version: "0.2.2"`.
+Expected result: the installed version must match `VERSION`.
 
 ## Windows
 

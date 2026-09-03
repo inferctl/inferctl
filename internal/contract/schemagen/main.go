@@ -60,6 +60,12 @@ func main() {
 
 func renderErrors(caps capabilities) string {
 	var b strings.Builder
+	b.WriteString("---\n")
+	b.WriteString("title: Error Catalog\n")
+	b.WriteString("description: Find inferctl error and warning codes with remediation guidance.\n")
+	b.WriteString("bucket: project\n")
+	b.WriteString("order: 40\n")
+	b.WriteString("---\n\n")
 	b.WriteString("# inferctl error catalog\n\n")
 	b.WriteString("Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go generate ./internal/contract`.\n\n")
 	b.WriteString("## Errors\n\n")
@@ -87,6 +93,12 @@ func renderErrors(caps capabilities) string {
 
 func renderVerbs(caps capabilities) string {
 	var b strings.Builder
+	b.WriteString("---\n")
+	b.WriteString("title: Command Reference\n")
+	b.WriteString("description: Review inferctl commands, arguments, flags, and examples.\n")
+	b.WriteString("bucket: guides\n")
+	b.WriteString("order: 30\n")
+	b.WriteString("---\n\n")
 	b.WriteString("# inferctl v0.1 verbs\n\n")
 	b.WriteString("Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go generate ./internal/contract`.\n\n")
 	for _, verb := range caps.Verbs {

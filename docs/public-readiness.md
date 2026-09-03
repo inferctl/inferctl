@@ -7,7 +7,7 @@ order: 60
 
 # Public-Readiness Decision Memo
 
-This memo records the v0.2.2 public-readiness posture.
+This memo records the v0.3.0 public-release posture.
 
 ## Current Posture
 
