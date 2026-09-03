@@ -20,11 +20,15 @@ Public-facing snapshot of where inferctl is headed. Not exhaustive — the worki
   control-plane state
 - `status` and `dashboard` — machine status frames and a human status view
 - Agent and CI examples for routing, readiness, drift checks, and status
+- v0.3.0 provider matrix verification with real Ollama, llama.cpp, LM Studio,
+  MLX, and OpenAI-compatible endpoints
+- Clean `go install` validation for the v0.3.0 public source tag
 
 ## Next
 
-- Backend compatibility verification across the full provider matrix
-- Validate each new public source tag with a clean `go install` workflow
+- Use inferctl in evalctl, inferctl, and spoolctl workflows. Record user
+  feedback from those workflows before selecting the next feature.
+- Validate each new public source tag with a clean `go install` workflow.
 
 ## Later
 
@@ -37,4 +41,6 @@ Public-facing snapshot of where inferctl is headed. Not exhaustive — the worki
 
 ## Feedback
 
-Roadmap priorities shift based on real usage. Open an issue or discussion on [GitHub](https://github.com/inferctl/inferctl) if something here should move up.
+The maintainers use inferctl in real workflows to guide priorities. Open an
+issue or discussion on [GitHub](https://github.com/inferctl/inferctl) if a need
+should move up.
