@@ -24,6 +24,20 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 | `E_CONFIG_UNREADABLE` | v0.1 | 3 | false | config file at <path> could not be read: <reason> | `#/schemas/error_details/E_CONFIG_UNREADABLE` |
 | `E_CONFIG_VALIDATION_FAILED` | v0.1 | 1 | false | config validation found <n> error(s) and <m> warning(s) | `#/schemas/error_details/E_CONFIG_VALIDATION_FAILED` |
 | `E_CONFIG_WRITE_FAILED` | v0.2 | 3 | false | could not write config to <path>: <reason> | `#/schemas/error_details/E_CONFIG_WRITE_FAILED` |
+| `E_CREDENTIAL_REFERENCE_CONFLICT` | v0.2 | 1 | false | credential reference fields conflict | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_CONFLICT` |
+| `E_CREDENTIAL_REFERENCE_ENVIRONMENT_EMPTY` | v0.2 | 3 | false | environment credential value is empty | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_EMPTY` |
+| `E_CREDENTIAL_REFERENCE_ENVIRONMENT_MISSING` | v0.2 | 3 | false | environment credential variable is missing | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_MISSING` |
+| `E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_INVALID` | v0.2 | 1 | false | environment credential variable name is invalid | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_INVALID` |
+| `E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_REQUIRED` | v0.2 | 1 | false | environment credential variable is required | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_REQUIRED` |
+| `E_CREDENTIAL_REFERENCE_HEADER_NAME_REQUIRED` | v0.2 | 1 | false | credential reference requires an auth header name | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_HEADER_NAME_REQUIRED` |
+| `E_CREDENTIAL_REFERENCE_LITERAL_REQUIRED` | v0.2 | 1 | false | literal credential value is required | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_LITERAL_REQUIRED` |
+| `E_CREDENTIAL_REFERENCE_SOURCE_FIELD_CONFLICT` | v0.2 | 1 | false | credential source fields conflict | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_SOURCE_FIELD_CONFLICT` |
+| `E_CREDENTIAL_REFERENCE_SOURCE_REQUIRED` | v0.2 | 1 | false | credential reference source is required | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_SOURCE_REQUIRED` |
+| `E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED` | v0.2 | 3 | false | credential reference source is unsupported | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED` |
+| `E_CREDENTIAL_REFERENCE_UNSUPPORTED_BACKEND` | v0.2 | 1 | false | credential reference backend is unsupported | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_UNSUPPORTED_BACKEND` |
+| `E_CREDENTIAL_REFERENCE_VALUE_UNUSABLE` | v0.2 | 3 | false | credential value is unusable | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_VALUE_UNUSABLE` |
+| `E_CREDENTIAL_REFERENCE_VERSION_REQUIRED` | v0.2 | 1 | false | credential reference version is required | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_VERSION_REQUIRED` |
+| `E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED` | v0.2 | 1 | false | credential reference version is unsupported | `#/schemas/error_details/E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED` |
 | `E_INCOMPATIBLE_FLAGS` | v0.1 | 1 | false | flags <flag_a> and <flag_b> cannot be used together | `#/schemas/error_details/E_INCOMPATIBLE_FLAGS` |
 | `E_INVALID_ARG` | v0.1 | 1 | false | invalid value for <arg_name>: '<given>' (expected: <description>) | `#/schemas/error_details/E_INVALID_ARG` |
 | `E_MISSING_ARG` | v0.1 | 1 | false | verb '<verb>' requires <arg_name> | `#/schemas/error_details/E_MISSING_ARG` |

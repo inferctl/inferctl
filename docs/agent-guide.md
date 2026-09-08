@@ -84,7 +84,8 @@ source = "literal"
 literal_value = "Bearer <local-token>"
 ```
 
-The old `auth_header_value` form remains supported for compatibility. Run
+The old `auth_header_value` form remains supported through v0.6 for
+compatibility. Run
 `inferctl config validate --json` to get its migration warning, then move the
 same local literal to `credential.literal_value`. Do not set both forms in one
 backend. The placeholder is literal text; inferctl does not expand it.

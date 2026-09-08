@@ -1299,6 +1299,104 @@
       "retryable": false,
       "message_template": "config validation found <n> error(s) and <m> warning(s)",
       "details_schema_ref": "#/schemas/error_details/E_CONFIG_VALIDATION_FAILED"
+    },
+    "E_CREDENTIAL_REFERENCE_CONFLICT": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "credential reference fields conflict",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_CONFLICT"
+    },
+    "E_CREDENTIAL_REFERENCE_ENVIRONMENT_EMPTY": {
+      "status": "v0.2",
+      "exit_code": 3,
+      "retryable": false,
+      "message_template": "environment credential value is empty",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_EMPTY"
+    },
+    "E_CREDENTIAL_REFERENCE_ENVIRONMENT_MISSING": {
+      "status": "v0.2",
+      "exit_code": 3,
+      "retryable": false,
+      "message_template": "environment credential variable is missing",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_MISSING"
+    },
+    "E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_INVALID": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "environment credential variable name is invalid",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_INVALID"
+    },
+    "E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_REQUIRED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "environment credential variable is required",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_REQUIRED"
+    },
+    "E_CREDENTIAL_REFERENCE_HEADER_NAME_REQUIRED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "credential reference requires an auth header name",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_HEADER_NAME_REQUIRED"
+    },
+    "E_CREDENTIAL_REFERENCE_LITERAL_REQUIRED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "literal credential value is required",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_LITERAL_REQUIRED"
+    },
+    "E_CREDENTIAL_REFERENCE_SOURCE_FIELD_CONFLICT": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "credential source fields conflict",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_SOURCE_FIELD_CONFLICT"
+    },
+    "E_CREDENTIAL_REFERENCE_SOURCE_REQUIRED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "credential reference source is required",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_SOURCE_REQUIRED"
+    },
+    "E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED": {
+      "status": "v0.2",
+      "exit_code": 3,
+      "retryable": false,
+      "message_template": "credential reference source is unsupported",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED"
+    },
+    "E_CREDENTIAL_REFERENCE_UNSUPPORTED_BACKEND": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "credential reference backend is unsupported",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_UNSUPPORTED_BACKEND"
+    },
+    "E_CREDENTIAL_REFERENCE_VALUE_UNUSABLE": {
+      "status": "v0.2",
+      "exit_code": 3,
+      "retryable": false,
+      "message_template": "credential value is unusable",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_VALUE_UNUSABLE"
+    },
+    "E_CREDENTIAL_REFERENCE_VERSION_REQUIRED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "credential reference version is required",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_VERSION_REQUIRED"
+    },
+    "E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "credential reference version is unsupported",
+      "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED"
     }
   },
   "warning_codes": {
