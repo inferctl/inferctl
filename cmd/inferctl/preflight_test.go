@@ -36,6 +36,12 @@ func TestPreflightPrimaryReady(t *testing.T) {
 	if env.Data.Route.Decision.SelectedModel != env.Data.RouteDecision.SelectedModel {
 		t.Fatalf("route alias = %#v route_decision=%#v", env.Data.Route, env.Data.RouteDecision)
 	}
+	if env.Data.Handoff == nil || env.Data.Handoff.Version != "v1" || env.Data.Handoff.Model != "qwen3:8b" || env.Data.Handoff.Backend != "ollama" || !strings.HasPrefix(env.Data.Handoff.ConfigurationFingerprint, "v1:sha256:") {
+		t.Fatalf("handoff = %#v", env.Data.Handoff)
+	}
+	if strings.Contains(string(stdout), "auth_header_value") || strings.Contains(string(stdout), "literal_value") {
+		t.Fatalf("handoff output contains private config data: %s", stdout)
+	}
 	if env.Data.Summary.Status != "runnable" || env.Data.Summary.Message == "" {
 		t.Fatalf("summary = %#v", env.Data.Summary)
 	}

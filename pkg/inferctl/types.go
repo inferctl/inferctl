@@ -131,3 +131,16 @@ type RecommendedOption struct {
 	Command   string `json:"command"`
 	Rationale string `json:"rationale"`
 }
+
+// ExecutionHandoff contains only public information needed by a caller that
+// owns its own inference request, retries, streaming, and lifecycle actions.
+type ExecutionHandoff struct {
+	Version                  string                        `json:"version"`
+	ContractVersion          string                        `json:"contract_version"`
+	ConfigurationFingerprint string                        `json:"configuration_fingerprint"`
+	Backend                  string                        `json:"backend"`
+	BaseURL                  string                        `json:"base_url"`
+	Model                    string                        `json:"model"`
+	NumCtx                   *int                          `json:"num_ctx"`
+	Capabilities             map[string]CapabilityEvidence `json:"capabilities"`
+}

@@ -31,6 +31,7 @@ type preflightReport struct {
 	Summary                preflightSummary            `json:"summary"`
 	Warnings               []envelope.Warning          `json:"warnings"`
 	RecommendedAction      *inferctl.RecommendedAction `json:"recommended_action"`
+	Handoff                *inferctl.ExecutionHandoff  `json:"handoff,omitempty"`
 }
 
 type preflightRunnability struct {
@@ -180,7 +181,25 @@ func runPreflight(ctx context.Context, cmd *cobra.Command, task string, opts pre
 		report.applyRunnability()
 		return report, warnings, commands, &errObj
 	}
+	fingerprint, err := config.ConfigurationFingerprint(result.Config)
+	if err != nil {
+		errObj := envelope.Error{Code: "E_BINARY_INTERNAL", Message: "could not create configuration fingerprint", ExitCode: exitEnvironment, Retryable: false, Details: map[string]any{}}
+		return report, warnings, commands, &errObj
+	}
+	report.Handoff = executionHandoff(result.Config, route, fingerprint.Value)
 	return report, warnings, commands, nil
+}
+
+func executionHandoff(cfg config.Config, route routeReport, fingerprint string) *inferctl.ExecutionHandoff {
+	backend := cfg.Backends[route.Decision.SelectedBackend]
+	capabilities := map[string]inferctl.CapabilityEvidence{}
+	for _, candidate := range route.Candidates {
+		if candidate.Model == route.Decision.SelectedModel && candidate.Backend != nil && *candidate.Backend == route.Decision.SelectedBackend {
+			capabilities = candidate.Capabilities
+			break
+		}
+	}
+	return &inferctl.ExecutionHandoff{Version: "v1", ContractVersion: envelope.ContractVersion, ConfigurationFingerprint: fingerprint, Backend: route.Decision.SelectedBackend, BaseURL: backend.BaseURL, Model: route.Decision.SelectedModel, NumCtx: cfg.Routing[route.Task].NumCtx, Capabilities: capabilities}
 }
 
 func errorPreflightReport(task string, prompt promptMetadata, opts preflightOptions, errObj envelope.Error) preflightReport {
