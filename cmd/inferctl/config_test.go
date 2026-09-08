@@ -147,6 +147,38 @@ func TestConfigShowTypedCredentialRedactsLiteralValue(t *testing.T) {
 	}
 }
 
+func TestConfigFingerprintDriftStates(t *testing.T) {
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, typedCredentialConfig))
+	stdout, _, err := executeForTest("config", "fingerprint", "--json")
+	if err != nil {
+		t.Fatalf("fingerprint error = %v stdout=%s", err, stdout)
+	}
+	var env struct {
+		Data struct {
+			Fingerprint struct {
+				Value string `json:"value"`
+			} `json:"fingerprint"`
+			Drift struct {
+				Status string `json:"status"`
+			} `json:"drift"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(env.Data.Fingerprint.Value, "v1:sha256:") || env.Data.Drift.Status != "not_checked" {
+		t.Fatalf("fingerprint result = %s", stdout)
+	}
+	stdout, _, err = executeForTest("config", "fingerprint", "--expect", env.Data.Fingerprint.Value, "--json")
+	if err != nil || !strings.Contains(stdout, `"status":"match"`) {
+		t.Fatalf("match result err=%v stdout=%s", err, stdout)
+	}
+	stdout, _, err = executeForTest("config", "fingerprint", "--expect", "v2:sha256:x", "--json")
+	if err != nil || !strings.Contains(stdout, `"status":"unsupported_format"`) {
+		t.Fatalf("format result err=%v stdout=%s", err, stdout)
+	}
+}
+
 func TestConfigShowMissingConfigError(t *testing.T) {
 	t.Setenv("INFERCTL_CONFIG", filepath.Join(t.TempDir(), "missing.toml"))
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())

@@ -24,6 +24,26 @@ func newConfigCommand(jsonFlag *bool) *cobra.Command {
 	cmd.AddCommand(newConfigInitCommand(jsonFlag))
 	cmd.AddCommand(newConfigSetCommand(jsonFlag))
 	cmd.AddCommand(newConfigPatchCommand(jsonFlag))
+	cmd.AddCommand(newConfigFingerprintCommand(jsonFlag))
+	return cmd
+}
+
+func newConfigFingerprintCommand(jsonFlag *bool) *cobra.Command {
+	var expect string
+	cmd := &cobra.Command{Use: "fingerprint", Short: "Print the public configuration fingerprint", Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			result, err := (config.Loader{}).Load(config.LoadOptions{})
+			if err != nil {
+				return writeError(cmd, *jsonFlag, configLoadError(err))
+			}
+			fingerprint, err := config.ConfigurationFingerprint(result.Config)
+			if err != nil {
+				return err
+			}
+			data := map[string]any{"fingerprint": fingerprint, "drift": config.CheckConfigurationDrift(fingerprint, expect)}
+			return writeData(cmd, *jsonFlag, data, func() error { fmt.Fprintln(cmd.OutOrStdout(), fingerprint.Value); return nil })
+		}}
+	cmd.Flags().StringVar(&expect, "expect", "", "expected v1 configuration fingerprint")
 	return cmd
 }
 

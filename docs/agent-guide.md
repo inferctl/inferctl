@@ -110,6 +110,11 @@ It omits `auth_header_value` and its provenance. Config mutation previews also
 redact both credential literal forms. Other output can include backend names
 and `base_url` values, so review it before you share it.
 
+Use `inferctl config fingerprint --json` to record the versioned public
+configuration identity. It excludes resolved credential values. Pass a prior
+value with `--expect` to receive `match`, `mismatch`, or
+`unsupported_format` in `data.drift`.
+
 ## Discovery Composition
 
 `inferctl discover` probes fixed localhost ports and reports verified local backend candidates. It can emit TOML patches for config composition:
