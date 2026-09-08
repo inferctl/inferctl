@@ -234,6 +234,21 @@ func configFileJSONSchema() map[string]any {
 					}),
 				},
 			},
+			"models": map[string]any{
+				"type": "object", "additionalProperties": false,
+				"patternProperties": map[string]any{
+					"^[A-Za-z0-9_.-]+$": objectSchemaStrict([]string{"backend", "model"}, map[string]any{
+						"backend": map[string]any{"type": "string"},
+						"model":   map[string]any{"type": "string", "minLength": 1},
+						"capabilities": map[string]any{"type": "object", "additionalProperties": false, "patternProperties": map[string]any{
+							"^(tools|vision|json_mode|embeddings)$": objectSchemaStrict([]string{"status", "source"}, map[string]any{
+								"status": map[string]any{"enum": []string{config.CapabilityStatusSupported, config.CapabilityStatusUnsupported, config.CapabilityStatusUnknown}},
+								"source": map[string]any{"enum": []string{config.CapabilitySourceDeclared, config.CapabilitySourceObserved}},
+							}),
+						}},
+					}),
+				},
+			},
 			"routing": map[string]any{
 				"type":                 "object",
 				"additionalProperties": false,

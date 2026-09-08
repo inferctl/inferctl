@@ -69,9 +69,13 @@ func configKeyCatalog() []inferctl.ConfigKeyDef {
 		keyDef("backends.<name>.credential.literal_value", "string", false, nil, "Required only for the literal source. It is omitted from config show and redacted from mutation previews.", nil, "Bearer <local-token>"),
 		keyDef("backends.<name>.credential.environment_variable", "string", false, nil, "Environment variable name for the environment credential source. The value is resolved only for bounded control-plane checks and is never shown in public output.", nil, "INFERCTL_REMOTE_TOKEN"),
 		keyDef("backends.<name>.remote_allowed", "bool", false, false, "Allow a non-loopback openai_compat URL. This has no effect for other backend kinds.", nil, false),
-		keyDef("routing.<task>.model", "string", true, nil, "Primary model name for this task.", nil, "qwen3:8b"),
+		keyDef("models.<alias>.backend", "string", true, nil, "Configured backend for this stable model alias.", nil, "ollama"),
+		keyDef("models.<alias>.model", "string", true, nil, "Concrete backend model name for this stable alias.", nil, "qwen3:8b"),
+		keyDef("models.<alias>.capabilities.<capability>.status", "enum string", true, nil, "Capability result. It is supported, unsupported, or unknown.", []string{config.CapabilityStatusSupported, config.CapabilityStatusUnsupported, config.CapabilityStatusUnknown}, config.CapabilityStatusSupported),
+		keyDef("models.<alias>.capabilities.<capability>.source", "enum string", true, nil, "Source of capability evidence. inferctl does not infer capability from a model name.", []string{config.CapabilitySourceDeclared, config.CapabilitySourceObserved}, config.CapabilitySourceDeclared),
+		keyDef("routing.<task>.model", "string", true, nil, "Primary model name or stable configured model alias for this task.", nil, "code_small"),
 		keyDef("routing.<task>.backend", "string", true, nil, "Configured backend name for the primary model.", nil, "ollama"),
-		keyDef("routing.<task>.fallback", "[]string", false, []string{}, "Fallback model names tried in order.", nil, []string{"qwen3:4b"}),
+		keyDef("routing.<task>.fallback", "[]string", false, []string{}, "Fallback model names or aliases tried in order.", nil, []string{"code_small_fallback"}),
 		keyDef("routing.<task>.num_ctx", "int|null", false, nil, "Optional task-specific context window override.", nil, 4096),
 	}
 }

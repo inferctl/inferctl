@@ -4,6 +4,7 @@ type Config struct {
 	Meta     MetaConfig               `toml:"meta" json:"meta"`
 	Profile  ProfileConfig            `toml:"profile" json:"profile"`
 	Backends map[string]BackendConfig `toml:"backends" json:"backends"`
+	Models   map[string]ModelConfig   `toml:"models" json:"models"`
 	Routing  map[string]RoutingConfig `toml:"routing" json:"routing"`
 }
 
@@ -58,6 +59,28 @@ type RoutingConfig struct {
 	NumCtx   *int     `toml:"num_ctx" json:"num_ctx"`
 }
 
+// ModelConfig assigns a stable local alias to one concrete backend model.
+// Capability evidence is configuration data. Routing never derives it from a
+// model name.
+type ModelConfig struct {
+	Backend      string                        `toml:"backend" json:"backend"`
+	Model        string                        `toml:"model" json:"model"`
+	Capabilities map[string]CapabilityEvidence `toml:"capabilities" json:"capabilities"`
+}
+
+type CapabilityEvidence struct {
+	Status string `toml:"status" json:"status"`
+	Source string `toml:"source" json:"source"`
+}
+
+const (
+	CapabilityStatusSupported   = "supported"
+	CapabilityStatusUnsupported = "unsupported"
+	CapabilityStatusUnknown     = "unknown"
+	CapabilitySourceDeclared    = "declared"
+	CapabilitySourceObserved    = "observed"
+)
+
 func Defaults() Config {
 	return Config{
 		Meta: MetaConfig{SchemaVersion: "0.1"},
@@ -66,6 +89,7 @@ func Defaults() Config {
 			AllowPremium: false,
 		},
 		Backends: map[string]BackendConfig{},
+		Models:   map[string]ModelConfig{},
 		Routing:  map[string]RoutingConfig{},
 	}
 }

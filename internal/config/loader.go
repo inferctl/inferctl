@@ -84,6 +84,9 @@ func LoadBytes(data []byte, source SourcePaths, env map[string]string, opts Load
 	if cfg.Backends == nil {
 		cfg.Backends = map[string]BackendConfig{}
 	}
+	if cfg.Models == nil {
+		cfg.Models = map[string]ModelConfig{}
+	}
 	if cfg.Routing == nil {
 		cfg.Routing = map[string]RoutingConfig{}
 	}

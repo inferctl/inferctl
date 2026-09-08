@@ -41,6 +41,13 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 | `E_INCOMPATIBLE_FLAGS` | v0.1 | 1 | false | flags <flag_a> and <flag_b> cannot be used together | `#/schemas/error_details/E_INCOMPATIBLE_FLAGS` |
 | `E_INVALID_ARG` | v0.1 | 1 | false | invalid value for <arg_name>: '<given>' (expected: <description>) | `#/schemas/error_details/E_INVALID_ARG` |
 | `E_MISSING_ARG` | v0.1 | 1 | false | verb '<verb>' requires <arg_name> | `#/schemas/error_details/E_MISSING_ARG` |
+| `E_MODEL_ALIAS_BACKEND_CONFLICT` | v0.2 | 1 | false | routing backend conflicts with selected model alias | `#/schemas/error_details/E_MODEL_ALIAS_BACKEND_CONFLICT` |
+| `E_MODEL_ALIAS_BACKEND_UNKNOWN` | v0.2 | 1 | false | model alias backend is not configured | `#/schemas/error_details/E_MODEL_ALIAS_BACKEND_UNKNOWN` |
+| `E_MODEL_ALIAS_TARGET_REQUIRED` | v0.2 | 1 | false | model alias target is required | `#/schemas/error_details/E_MODEL_ALIAS_TARGET_REQUIRED` |
+| `E_MODEL_CAPABILITY_EVIDENCE_CONFLICT` | v0.2 | 1 | false | model capability evidence conflicts | `#/schemas/error_details/E_MODEL_CAPABILITY_EVIDENCE_CONFLICT` |
+| `E_MODEL_CAPABILITY_SOURCE_INVALID` | v0.2 | 1 | false | model capability evidence source is invalid | `#/schemas/error_details/E_MODEL_CAPABILITY_SOURCE_INVALID` |
+| `E_MODEL_CAPABILITY_STATUS_INVALID` | v0.2 | 1 | false | model capability status is invalid | `#/schemas/error_details/E_MODEL_CAPABILITY_STATUS_INVALID` |
+| `E_MODEL_CAPABILITY_UNKNOWN` | v0.2 | 1 | false | model capability is not recognized | `#/schemas/error_details/E_MODEL_CAPABILITY_UNKNOWN` |
 | `E_NO_BACKENDS_CONFIGURED` | v0.1 | 3 | false | config at <path> defines no backends | `#/schemas/error_details/E_NO_BACKENDS_CONFIGURED` |
 | `E_NO_ROUTE_AVAILABLE` | v0.1 | 4 | true | no candidate model for task '<task>' is reachable | `#/schemas/error_details/E_NO_ROUTE_AVAILABLE` |
 | `E_PREFLIGHT_POLICY_BLOCKED` | v0.2 | 5 | false | preflight policy blocks task '<task>': <reason> | `#/schemas/error_details/E_PREFLIGHT_POLICY_BLOCKED` |

@@ -1397,6 +1397,55 @@
       "retryable": false,
       "message_template": "credential reference version is unsupported",
       "details_schema_ref": "#/schemas/error_details/E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED"
+    },
+    "E_MODEL_ALIAS_BACKEND_CONFLICT": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "routing backend conflicts with selected model alias",
+      "details_schema_ref": "#/schemas/error_details/E_MODEL_ALIAS_BACKEND_CONFLICT"
+    },
+    "E_MODEL_ALIAS_BACKEND_UNKNOWN": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "model alias backend is not configured",
+      "details_schema_ref": "#/schemas/error_details/E_MODEL_ALIAS_BACKEND_UNKNOWN"
+    },
+    "E_MODEL_ALIAS_TARGET_REQUIRED": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "model alias target is required",
+      "details_schema_ref": "#/schemas/error_details/E_MODEL_ALIAS_TARGET_REQUIRED"
+    },
+    "E_MODEL_CAPABILITY_EVIDENCE_CONFLICT": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "model capability evidence conflicts",
+      "details_schema_ref": "#/schemas/error_details/E_MODEL_CAPABILITY_EVIDENCE_CONFLICT"
+    },
+    "E_MODEL_CAPABILITY_SOURCE_INVALID": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "model capability evidence source is invalid",
+      "details_schema_ref": "#/schemas/error_details/E_MODEL_CAPABILITY_SOURCE_INVALID"
+    },
+    "E_MODEL_CAPABILITY_STATUS_INVALID": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "model capability status is invalid",
+      "details_schema_ref": "#/schemas/error_details/E_MODEL_CAPABILITY_STATUS_INVALID"
+    },
+    "E_MODEL_CAPABILITY_UNKNOWN": {
+      "status": "v0.2",
+      "exit_code": 1,
+      "retryable": false,
+      "message_template": "model capability is not recognized",
+      "details_schema_ref": "#/schemas/error_details/E_MODEL_CAPABILITY_UNKNOWN"
     }
   },
   "warning_codes": {

@@ -70,6 +70,7 @@ func Validate(result *Result, strict bool) ValidationResult {
 	if len(cfg.Backends) > 0 && defaults != 1 {
 		findings = append(findings, derivedError("backends.*.default", "exactly one backend must set default=true", map[string]any{"default_count": defaults}))
 	}
+	findings = append(findings, validateModelCatalog(cfg, pos)...)
 
 	if cfg.Profile.MaxContextTokens <= 0 && hasKey(pos, "profile.max_context_tokens") {
 		findings = append(findings, errorFinding(pos, "profile.max_context_tokens", "value must be > 0", map[string]any{}))
@@ -96,6 +97,11 @@ func Validate(result *Result, strict bool) ValidationResult {
 				findings = append(findings, errorFinding(pos, prefix+"backend", "routing backend references a non-existent backend", map[string]any{"backend": route.Backend}))
 			}
 		}
+		if model, ok := cfg.ResolveModel(route.Model); ok && route.Backend != "" && route.Backend != model.Backend {
+			findings = append(findings, errorFinding(pos, prefix+"backend", "routing backend conflicts with the selected model alias", map[string]any{
+				"code": "E_MODEL_ALIAS_BACKEND_CONFLICT", "alias": route.Model, "alias_backend": model.Backend,
+			}))
+		}
 		if route.NumCtx != nil && *route.NumCtx > cfg.Profile.MaxContextTokens {
 			findings = append(findings, errorFinding(pos, prefix+"num_ctx", "routing num_ctx exceeds profile.max_context_tokens", map[string]any{
 				"num_ctx":            *route.NumCtx,
@@ -118,6 +124,50 @@ func Validate(result *Result, strict bool) ValidationResult {
 		Summary:    summary,
 		Passed:     summary.Errors == 0 && (!strict || summary.Warnings == 0),
 	}
+}
+
+func validateModelCatalog(cfg Config, pos map[string]Position) []inferctl.Finding {
+	findings := []inferctl.Finding{}
+	seen := map[string]map[string]CapabilityEvidence{}
+	for alias, model := range cfg.Models {
+		prefix := "models." + alias + "."
+		requireKey(&findings, pos, prefix+"backend", "missing required key")
+		requireKey(&findings, pos, prefix+"model", "missing required key")
+		if model.Backend != "" {
+			if _, ok := cfg.Backends[model.Backend]; !ok {
+				findings = append(findings, errorFinding(pos, prefix+"backend", "model alias references a non-existent backend", map[string]any{"code": "E_MODEL_ALIAS_BACKEND_UNKNOWN", "backend": model.Backend}))
+			}
+		}
+		if model.Model == "" && hasKey(pos, prefix+"model") {
+			findings = append(findings, errorFinding(pos, prefix+"model", "model alias target must not be empty", map[string]any{"code": "E_MODEL_ALIAS_TARGET_REQUIRED"}))
+		}
+		for capability, evidence := range model.Capabilities {
+			evidencePrefix := prefix + "capabilities." + capability + "."
+			if !slices.Contains(modelCapabilityNames(), capability) {
+				findings = append(findings, errorFinding(pos, prefix+"capabilities."+capability, "model capability is not recognized", map[string]any{"code": "E_MODEL_CAPABILITY_UNKNOWN", "valid_set": modelCapabilityNames()}))
+				continue
+			}
+			requireKey(&findings, pos, evidencePrefix+"status", "missing required key")
+			requireKey(&findings, pos, evidencePrefix+"source", "missing required key")
+			if !slices.Contains([]string{CapabilityStatusSupported, CapabilityStatusUnsupported, CapabilityStatusUnknown}, evidence.Status) {
+				findings = append(findings, errorFinding(pos, evidencePrefix+"status", "capability status is not supported", map[string]any{"code": "E_MODEL_CAPABILITY_STATUS_INVALID", "valid_set": []string{CapabilityStatusSupported, CapabilityStatusUnsupported, CapabilityStatusUnknown}}))
+			}
+			if !slices.Contains([]string{CapabilitySourceDeclared, CapabilitySourceObserved}, evidence.Source) {
+				findings = append(findings, errorFinding(pos, evidencePrefix+"source", "capability evidence source is not supported", map[string]any{"code": "E_MODEL_CAPABILITY_SOURCE_INVALID", "valid_set": []string{CapabilitySourceDeclared, CapabilitySourceObserved}}))
+			}
+		}
+		target := model.Backend + "\x00" + model.Model
+		if earlier, ok := seen[target]; ok {
+			for capability, evidence := range model.Capabilities {
+				if prior, exists := earlier[capability]; exists && prior != evidence {
+					findings = append(findings, errorFinding(pos, prefix+"capabilities."+capability, "model capability evidence conflicts with another alias for the same target", map[string]any{"code": "E_MODEL_CAPABILITY_EVIDENCE_CONFLICT", "backend": model.Backend, "model": model.Model, "capability": capability}))
+				}
+			}
+		} else {
+			seen[target] = model.Capabilities
+		}
+	}
+	return findings
 }
 
 func validateCredentialReference(backend BackendConfig, prefix string, pos map[string]Position) []inferctl.Finding {
@@ -289,7 +339,7 @@ func knownConfigKey(cfg Config, key string) bool {
 	switch key {
 	case "meta", "meta.schema_version",
 		"profile", "profile.name", "profile.max_context_tokens", "profile.max_concurrent_models", "profile.allow_premium", "profile.mode", "profile.vram_total_bytes_hint",
-		"backends", "routing":
+		"backends", "models", "routing":
 		return true
 	}
 	parts := strings.Split(key, ".")
@@ -324,6 +374,26 @@ func knownConfigKey(cfg Config, key string) bool {
 			return false
 		}
 		return slices.Contains(routingConfigFields(), parts[2])
+	case "models":
+		if len(parts) == 2 {
+			_, ok := cfg.Models[parts[1]]
+			return ok
+		}
+		if _, ok := cfg.Models[parts[1]]; !ok {
+			return false
+		}
+		if len(parts) == 3 {
+			return slices.Contains(modelConfigFields(), parts[2])
+		}
+		if len(parts) == 4 && parts[2] == "capabilities" {
+			_, ok := cfg.Models[parts[1]].Capabilities[parts[3]]
+			return ok
+		}
+		if len(parts) == 5 && parts[2] == "capabilities" {
+			_, ok := cfg.Models[parts[1]].Capabilities[parts[3]]
+			return ok && slices.Contains(capabilityEvidenceFields(), parts[4])
+		}
+		return false
 	default:
 		return false
 	}
@@ -333,7 +403,7 @@ func knownConfigKeyCandidates(cfg Config) []string {
 	keys := []string{
 		"meta", "meta.schema_version",
 		"profile", "profile.name", "profile.max_context_tokens", "profile.max_concurrent_models", "profile.allow_premium", "profile.mode", "profile.vram_total_bytes_hint",
-		"backends", "routing",
+		"backends", "models", "routing",
 	}
 	for name := range cfg.Backends {
 		prefix := "backends." + name
@@ -352,6 +422,20 @@ func knownConfigKeyCandidates(cfg Config) []string {
 		keys = append(keys, prefix)
 		for _, field := range routingConfigFields() {
 			keys = append(keys, prefix+"."+field)
+		}
+	}
+	for alias, model := range cfg.Models {
+		prefix := "models." + alias
+		keys = append(keys, prefix)
+		for _, field := range modelConfigFields() {
+			keys = append(keys, prefix+"."+field)
+		}
+		for capability := range model.Capabilities {
+			capabilityPrefix := prefix + ".capabilities." + capability
+			keys = append(keys, capabilityPrefix)
+			for _, field := range capabilityEvidenceFields() {
+				keys = append(keys, capabilityPrefix+"."+field)
+			}
 		}
 	}
 	sort.Strings(keys)
@@ -389,6 +473,10 @@ func validEnvironmentVariableName(value string) bool {
 func routingConfigFields() []string {
 	return []string{"backend", "fallback", "model", "num_ctx"}
 }
+
+func modelConfigFields() []string        { return []string{"backend", "capabilities", "model"} }
+func capabilityEvidenceFields() []string { return []string{"source", "status"} }
+func modelCapabilityNames() []string     { return []string{"tools", "vision", "json_mode", "embeddings"} }
 
 func nearestConfigKey(given string, candidates []string) (string, int) {
 	best := ""

@@ -129,7 +129,7 @@ func readRouteInput(cmd *cobra.Command, opts routePromptOptions) (routeInput, *e
 
 func buildRouteReport(ctx context.Context, cfg config.Config, task string, routeCfg config.RoutingConfig, entries []backendEntry, input routeInput) (routeReport, []envelope.Warning, []envelope.Command, *envelope.Error) {
 	state := probeRouteBackends(ctx, entries)
-	candidates := routeCandidates(routeCfg)
+	candidates := routeCandidates(cfg, routeCfg)
 	var warnings []envelope.Warning
 	var selected *inferctl.RouteCandidate
 	for i := range candidates {
@@ -230,23 +230,33 @@ func probeRouteBackends(ctx context.Context, entries []backendEntry) routeBacken
 	return state
 }
 
-func routeCandidates(routeCfg config.RoutingConfig) []inferctl.RouteCandidate {
-	candidates := []inferctl.RouteCandidate{{
-		Model: routeCfg.Model,
-		Role:  "primary",
-	}}
-	if routeCfg.Backend != "" {
+func routeCandidates(cfg config.Config, routeCfg config.RoutingConfig) []inferctl.RouteCandidate {
+	candidates := []inferctl.RouteCandidate{routeCandidateForModel(cfg, routeCfg.Model, "primary", nil)}
+	if candidates[0].Backend == nil && routeCfg.Backend != "" {
 		candidates[0].Backend = &routeCfg.Backend
 	}
 	for i, model := range routeCfg.Fallback {
 		idx := i
-		candidates = append(candidates, inferctl.RouteCandidate{
-			Model:         model,
-			Role:          "fallback",
-			FallbackIndex: &idx,
-		})
+		candidates = append(candidates, routeCandidateForModel(cfg, model, "fallback", &idx))
 	}
 	return candidates
+}
+
+func routeCandidateForModel(cfg config.Config, name, role string, fallbackIndex *int) inferctl.RouteCandidate {
+	candidate := inferctl.RouteCandidate{
+		Model:         name,
+		Role:          role,
+		FallbackIndex: fallbackIndex,
+	}
+	if model, ok := cfg.ResolveModel(name); ok {
+		alias := name
+		candidate.Alias = &alias
+		candidate.Model = model.Model
+		candidate.Capabilities = cfg.CapabilityEvidenceFor(name)
+		backend := model.Backend
+		candidate.Backend = &backend
+	}
+	return candidate
 }
 
 func evaluateRouteCandidate(candidate inferctl.RouteCandidate, routeCfg config.RoutingConfig, entries []backendEntry, state routeBackendState) inferctl.RouteCandidate {

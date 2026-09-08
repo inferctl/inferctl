@@ -43,12 +43,20 @@ type LoadedModelInfo struct {
 }
 
 type Capabilities struct {
-	SupportsTools       bool   `json:"supports_tools"`
-	SupportsVision      bool   `json:"supports_vision"`
-	SupportsJSONMode    bool   `json:"supports_json_mode"`
-	ContextWindow       *int   `json:"context_window"`
-	EmbeddingDimensions *int   `json:"embedding_dimensions"`
-	Source              string `json:"source"`
+	SupportsTools       bool                          `json:"supports_tools"`
+	SupportsVision      bool                          `json:"supports_vision"`
+	SupportsJSONMode    bool                          `json:"supports_json_mode"`
+	ContextWindow       *int                          `json:"context_window"`
+	EmbeddingDimensions *int                          `json:"embedding_dimensions"`
+	Source              string                        `json:"source"`
+	Evidence            map[string]CapabilityEvidence `json:"evidence,omitempty"`
+}
+
+// CapabilityEvidence states what is known about one capability and where the
+// information came from. Status is supported, unsupported, or unknown.
+type CapabilityEvidence struct {
+	Status string `json:"status"`
+	Source string `json:"source"`
 }
 
 type LatencyStats struct {
@@ -60,14 +68,16 @@ type LatencyStats struct {
 }
 
 type RouteCandidate struct {
-	Model                 string  `json:"model"`
-	Backend               *string `json:"backend"`
-	Role                  string  `json:"role"`
-	FallbackIndex         *int    `json:"fallback_index"`
-	Available             bool    `json:"available"`
-	UnavailabilityReason  *string `json:"unavailability_reason"`
-	Loaded                bool    `json:"loaded"`
-	EstimatedFirstTokenMS *int    `json:"estimated_first_token_ms"`
+	Alias                 *string                       `json:"alias,omitempty"`
+	Model                 string                        `json:"model"`
+	Backend               *string                       `json:"backend"`
+	Role                  string                        `json:"role"`
+	FallbackIndex         *int                          `json:"fallback_index"`
+	Available             bool                          `json:"available"`
+	UnavailabilityReason  *string                       `json:"unavailability_reason"`
+	Loaded                bool                          `json:"loaded"`
+	EstimatedFirstTokenMS *int                          `json:"estimated_first_token_ms"`
+	Capabilities          map[string]CapabilityEvidence `json:"capabilities,omitempty"`
 }
 
 type RouteDecision struct {

@@ -38,6 +38,13 @@ const (
 	ECredentialReferenceValueUnusable               = "E_CREDENTIAL_REFERENCE_VALUE_UNUSABLE"
 	ECredentialReferenceVersionRequired             = "E_CREDENTIAL_REFERENCE_VERSION_REQUIRED"
 	ECredentialReferenceVersionUnsupported          = "E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED"
+	EModelAliasBackendConflict                      = "E_MODEL_ALIAS_BACKEND_CONFLICT"
+	EModelAliasBackendUnknown                       = "E_MODEL_ALIAS_BACKEND_UNKNOWN"
+	EModelAliasTargetRequired                       = "E_MODEL_ALIAS_TARGET_REQUIRED"
+	EModelCapabilityEvidenceConflict                = "E_MODEL_CAPABILITY_EVIDENCE_CONFLICT"
+	EModelCapabilitySourceInvalid                   = "E_MODEL_CAPABILITY_SOURCE_INVALID"
+	EModelCapabilityStatusInvalid                   = "E_MODEL_CAPABILITY_STATUS_INVALID"
+	EModelCapabilityUnknown                         = "E_MODEL_CAPABILITY_UNKNOWN"
 	WBackendUnreachable                             = "W_BACKEND_UNREACHABLE"
 	WBackendBackoff                                 = "W_BACKEND_BACKOFF"
 	WBackendDegraded                                = "W_BACKEND_DEGRADED"
@@ -79,6 +86,7 @@ var ActiveErrorCodes = []string{
 	EVerbRenamed,
 	EConfigValidationFailed,
 	ECredentialReferenceConflict, ECredentialReferenceEnvironmentEmpty, ECredentialReferenceEnvironmentMissing, ECredentialReferenceEnvironmentVariableInvalid, ECredentialReferenceEnvironmentVariableRequired, ECredentialReferenceHeaderNameRequired, ECredentialReferenceLiteralRequired, ECredentialReferenceSourceFieldConflict, ECredentialReferenceSourceRequired, ECredentialReferenceSourceUnsupported, ECredentialReferenceUnsupportedBackend, ECredentialReferenceValueUnusable, ECredentialReferenceVersionRequired, ECredentialReferenceVersionUnsupported,
+	EModelAliasBackendConflict, EModelAliasBackendUnknown, EModelAliasTargetRequired, EModelCapabilityEvidenceConflict, EModelCapabilitySourceInvalid, EModelCapabilityStatusInvalid, EModelCapabilityUnknown,
 }
 
 var ReservedErrorCodes = []string{}

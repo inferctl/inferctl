@@ -35,6 +35,53 @@ func TestRoutePrimarySuccess(t *testing.T) {
 	}
 }
 
+func TestRouteModelAliasIncludesCapabilityEvidence(t *testing.T) {
+	server := testserver.New(testserver.Fixture{Kind: testserver.KindOllama, Models: []testserver.Model{{Name: "qwen3:8b"}}})
+	defer server.Close()
+	configPath := writeDoctorConfig(t, doctorConfigOptions{OllamaURL: server.URL})
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data = append(data, []byte(`
+[models.code_small]
+backend = "ollama"
+model = "qwen3:8b"
+
+[models.code_small.capabilities.tools]
+status = "supported"
+source = "declared"
+`)...)
+	data = bytes.Replace(data, []byte(`model = "qwen3:8b"`), []byte(`model = "code_small"`), 1)
+	if err := os.WriteFile(configPath, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("INFERCTL_CONFIG", configPath)
+
+	stdout, _, err := executeForTest("route", "code", "--json")
+	if err != nil {
+		t.Fatalf("route error = %v stdout=%s", err, stdout)
+	}
+	var envelope struct {
+		Data struct {
+			Candidates []inferctl.RouteCandidate `json:"candidates"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &envelope); err != nil {
+		t.Fatal(err)
+	}
+	if len(envelope.Data.Candidates) != 1 || envelope.Data.Candidates[0].Alias == nil || *envelope.Data.Candidates[0].Alias != "code_small" {
+		t.Fatalf("candidates = %#v", envelope.Data.Candidates)
+	}
+	tools := envelope.Data.Candidates[0].Capabilities["tools"]
+	if tools.Status != "supported" || tools.Source != "declared" {
+		t.Fatalf("tools evidence = %#v", tools)
+	}
+	if envelope.Data.Candidates[0].Capabilities["vision"].Status != "unknown" {
+		t.Fatalf("unknown evidence = %#v", envelope.Data.Candidates[0].Capabilities)
+	}
+}
+
 func TestRouteFallbackSuccess(t *testing.T) {
 	server := testserver.New(testserver.Fixture{
 		Kind:   testserver.KindOllama,
