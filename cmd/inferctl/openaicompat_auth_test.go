@@ -101,6 +101,67 @@ func TestOpenAICompatTypedLiteralCredentialSucceeds(t *testing.T) {
 	}
 }
 
+func TestOpenAICompatEnvironmentCredentialSucceeds(t *testing.T) {
+	headerValue := "fixture-environment-auth-value"
+	server := testserver.New(testserver.Fixture{
+		Kind:            testserver.KindOpenAICompat,
+		Models:          []testserver.Model{{Name: "remote-model"}},
+		AuthHeaderName:  "Authorization",
+		AuthHeaderValue: headerValue,
+	})
+	defer server.Close()
+	t.Setenv("INFERCTL_TEST_REMOTE_TOKEN", headerValue)
+	t.Setenv("INFERCTL_CONFIG", writeOpenAICompatEnvironmentCredentialConfig(t, server.URL, "INFERCTL_TEST_REMOTE_TOKEN"))
+
+	stdout, _, err := executeForTest("models", "--json")
+	if err != nil {
+		t.Fatalf("models with environment credential error = %v stdout=%s", err, stdout)
+	}
+	if !strings.Contains(stdout, "remote-model") || strings.Contains(stdout, headerValue) {
+		t.Fatalf("unexpected models output: %s", stdout)
+	}
+}
+
+func TestOpenAICompatEnvironmentCredentialResolutionFailuresAreRedacted(t *testing.T) {
+	tests := []struct {
+		name     string
+		variable string
+		value    *string
+		wantCode string
+	}{
+		{name: "missing", variable: "INFERCTL_TEST_MISSING_TOKEN", wantCode: "E_CREDENTIAL_REFERENCE_ENVIRONMENT_MISSING"},
+		{name: "empty", variable: "INFERCTL_TEST_EMPTY_TOKEN", value: stringPtr(""), wantCode: "E_CREDENTIAL_REFERENCE_ENVIRONMENT_EMPTY"},
+		{name: "unusable", variable: "INFERCTL_TEST_UNUSABLE_TOKEN", value: stringPtr("Bearer bad\nvalue"), wantCode: "E_CREDENTIAL_REFERENCE_VALUE_UNUSABLE"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.value == nil {
+				original, existed := os.LookupEnv(tt.variable)
+				if err := os.Unsetenv(tt.variable); err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() {
+					if existed {
+						_ = os.Setenv(tt.variable, original)
+					} else {
+						_ = os.Unsetenv(tt.variable)
+					}
+				})
+			} else {
+				t.Setenv(tt.variable, *tt.value)
+			}
+			t.Setenv("INFERCTL_CONFIG", writeOpenAICompatEnvironmentCredentialConfig(t, "http://127.0.0.1:8080", tt.variable))
+			stdout, _, err := executeForTest("models", "--json")
+			if err == nil || !strings.Contains(stdout, tt.wantCode) {
+				t.Fatalf("wanted %s: err=%v stdout=%s", tt.wantCode, err, stdout)
+			}
+			if tt.value != nil && *tt.value != "" && strings.Contains(stdout, *tt.value) {
+				t.Fatalf("credential value leaked: %s", stdout)
+			}
+		})
+	}
+}
+
 func writeOpenAICompatConfig(t *testing.T, baseURL string, remoteAllowed bool, headerName, headerValue string) string {
 	t.Helper()
 	auth := ""
@@ -160,6 +221,41 @@ auth_header_name = "Authorization"
 version = "v1"
 source = "literal"
 literal_value = "` + headerValue + `"
+
+[routing.code]
+model = "remote-model"
+backend = "openai"
+fallback = []
+`
+	path := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func writeOpenAICompatEnvironmentCredentialConfig(t *testing.T, baseURL, variable string) string {
+	t.Helper()
+	body := `[meta]
+schema_version = "0.1"
+
+[profile]
+name = "environment_credential"
+max_context_tokens = 8192
+max_concurrent_models = 1
+allow_premium = false
+mode = "warn"
+
+[backends.openai]
+kind = "openai_compat"
+base_url = "` + baseURL + `"
+default = true
+auth_header_name = "Authorization"
+
+[backends.openai.credential]
+version = "v1"
+source = "environment"
+environment_variable = "` + variable + `"
 
 [routing.code]
 model = "remote-model"

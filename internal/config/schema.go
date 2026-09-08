@@ -35,6 +35,7 @@ type BackendConfig struct {
 const (
 	CredentialReferenceVersionV1 = "v1"
 	CredentialSourceLiteral      = "literal"
+	CredentialSourceEnvironment  = "environment"
 )
 
 // CredentialReference identifies a backend credential without exposing its
@@ -44,18 +45,10 @@ const (
 // a credential in a local TOML file. Future sources can add their own
 // reference identity without changing the public result shape.
 type CredentialReference struct {
-	Version      string  `toml:"version" json:"version"`
-	Source       string  `toml:"source" json:"source"`
-	LiteralValue *string `toml:"literal_value" json:"-"`
-}
-
-// AuthValue returns the configured literal credential for an allowed
-// control-plane check. It is intentionally not a public serialization helper.
-func (b BackendConfig) AuthValue() *string {
-	if b.Credential != nil && b.Credential.Source == CredentialSourceLiteral {
-		return b.Credential.LiteralValue
-	}
-	return b.AuthHeaderValue
+	Version             string  `toml:"version" json:"version"`
+	Source              string  `toml:"source" json:"source"`
+	LiteralValue        *string `toml:"literal_value" json:"-"`
+	EnvironmentVariable *string `toml:"environment_variable" json:"environment_variable,omitempty"`
 }
 
 type RoutingConfig struct {

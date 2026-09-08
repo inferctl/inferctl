@@ -253,7 +253,11 @@ func configuredBackends(result *config.Result, filter, kind string) ([]backendEn
 		if cfg.Kind == "openai_compat" && !cfg.RemoteAllowed && openaicompatRemoteURL(cfg.BaseURL) {
 			return nil, backendConfigError(name, "E_BACKEND_REMOTE_NOT_ALLOWED", "backend '"+name+"' uses a remote openai_compat URL without remote_allowed=true")
 		}
-		entries = append(entries, backendEntry{name: name, kind: cfg.Kind, backend: instantiateBackend(name, cfg)})
+		credential, resolutionErr := config.ResolveCredential(cfg, config.LiteralCredentialResolver{}, config.EnvironmentCredentialResolver{Values: envMap()})
+		if resolutionErr != nil {
+			return nil, backendConfigError(name, resolutionErr.Code, "backend '"+name+"' credential reference cannot be resolved")
+		}
+		entries = append(entries, backendEntry{name: name, kind: cfg.Kind, backend: instantiateBackend(name, cfg, credential)})
 	}
 	if filter != "" && len(entries) == 0 {
 		return nil, &envelope.Error{
@@ -305,7 +309,7 @@ func openaicompatRemoteURL(raw string) bool {
 	return openaicompat.RemoteURL(raw)
 }
 
-func instantiateBackend(name string, cfg config.BackendConfig) inferctl.Backend {
+func instantiateBackend(name string, cfg config.BackendConfig, credential *string) inferctl.Backend {
 	timeout := time.Duration(cfg.TimeoutMS) * time.Millisecond
 	switch cfg.Kind {
 	case "llama.cpp":
@@ -317,7 +321,7 @@ func instantiateBackend(name string, cfg config.BackendConfig) inferctl.Backend 
 	case "openai_compat":
 		return openaicompat.New(name, cfg.BaseURL, cfg.Default, timeout, openaicompat.Options{
 			AuthHeaderName:  cfg.AuthHeaderName,
-			AuthHeaderValue: cfg.AuthValue(),
+			AuthHeaderValue: credential,
 			RemoteAllowed:   cfg.RemoteAllowed,
 		})
 	default:

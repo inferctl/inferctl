@@ -224,10 +224,11 @@ func configFileJSONSchema() map[string]any {
 						"fallback_chain_position": nullable("integer"),
 						"auth_header_name":        nullable("string"),
 						"auth_header_value":       nullable("string"),
-						"credential": objectSchemaStrict([]string{"version", "source", "literal_value"}, map[string]any{
-							"version":       map[string]any{"const": config.CredentialReferenceVersionV1},
-							"source":        map[string]any{"const": config.CredentialSourceLiteral},
-							"literal_value": map[string]any{"type": "string", "minLength": 1},
+						"credential": objectSchemaStrict([]string{"version", "source"}, map[string]any{
+							"version":              map[string]any{"const": config.CredentialReferenceVersionV1},
+							"source":               map[string]any{"enum": []string{config.CredentialSourceLiteral, config.CredentialSourceEnvironment}},
+							"environment_variable": map[string]any{"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"},
+							"literal_value":        map[string]any{"type": "string", "minLength": 1},
 						}),
 						"remote_allowed": map[string]any{"type": "boolean", "default": false},
 					}),

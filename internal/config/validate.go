@@ -156,19 +156,32 @@ func validateCredentialReference(backend BackendConfig, prefix string, pos map[s
 			"remediation": "inferctl config explain --key backends.<name>.credential.version --json",
 		}))
 	}
-	if credential.Source != CredentialSourceLiteral {
+	if !slices.Contains([]string{CredentialSourceLiteral, CredentialSourceEnvironment}, credential.Source) {
 		findings = append(findings, errorFinding(pos, credentialPrefix+"source", "credential reference source is not supported", map[string]any{
 			"code":        "E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED",
-			"valid_set":   []string{CredentialSourceLiteral},
+			"valid_set":   []string{CredentialSourceLiteral, CredentialSourceEnvironment},
 			"given":       credential.Source,
 			"remediation": "inferctl config explain --key backends.<name>.credential.source --json",
 		}))
 	}
-	if credential.LiteralValue == nil || strings.TrimSpace(*credential.LiteralValue) == "" {
+	if credential.Source == CredentialSourceLiteral && (credential.LiteralValue == nil || strings.TrimSpace(*credential.LiteralValue) == "") {
 		findings = append(findings, errorFinding(pos, credentialPrefix+"literal_value", "literal credential source requires a non-empty literal_value", map[string]any{
 			"code":        "E_CREDENTIAL_REFERENCE_LITERAL_REQUIRED",
 			"remediation": "inferctl config explain --key backends.<name>.credential.literal_value --json",
 		}))
+	}
+	if credential.Source == CredentialSourceEnvironment {
+		if credential.LiteralValue != nil {
+			findings = append(findings, errorFinding(pos, credentialPrefix+"literal_value", "environment credential source cannot include literal_value", map[string]any{"code": "E_CREDENTIAL_REFERENCE_SOURCE_FIELD_CONFLICT"}))
+		}
+		if credential.EnvironmentVariable == nil || strings.TrimSpace(*credential.EnvironmentVariable) == "" {
+			findings = append(findings, errorFinding(pos, credentialPrefix+"environment_variable", "environment credential source requires environment_variable", map[string]any{"code": "E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_REQUIRED"}))
+		} else if !validEnvironmentVariableName(*credential.EnvironmentVariable) {
+			findings = append(findings, errorFinding(pos, credentialPrefix+"environment_variable", "environment_variable must be a valid environment variable name", map[string]any{"code": "E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_INVALID"}))
+		}
+	}
+	if credential.Source == CredentialSourceLiteral && credential.EnvironmentVariable != nil {
+		findings = append(findings, errorFinding(pos, credentialPrefix+"environment_variable", "literal credential source cannot include environment_variable", map[string]any{"code": "E_CREDENTIAL_REFERENCE_SOURCE_FIELD_CONFLICT"}))
 	}
 	if backend.AuthHeaderName == nil || strings.TrimSpace(*backend.AuthHeaderName) == "" {
 		findings = append(findings, errorFinding(pos, prefix+"auth_header_name", "credential reference requires a non-empty auth_header_name", map[string]any{
@@ -360,7 +373,17 @@ func backendConfigFields() []string {
 }
 
 func credentialReferenceFields() []string {
-	return []string{"literal_value", "source", "version"}
+	return []string{"environment_variable", "literal_value", "source", "version"}
+}
+
+func validEnvironmentVariableName(value string) bool {
+	for index, r := range value {
+		if r == '_' || (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (index > 0 && r >= '0' && r <= '9') {
+			continue
+		}
+		return false
+	}
+	return value != ""
 }
 
 func routingConfigFields() []string {

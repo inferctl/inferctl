@@ -78,7 +78,7 @@ func TestConfigValidateTypedCredentialFailuresAreStable(t *testing.T) {
 		{
 			name:     "source",
 			old:      `source = "literal"`,
-			change:   `source = "environment"`,
+			change:   `source = "unknown"`,
 			wantKey:  "backends.remote.credential.source",
 			wantCode: "E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED",
 		},
@@ -118,6 +118,24 @@ func TestConfigValidateTypedCredentialMissingSourceIsStable(t *testing.T) {
 		t.Fatalf("expected validation error: %s", stdout)
 	}
 	assertCredentialFinding(t, stdout, "backends.remote.credential.source", "E_CREDENTIAL_REFERENCE_SOURCE_REQUIRED")
+}
+
+func TestConfigValidateEnvironmentCredentialFields(t *testing.T) {
+	config := stringsReplace(typedCredentialConfig, `source = "literal"
+literal_value = "Bearer typed-fixture"`, `source = "environment"
+environment_variable = "INFERCTL_REMOTE_TOKEN"`)
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, config))
+	if _, _, err := executeForTest("config", "validate", "--json"); err != nil {
+		t.Fatalf("valid environment reference rejected: %v", err)
+	}
+
+	invalid := stringsReplace(config, `environment_variable = "INFERCTL_REMOTE_TOKEN"`, `environment_variable = "9TOKEN"`)
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, invalid))
+	stdout, _, err := executeForTest("config", "validate", "--json")
+	if err == nil {
+		t.Fatalf("expected validation error: %s", stdout)
+	}
+	assertCredentialFinding(t, stdout, "backends.remote.credential.environment_variable", "E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_INVALID")
 }
 
 func assertCredentialFinding(t *testing.T, stdout, wantKey, wantCode string) {

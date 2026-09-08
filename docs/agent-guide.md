@@ -65,9 +65,10 @@ the TOML value. Keep the value in a local, unshared config file.
 uses a non-loopback host. It has no effect for the other backend kinds.
 
 New authenticated `openai_compat` configurations can use the typed credential
-reference form. It has an explicit version and source. The current source is
-`literal`; it keeps the literal in a local, unshared TOML file and does not
-publish it in `config show` output.
+reference form. It has an explicit version and source. `literal` keeps a value
+in a local, unshared TOML file. `environment` names a process environment
+variable and resolves it only when inferctl performs a bounded control-plane
+check. Neither source publishes its resolved value in `config show` output.
 
 ```toml
 [backends.remote_openai]
@@ -87,6 +88,22 @@ The old `auth_header_value` form remains supported for compatibility. Run
 `inferctl config validate --json` to get its migration warning, then move the
 same local literal to `credential.literal_value`. Do not set both forms in one
 backend. The placeholder is literal text; inferctl does not expand it.
+
+For an environment reference, replace `literal_value` with the variable name:
+
+```toml
+[backends.remote_openai.credential]
+version = "v1"
+source = "environment"
+environment_variable = "INFERCTL_REMOTE_TOKEN"
+```
+
+The environment variable must exist, be non-empty, and not contain a newline.
+Missing, empty, or unusable values return the stable codes
+`E_CREDENTIAL_REFERENCE_ENVIRONMENT_MISSING`,
+`E_CREDENTIAL_REFERENCE_ENVIRONMENT_EMPTY`, or
+`E_CREDENTIAL_REFERENCE_VALUE_UNUSABLE`. The value itself is not included in
+the diagnostic.
 
 Use `inferctl config show --json` to inspect safe effective configuration.
 It omits `auth_header_value` and its provenance. Config mutation previews also
