@@ -13,12 +13,19 @@ gates are cleared.
 - Added typed local-backend credential references with literal and environment
   sources, public configuration fingerprints, and bounded control-plane-only
   credential resolution.
+- Added v0.5 route preparation: configured model aliases, source-aware
+  capability evidence, requirement-aware selection, and a redacted execution
+  handoff. Callers now use the handoff to make their own requests. inferctl
+  does not send inference or model lifecycle requests.
 
 ### Changed
 
 - Kept the legacy `auth_header_value` configuration form compatible through
   v0.6. `config validate --json` reports its migration warning and the
   documented replacement.
+- Callers that use direct model names can migrate by adding
+  `models.<alias>` records, routing through the alias, and requesting required
+  capabilities with `inferctl route --require-capability <name> --json`.
 
 ## [0.3.0] - 2026-09-03
 
