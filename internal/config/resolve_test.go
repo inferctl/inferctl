@@ -1,10 +1,29 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 )
+
+func TestSecureStoreCredentialResolverStates(t *testing.T) {
+	service, account := "inferctl", "local-token"
+	reference := CredentialReference{Source: CredentialSourceSecureStore, Service: &service, Account: &account}
+	unsupported := SecureStoreCredentialResolver{GOOS: "linux"}
+	if _, err := unsupported.Resolve(reference); err == nil || err.Code != "E_CREDENTIAL_REFERENCE_SECURE_STORE_UNSUPPORTED_PLATFORM" {
+		t.Fatalf("unsupported err = %#v", err)
+	}
+	unavailable := SecureStoreCredentialResolver{GOOS: "darwin", Lookup: func(string, string) (string, error) { return "", errors.New("not found") }}
+	if _, err := unavailable.Resolve(reference); err == nil || err.Code != "E_CREDENTIAL_REFERENCE_SECURE_STORE_UNAVAILABLE" {
+		t.Fatalf("unavailable err = %#v", err)
+	}
+	success := SecureStoreCredentialResolver{GOOS: "darwin", Lookup: func(string, string) (string, error) { return "value", nil }}
+	value, err := success.Resolve(reference)
+	if err != nil || value == nil || *value != "value" {
+		t.Fatalf("value=%v err=%#v", value, err)
+	}
+}
 
 func TestResolutionOrderEnvThenRepoLocal(t *testing.T) {
 	dir := t.TempDir()

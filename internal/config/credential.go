@@ -1,8 +1,45 @@
 package config
 
 import (
+	"os/exec"
+	"runtime"
 	"strings"
 )
+
+type SecureStoreCredentialResolver struct {
+	GOOS   string
+	Lookup func(service, account string) (string, error)
+}
+
+func (r SecureStoreCredentialResolver) Source() string { return CredentialSourceSecureStore }
+func (r SecureStoreCredentialResolver) Resolve(reference CredentialReference) (*string, *CredentialResolutionError) {
+	if reference.Service == nil || reference.Account == nil || strings.TrimSpace(*reference.Service) == "" || strings.TrimSpace(*reference.Account) == "" {
+		return nil, &CredentialResolutionError{Code: "E_CREDENTIAL_REFERENCE_SECURE_STORE_IDENTITY_REQUIRED"}
+	}
+	goos := r.GOOS
+	if goos == "" {
+		goos = runtime.GOOS
+	}
+	if goos != "darwin" {
+		return nil, &CredentialResolutionError{Code: "E_CREDENTIAL_REFERENCE_SECURE_STORE_UNSUPPORTED_PLATFORM"}
+	}
+	lookup := r.Lookup
+	if lookup == nil {
+		lookup = macOSKeychainLookup
+	}
+	value, err := lookup(*reference.Service, *reference.Account)
+	if err != nil {
+		return nil, &CredentialResolutionError{Code: "E_CREDENTIAL_REFERENCE_SECURE_STORE_UNAVAILABLE"}
+	}
+	if strings.TrimSpace(value) == "" {
+		return nil, &CredentialResolutionError{Code: "E_CREDENTIAL_REFERENCE_SECURE_STORE_MISSING"}
+	}
+	return &value, credentialValueError(value)
+}
+func macOSKeychainLookup(service, account string) (string, error) {
+	out, err := exec.Command("security", "find-generic-password", "-s", service, "-a", account, "-w").Output()
+	return strings.TrimSpace(string(out)), err
+}
 
 // CredentialResolutionError is safe for public diagnostics. It identifies a
 // reference failure without including a resolved credential value.

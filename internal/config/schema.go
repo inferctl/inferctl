@@ -37,6 +37,7 @@ const (
 	CredentialReferenceVersionV1 = "v1"
 	CredentialSourceLiteral      = "literal"
 	CredentialSourceEnvironment  = "environment"
+	CredentialSourceSecureStore  = "secure_store"
 )
 
 // CredentialReference identifies a backend credential without exposing its
@@ -50,6 +51,8 @@ type CredentialReference struct {
 	Source              string  `toml:"source" json:"source"`
 	LiteralValue        *string `toml:"literal_value" json:"-"`
 	EnvironmentVariable *string `toml:"environment_variable" json:"environment_variable,omitempty"`
+	Service             *string `toml:"service" json:"service,omitempty"`
+	Account             *string `toml:"account" json:"account,omitempty"`
 }
 
 type RoutingConfig struct {

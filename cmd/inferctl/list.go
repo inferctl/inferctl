@@ -253,7 +253,7 @@ func configuredBackends(result *config.Result, filter, kind string) ([]backendEn
 		if cfg.Kind == "openai_compat" && !cfg.RemoteAllowed && openaicompatRemoteURL(cfg.BaseURL) {
 			return nil, backendConfigError(name, "E_BACKEND_REMOTE_NOT_ALLOWED", "backend '"+name+"' uses a remote openai_compat URL without remote_allowed=true")
 		}
-		credential, resolutionErr := config.ResolveCredential(cfg, config.LiteralCredentialResolver{}, config.EnvironmentCredentialResolver{Values: envMap()})
+		credential, resolutionErr := config.ResolveCredential(cfg, config.LiteralCredentialResolver{}, config.EnvironmentCredentialResolver{Values: envMap()}, config.SecureStoreCredentialResolver{})
 		if resolutionErr != nil {
 			return nil, backendConfigError(name, resolutionErr.Code, "backend '"+name+"' credential reference cannot be resolved")
 		}

@@ -206,10 +206,10 @@ func validateCredentialReference(backend BackendConfig, prefix string, pos map[s
 			"remediation": "inferctl config explain --key backends.<name>.credential.version --json",
 		}))
 	}
-	if !slices.Contains([]string{CredentialSourceLiteral, CredentialSourceEnvironment}, credential.Source) {
+	if !slices.Contains([]string{CredentialSourceLiteral, CredentialSourceEnvironment, CredentialSourceSecureStore}, credential.Source) {
 		findings = append(findings, errorFinding(pos, credentialPrefix+"source", "credential reference source is not supported", map[string]any{
 			"code":        "E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED",
-			"valid_set":   []string{CredentialSourceLiteral, CredentialSourceEnvironment},
+			"valid_set":   []string{CredentialSourceLiteral, CredentialSourceEnvironment, CredentialSourceSecureStore},
 			"given":       credential.Source,
 			"remediation": "inferctl config explain --key backends.<name>.credential.source --json",
 		}))
@@ -229,6 +229,9 @@ func validateCredentialReference(backend BackendConfig, prefix string, pos map[s
 		} else if !validEnvironmentVariableName(*credential.EnvironmentVariable) {
 			findings = append(findings, errorFinding(pos, credentialPrefix+"environment_variable", "environment_variable must be a valid environment variable name", map[string]any{"code": "E_CREDENTIAL_REFERENCE_ENVIRONMENT_VARIABLE_INVALID"}))
 		}
+	}
+	if credential.Source == CredentialSourceSecureStore && (credential.Service == nil || credential.Account == nil || strings.TrimSpace(*credential.Service) == "" || strings.TrimSpace(*credential.Account) == "") {
+		findings = append(findings, errorFinding(pos, credentialPrefix+"service", "secure-store credential source requires service and account", map[string]any{"code": "E_CREDENTIAL_REFERENCE_SECURE_STORE_IDENTITY_REQUIRED"}))
 	}
 	if credential.Source == CredentialSourceLiteral && credential.EnvironmentVariable != nil {
 		findings = append(findings, errorFinding(pos, credentialPrefix+"environment_variable", "literal credential source cannot include environment_variable", map[string]any{"code": "E_CREDENTIAL_REFERENCE_SOURCE_FIELD_CONFLICT"}))
@@ -457,7 +460,7 @@ func backendConfigFields() []string {
 }
 
 func credentialReferenceFields() []string {
-	return []string{"environment_variable", "literal_value", "source", "version"}
+	return []string{"account", "environment_variable", "literal_value", "service", "source", "version"}
 }
 
 func validEnvironmentVariableName(value string) bool {
