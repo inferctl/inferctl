@@ -9,7 +9,7 @@ import (
 )
 
 func TestConfigValidateClean(t *testing.T) {
-	t.Setenv("INFERCTL_CONFIG", writeTempConfig(t))
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, typedCredentialConfig))
 	stdout, stderr, err := executeForTest("config", "validate", "--json")
 	if err != nil {
 		t.Fatalf("config validate error = %v stderr=%s stdout=%s", err, stderr, stdout)
@@ -32,6 +32,113 @@ func TestConfigValidateClean(t *testing.T) {
 		t.Fatalf("unexpected envelope = %#v", env)
 	}
 	assertJSONSubsetGolden(t, "config_validate.clean.golden.json", map[string]any{"findings": env.Data.Findings})
+}
+
+func TestConfigValidateLegacyCredentialWarns(t *testing.T) {
+	legacyConfig := stringsReplace(typedCredentialConfig, `[backends.remote.credential]
+version = "v1"
+source = "literal"
+literal_value = "Bearer typed-fixture"
+`, `auth_header_value = "Bearer legacy-fixture"
+`)
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, legacyConfig))
+	stdout, _, err := executeForTest("config", "validate", "--json")
+	if err != nil {
+		t.Fatalf("legacy config validate error = %v stdout=%s", err, stdout)
+	}
+	var env struct {
+		OK   bool `json:"ok"`
+		Data struct {
+			Findings []struct {
+				Key      string         `json:"key"`
+				Severity string         `json:"severity"`
+				Details  map[string]any `json:"details"`
+			} `json:"findings"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatal(err)
+	}
+	for _, finding := range env.Data.Findings {
+		if finding.Key == "backends.remote.auth_header_value" && finding.Severity == "warning" && finding.Details["code"] == "W_CONFIG_KEY_DEPRECATED" {
+			return
+		}
+	}
+	t.Fatalf("legacy credential warning missing: %s", stdout)
+}
+
+func TestConfigValidateTypedCredentialFailuresAreStable(t *testing.T) {
+	tests := []struct {
+		name     string
+		old      string
+		change   string
+		wantKey  string
+		wantCode string
+	}{
+		{
+			name:     "source",
+			old:      `source = "literal"`,
+			change:   `source = "environment"`,
+			wantKey:  "backends.remote.credential.source",
+			wantCode: "E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED",
+		},
+		{
+			name:     "version",
+			old:      `version = "v1"`,
+			change:   `version = "v2"`,
+			wantKey:  "backends.remote.credential.version",
+			wantCode: "E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED",
+		},
+		{
+			name:     "literal value",
+			old:      `literal_value = "Bearer typed-fixture"`,
+			change:   `literal_value = ""`,
+			wantKey:  "backends.remote.credential.literal_value",
+			wantCode: "E_CREDENTIAL_REFERENCE_LITERAL_REQUIRED",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := stringsReplace(typedCredentialConfig, tt.old, tt.change)
+			t.Setenv("INFERCTL_CONFIG", writeConfig(t, cfg))
+			stdout, _, err := executeForTest("config", "validate", "--json")
+			if err == nil {
+				t.Fatalf("expected validation error: %s", stdout)
+			}
+			assertCredentialFinding(t, stdout, tt.wantKey, tt.wantCode)
+		})
+	}
+}
+
+func TestConfigValidateTypedCredentialMissingSourceIsStable(t *testing.T) {
+	cfg := stringsReplace(typedCredentialConfig, "source = \"literal\"\n", "")
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, cfg))
+	stdout, _, err := executeForTest("config", "validate", "--json")
+	if err == nil {
+		t.Fatalf("expected validation error: %s", stdout)
+	}
+	assertCredentialFinding(t, stdout, "backends.remote.credential.source", "E_CREDENTIAL_REFERENCE_SOURCE_REQUIRED")
+}
+
+func assertCredentialFinding(t *testing.T, stdout, wantKey, wantCode string) {
+	t.Helper()
+	var env struct {
+		Data struct {
+			Findings []struct {
+				Key     string         `json:"key"`
+				Details map[string]any `json:"details"`
+			} `json:"findings"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatal(err)
+	}
+	for _, finding := range env.Data.Findings {
+		if finding.Key == wantKey && finding.Details["code"] == wantCode {
+			return
+		}
+	}
+	t.Fatalf("missing %s at %s: %s", wantCode, wantKey, stdout)
 }
 
 func TestConfigValidateWarningOnlyAndStrict(t *testing.T) {

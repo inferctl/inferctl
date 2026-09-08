@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/inferctl/inferctl/internal/config"
 	"github.com/inferctl/inferctl/pkg/inferctl"
 	"github.com/spf13/cobra"
 )
@@ -61,8 +62,11 @@ func configKeyCatalog() []inferctl.ConfigKeyDef {
 		keyDef("backends.<name>.default", "bool", false, false, "True for the default backend. Exactly one configured backend must set this to true.", nil, true),
 		keyDef("backends.<name>.timeout_ms", "int", false, 2000, "HTTP probe timeout for this backend in milliseconds.", nil, 2000),
 		keyDef("backends.<name>.fallback_chain_position", "int|null", false, nil, "Optional ordering hint for future backend fallback behavior.", nil, 1),
-		keyDef("backends.<name>.auth_header_name", "string|null", false, nil, "Literal HTTP header name for an authenticated openai_compat backend. Use only with auth_header_value.", nil, "Authorization"),
+		keyDef("backends.<name>.auth_header_name", "string|null", false, nil, "Literal HTTP header name for an authenticated openai_compat backend. Use with auth_header_value or credential.", nil, "Authorization"),
 		keyDef("backends.<name>.auth_header_value", "string|null", false, nil, "Literal HTTP header value for an authenticated openai_compat backend. inferctl does not expand environment variables in this value. It is omitted from config show and redacted from mutation previews.", nil, "Bearer <local-token>"),
+		keyDef("backends.<name>.credential.version", "const string", true, nil, "Typed credential reference format version. The current version is v1.", []string{config.CredentialReferenceVersionV1}, config.CredentialReferenceVersionV1),
+		keyDef("backends.<name>.credential.source", "const string", true, nil, "Typed credential reference source. The current source is literal.", []string{config.CredentialSourceLiteral}, config.CredentialSourceLiteral),
+		keyDef("backends.<name>.credential.literal_value", "string", true, nil, "Literal credential value for a local, unshared config file. It is omitted from config show and redacted from mutation previews.", nil, "Bearer <local-token>"),
 		keyDef("backends.<name>.remote_allowed", "bool", false, false, "Allow a non-loopback openai_compat URL. This has no effect for other backend kinds.", nil, false),
 		keyDef("routing.<task>.model", "string", true, nil, "Primary model name for this task.", nil, "qwen3:8b"),
 		keyDef("routing.<task>.backend", "string", true, nil, "Configured backend name for the primary model.", nil, "ollama"),

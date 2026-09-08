@@ -448,6 +448,7 @@ func redactConfigText(body string) string {
 func secretKey(key string) bool {
 	key = strings.ToLower(key)
 	return key == "auth_header_value" ||
+		key == "literal_value" ||
 		strings.HasSuffix(key, "_token") ||
 		strings.HasSuffix(key, "_secret") ||
 		strings.HasSuffix(key, "_password") ||

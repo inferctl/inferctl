@@ -18,6 +18,7 @@ func TestVerbGoldens(t *testing.T) {
 		"config_init.print.golden.json",
 		"config_patch.stdin.golden.json",
 		"config_set.change.golden.json",
+		"config_typed_credential.golden.json",
 		"config_validate.clean.golden.json",
 		"diff.golden.json",
 		"discover.empty.golden.json",

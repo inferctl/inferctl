@@ -103,6 +103,50 @@ func TestConfigShowKeyAndSection(t *testing.T) {
 	}
 }
 
+func TestConfigShowTypedCredentialRedactsLiteralValue(t *testing.T) {
+	t.Setenv("INFERCTL_CONFIG", writeConfig(t, typedCredentialConfig))
+	stdout, _, err := executeForTest("config", "show", "--json")
+	if err != nil {
+		t.Fatalf("config show error = %v stdout=%s", err, stdout)
+	}
+	if strings.Contains(stdout, "Bearer typed-fixture") {
+		t.Fatalf("config show leaked typed credential: %s", stdout)
+	}
+	var env struct {
+		Data struct {
+			EffectiveConfig map[string]any    `json:"effective_config"`
+			Provenance      map[string]string `json:"provenance"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatal(err)
+	}
+	backends := env.Data.EffectiveConfig["backends"].(map[string]any)
+	remote := backends["remote"].(map[string]any)
+	credential := remote["credential"].(map[string]any)
+	if credential["version"] != "v1" || credential["source"] != "literal" {
+		t.Fatalf("public credential reference = %#v", credential)
+	}
+	if _, ok := credential["literal_value"]; ok {
+		t.Fatalf("public credential reference leaked literal value: %#v", credential)
+	}
+	if _, ok := env.Data.Provenance["backends.remote.credential.literal_value"]; ok {
+		t.Fatalf("credential literal provenance leaked: %#v", env.Data.Provenance)
+	}
+	assertJSONSubsetGolden(t, "config_typed_credential.golden.json", map[string]any{
+		"credential": credential,
+		"provenance": map[string]string{
+			"backends.remote.credential.source":  env.Data.Provenance["backends.remote.credential.source"],
+			"backends.remote.credential.version": env.Data.Provenance["backends.remote.credential.version"],
+		},
+	})
+
+	stdout, _, err = executeForTest("config", "show", "--key", "backends.remote.credential.literal_value", "--json")
+	if err == nil || strings.Contains(stdout, "Bearer typed-fixture") {
+		t.Fatalf("typed credential key lookup should be redacted: err=%v stdout=%s", err, stdout)
+	}
+}
+
 func TestConfigShowMissingConfigError(t *testing.T) {
 	t.Setenv("INFERCTL_CONFIG", filepath.Join(t.TempDir(), "missing.toml"))
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
@@ -172,4 +216,31 @@ default = false
 model = "qwen3-coder:30b-a3b-q4_K_M"
 backend = "llamacpp_32b"
 fallback = ["qwen3-coder:8b", "qwen3:8b"]
+`
+
+const typedCredentialConfig = `[meta]
+schema_version = "0.1"
+
+[profile]
+name = "typed_credential"
+max_context_tokens = 8192
+max_concurrent_models = 1
+allow_premium = false
+mode = "warn"
+
+[backends.remote]
+kind = "openai_compat"
+base_url = "http://127.0.0.1:8080"
+default = true
+auth_header_name = "Authorization"
+
+[backends.remote.credential]
+version = "v1"
+source = "literal"
+literal_value = "Bearer typed-fixture"
+
+[routing.code]
+model = "typed-model"
+backend = "remote"
+fallback = []
 `

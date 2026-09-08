@@ -104,6 +104,28 @@ func TestConfigPatchFromStdinRedactsSecrets(t *testing.T) {
 	}
 }
 
+func TestConfigPatchRedactsTypedCredentialLiteral(t *testing.T) {
+	path := writeConfig(t, typedCredentialConfig)
+	sensitiveValue := "fixture-typed-redaction-value"
+	patch := "[backends.remote.credential]\nversion = \"v1\"\nsource = \"literal\"\nliteral_value = \"" + sensitiveValue + "\"\n"
+	stdout, _, err := executeForTestWithInput(patch, "config", "patch", "--from-stdin", "--path", path, "--dry-run", "--json")
+	if err != nil {
+		t.Fatalf("config patch error = %v stdout=%s", err, stdout)
+	}
+	if strings.Contains(stdout, sensitiveValue) {
+		t.Fatalf("typed credential leaked in dry-run JSON: %s", stdout)
+	}
+	var env struct {
+		Data configMutationResult `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(env.Data.Preview, `literal_value = "<redacted>"`) {
+		t.Fatalf("preview missing typed credential redaction:\n%s", env.Data.Preview)
+	}
+}
+
 func TestConfigPatchRejectsNoopWithoutPartialWrite(t *testing.T) {
 	path := writeConfig(t, commentedConfig)
 	before, err := os.ReadFile(path)

@@ -317,7 +317,7 @@ func instantiateBackend(name string, cfg config.BackendConfig) inferctl.Backend 
 	case "openai_compat":
 		return openaicompat.New(name, cfg.BaseURL, cfg.Default, timeout, openaicompat.Options{
 			AuthHeaderName:  cfg.AuthHeaderName,
-			AuthHeaderValue: cfg.AuthHeaderValue,
+			AuthHeaderValue: cfg.AuthValue(),
 			RemoteAllowed:   cfg.RemoteAllowed,
 		})
 	default:

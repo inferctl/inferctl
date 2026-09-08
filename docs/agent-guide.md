@@ -64,10 +64,34 @@ the TOML value. Keep the value in a local, unshared config file.
 `remote_allowed = true` is required only when an `openai_compat` `base_url`
 uses a non-loopback host. It has no effect for the other backend kinds.
 
+New authenticated `openai_compat` configurations can use the typed credential
+reference form. It has an explicit version and source. The current source is
+`literal`; it keeps the literal in a local, unshared TOML file and does not
+publish it in `config show` output.
+
+```toml
+[backends.remote_openai]
+kind = "openai_compat"
+base_url = "https://example.invalid"
+default = true
+remote_allowed = true
+auth_header_name = "Authorization"
+
+[backends.remote_openai.credential]
+version = "v1"
+source = "literal"
+literal_value = "Bearer <local-token>"
+```
+
+The old `auth_header_value` form remains supported for compatibility. Run
+`inferctl config validate --json` to get its migration warning, then move the
+same local literal to `credential.literal_value`. Do not set both forms in one
+backend. The placeholder is literal text; inferctl does not expand it.
+
 Use `inferctl config show --json` to inspect safe effective configuration.
 It omits `auth_header_value` and its provenance. Config mutation previews also
-redact the value. Other output can include backend names and `base_url`
-values, so review it before you share it.
+redact both credential literal forms. Other output can include backend names
+and `base_url` values, so review it before you share it.
 
 ## Discovery Composition
 

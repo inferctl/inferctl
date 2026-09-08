@@ -21,14 +21,41 @@ type ProfileConfig struct {
 }
 
 type BackendConfig struct {
-	Kind                  string  `toml:"kind" json:"kind"`
-	BaseURL               string  `toml:"base_url" json:"base_url"`
-	Default               bool    `toml:"default" json:"default"`
-	TimeoutMS             int     `toml:"timeout_ms" json:"timeout_ms"`
-	FallbackChainPosition *int    `toml:"fallback_chain_position" json:"fallback_chain_position"`
-	AuthHeaderName        *string `toml:"auth_header_name" json:"auth_header_name"`
-	AuthHeaderValue       *string `toml:"auth_header_value" json:"auth_header_value"`
-	RemoteAllowed         bool    `toml:"remote_allowed" json:"remote_allowed"`
+	Kind                  string               `toml:"kind" json:"kind"`
+	BaseURL               string               `toml:"base_url" json:"base_url"`
+	Default               bool                 `toml:"default" json:"default"`
+	TimeoutMS             int                  `toml:"timeout_ms" json:"timeout_ms"`
+	FallbackChainPosition *int                 `toml:"fallback_chain_position" json:"fallback_chain_position"`
+	AuthHeaderName        *string              `toml:"auth_header_name" json:"auth_header_name"`
+	AuthHeaderValue       *string              `toml:"auth_header_value" json:"-"`
+	Credential            *CredentialReference `toml:"credential" json:"credential,omitempty"`
+	RemoteAllowed         bool                 `toml:"remote_allowed" json:"remote_allowed"`
+}
+
+const (
+	CredentialReferenceVersionV1 = "v1"
+	CredentialSourceLiteral      = "literal"
+)
+
+// CredentialReference identifies a backend credential without exposing its
+// resolved value through the public Config JSON representation.
+//
+// The literal source is the compatibility bridge for configurations that keep
+// a credential in a local TOML file. Future sources can add their own
+// reference identity without changing the public result shape.
+type CredentialReference struct {
+	Version      string  `toml:"version" json:"version"`
+	Source       string  `toml:"source" json:"source"`
+	LiteralValue *string `toml:"literal_value" json:"-"`
+}
+
+// AuthValue returns the configured literal credential for an allowed
+// control-plane check. It is intentionally not a public serialization helper.
+func (b BackendConfig) AuthValue() *string {
+	if b.Credential != nil && b.Credential.Source == CredentialSourceLiteral {
+		return b.Credential.LiteralValue
+	}
+	return b.AuthHeaderValue
 }
 
 type RoutingConfig struct {

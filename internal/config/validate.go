@@ -65,6 +65,7 @@ func Validate(result *Result, strict bool) ValidationResult {
 				findings = append(findings, errorFinding(pos, prefix+"base_url", "value must be a valid URL with scheme and host", map[string]any{}))
 			}
 		}
+		findings = append(findings, validateCredentialReference(backend, prefix, pos)...)
 	}
 	if len(cfg.Backends) > 0 && defaults != 1 {
 		findings = append(findings, derivedError("backends.*.default", "exactly one backend must set default=true", map[string]any{"default_count": defaults}))
@@ -117,6 +118,75 @@ func Validate(result *Result, strict bool) ValidationResult {
 		Summary:    summary,
 		Passed:     summary.Errors == 0 && (!strict || summary.Warnings == 0),
 	}
+}
+
+func validateCredentialReference(backend BackendConfig, prefix string, pos map[string]Position) []inferctl.Finding {
+	credential := backend.Credential
+	if credential == nil {
+		if backend.Kind == "openai_compat" && backend.AuthHeaderValue != nil {
+			return []inferctl.Finding{warning(pos, prefix+"auth_header_value", "legacy literal credential is deprecated; use credential.version, credential.source, and credential.literal_value", map[string]any{
+				"code":        "W_CONFIG_KEY_DEPRECATED",
+				"old_key":     prefix + "auth_header_value",
+				"new_key":     prefix + "credential.literal_value",
+				"remediation": "inferctl config explain --key backends.<name>.credential.* --json",
+			})}
+		}
+		return nil
+	}
+
+	credentialPrefix := prefix + "credential."
+	findings := []inferctl.Finding{}
+	if backend.Kind != "openai_compat" {
+		findings = append(findings, errorFinding(pos, prefix+"credential", "credential references are supported only for openai_compat backends", map[string]any{
+			"code": "E_CREDENTIAL_REFERENCE_UNSUPPORTED_BACKEND",
+		}))
+	}
+	if backend.AuthHeaderValue != nil {
+		findings = append(findings, errorFinding(pos, prefix+"auth_header_value", "legacy auth_header_value cannot be combined with credential", map[string]any{
+			"code": "E_CREDENTIAL_REFERENCE_CONFLICT",
+		}))
+	}
+	requireCredentialKey(&findings, pos, credentialPrefix+"version", "E_CREDENTIAL_REFERENCE_VERSION_REQUIRED")
+	requireCredentialKey(&findings, pos, credentialPrefix+"source", "E_CREDENTIAL_REFERENCE_SOURCE_REQUIRED")
+	if credential.Version != "" && credential.Version != CredentialReferenceVersionV1 {
+		findings = append(findings, errorFinding(pos, credentialPrefix+"version", "credential reference version is not supported", map[string]any{
+			"code":        "E_CREDENTIAL_REFERENCE_VERSION_UNSUPPORTED",
+			"valid_set":   []string{CredentialReferenceVersionV1},
+			"given":       credential.Version,
+			"remediation": "inferctl config explain --key backends.<name>.credential.version --json",
+		}))
+	}
+	if credential.Source != CredentialSourceLiteral {
+		findings = append(findings, errorFinding(pos, credentialPrefix+"source", "credential reference source is not supported", map[string]any{
+			"code":        "E_CREDENTIAL_REFERENCE_SOURCE_UNSUPPORTED",
+			"valid_set":   []string{CredentialSourceLiteral},
+			"given":       credential.Source,
+			"remediation": "inferctl config explain --key backends.<name>.credential.source --json",
+		}))
+	}
+	if credential.LiteralValue == nil || strings.TrimSpace(*credential.LiteralValue) == "" {
+		findings = append(findings, errorFinding(pos, credentialPrefix+"literal_value", "literal credential source requires a non-empty literal_value", map[string]any{
+			"code":        "E_CREDENTIAL_REFERENCE_LITERAL_REQUIRED",
+			"remediation": "inferctl config explain --key backends.<name>.credential.literal_value --json",
+		}))
+	}
+	if backend.AuthHeaderName == nil || strings.TrimSpace(*backend.AuthHeaderName) == "" {
+		findings = append(findings, errorFinding(pos, prefix+"auth_header_name", "credential reference requires a non-empty auth_header_name", map[string]any{
+			"code":        "E_CREDENTIAL_REFERENCE_HEADER_NAME_REQUIRED",
+			"remediation": "inferctl config explain --key backends.<name>.auth_header_name --json",
+		}))
+	}
+	return findings
+}
+
+func requireCredentialKey(findings *[]inferctl.Finding, pos map[string]Position, key, code string) {
+	if hasKey(pos, key) {
+		return
+	}
+	*findings = append(*findings, derivedError(key, "missing required credential reference key", map[string]any{
+		"code":        code,
+		"remediation": "inferctl config explain --key " + key + " --json",
+	}))
 }
 
 func requireKey(findings *[]inferctl.Finding, pos map[string]Position, key, message string) {
@@ -219,13 +289,16 @@ func knownConfigKey(cfg Config, key string) bool {
 			_, ok := cfg.Backends[parts[1]]
 			return ok
 		}
-		if len(parts) != 3 {
-			return false
-		}
 		if _, ok := cfg.Backends[parts[1]]; !ok {
 			return false
 		}
-		return slices.Contains(backendConfigFields(), parts[2])
+		if len(parts) == 3 {
+			return slices.Contains(backendConfigFields(), parts[2])
+		}
+		if len(parts) == 4 && parts[2] == "credential" && cfg.Backends[parts[1]].Credential != nil {
+			return slices.Contains(credentialReferenceFields(), parts[3])
+		}
+		return false
 	case "routing":
 		if len(parts) == 2 {
 			_, ok := cfg.Routing[parts[1]]
@@ -255,6 +328,11 @@ func knownConfigKeyCandidates(cfg Config) []string {
 		for _, field := range backendConfigFields() {
 			keys = append(keys, prefix+"."+field)
 		}
+		if cfg.Backends[name].Credential != nil {
+			for _, field := range credentialReferenceFields() {
+				keys = append(keys, prefix+".credential."+field)
+			}
+		}
 	}
 	for task := range cfg.Routing {
 		prefix := "routing." + task
@@ -272,12 +350,17 @@ func backendConfigFields() []string {
 		"auth_header_name",
 		"auth_header_value",
 		"base_url",
+		"credential",
 		"default",
 		"fallback_chain_position",
 		"kind",
 		"remote_allowed",
 		"timeout_ms",
 	}
+}
+
+func credentialReferenceFields() []string {
+	return []string{"literal_value", "source", "version"}
 }
 
 func routingConfigFields() []string {

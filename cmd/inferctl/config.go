@@ -197,7 +197,7 @@ func redactConfigSecrets(value any) {
 
 func isSecretConfigKey(key string) bool {
 	switch strings.ToLower(key) {
-	case "auth_header_value", "password", "secret", "token", "api_key", "access_key", "credential":
+	case "auth_header_value", "literal_value", "password", "secret", "token", "api_key", "access_key":
 		return true
 	default:
 		return false
