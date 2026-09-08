@@ -46,6 +46,29 @@ inferctl config validate --json
 
 Config mutation commands validate before writing and return structured mutation data. Use `--dry-run` before edits that come from a generated fragment.
 
+### Legacy backend literals
+
+The existing backend configuration is a TOML literal form. Each
+`[backends.<name>]` section requires `kind` and `base_url`; exactly one
+configured backend must set `default = true`. Valid `kind` values are
+`ollama`, `llama.cpp`, `openai_compat`, `lmstudio`, and `mlx`. `base_url` must
+be a URL with a scheme and host. `timeout_ms` is a probe timeout in
+milliseconds.
+
+`auth_header_name` and `auth_header_value` apply only to `openai_compat`.
+When both are present, inferctl sends that exact header on its bounded
+control-plane checks. `auth_header_value` is a literal string: inferctl does
+not expand `${NAME}`, `$NAME`, or any other environment-variable syntax in
+the TOML value. Keep the value in a local, unshared config file.
+
+`remote_allowed = true` is required only when an `openai_compat` `base_url`
+uses a non-loopback host. It has no effect for the other backend kinds.
+
+Use `inferctl config show --json` to inspect safe effective configuration.
+It omits `auth_header_value` and its provenance. Config mutation previews also
+redact the value. Other output can include backend names and `base_url`
+values, so review it before you share it.
+
 ## Discovery Composition
 
 `inferctl discover` probes fixed localhost ports and reports verified local backend candidates. It can emit TOML patches for config composition:
@@ -165,10 +188,15 @@ base_url = "https://example.invalid"
 default = false
 remote_allowed = true
 auth_header_name = "Authorization"
-auth_header_value = "Bearer ${TOKEN}"
+auth_header_value = "Bearer <local-token>"
 ```
 
-Remote `openai_compat` URLs require `remote_allowed = true`; otherwise commands return `E_BACKEND_REMOTE_NOT_ALLOWED`. Missing or rejected credentials return `E_BACKEND_AUTH_FAILED`. Auth header values are redacted from diagnostics and dry-run previews.
+The value in this example is a safe placeholder, not a variable reference.
+Inferctl uses it literally. Put the real value only in a local, unshared TOML
+file. Remote `openai_compat` URLs require `remote_allowed = true`; otherwise
+commands return `E_BACKEND_REMOTE_NOT_ALLOWED`. Missing or rejected credentials
+return `E_BACKEND_AUTH_FAILED`. Auth header values are omitted from
+`config show` and redacted from diagnostics and dry-run previews.
 
 ## Model-Family Notes
 

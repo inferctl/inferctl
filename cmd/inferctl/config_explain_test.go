@@ -61,6 +61,37 @@ func TestConfigExplainKeyAndWildcard(t *testing.T) {
 	}
 }
 
+func TestConfigExplainDocumentsLiteralAuthValues(t *testing.T) {
+	stdout, _, err := executeForTest("config", "explain", "--key", "backends.<name>.*", "--json")
+	if err != nil {
+		t.Fatalf("config explain error = %v stdout=%s", err, stdout)
+	}
+	var env struct {
+		Data configExplainData `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &env); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, stdout)
+	}
+	keys := map[string]struct{}{}
+	for _, key := range env.Data.Keys {
+		keys[key.Key] = struct{}{}
+		if key.Key == "backends.<name>.auth_header_value" {
+			if !strings.Contains(key.Description, "does not expand environment variables") {
+				t.Fatalf("auth header description = %q", key.Description)
+			}
+			if key.Example != "Bearer <local-token>" {
+				t.Fatalf("auth header example = %#v", key.Example)
+			}
+		}
+		if key.Key == "backends.<name>.remote_allowed" && !strings.Contains(key.Description, "non-loopback openai_compat") {
+			t.Fatalf("remote_allowed description = %q", key.Description)
+		}
+	}
+	if _, ok := keys["backends.<name>.auth_header_value"]; !ok {
+		t.Fatalf("auth header key missing: %#v", env.Data.Keys)
+	}
+}
+
 func TestConfigExplainUnknownKey(t *testing.T) {
 	stdout, _, err := executeForTest("config", "explain", "--key", "profile.nope", "--json")
 	if err == nil {

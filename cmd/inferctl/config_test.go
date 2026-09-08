@@ -105,6 +105,8 @@ func TestConfigShowKeyAndSection(t *testing.T) {
 
 func TestConfigShowMissingConfigError(t *testing.T) {
 	t.Setenv("INFERCTL_CONFIG", filepath.Join(t.TempDir(), "missing.toml"))
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("HOME", t.TempDir())
 	stdout, _, err := executeForTest("config", "show", "--json")
 	if err == nil {
 		t.Fatal("expected error")
