@@ -51,3 +51,6 @@ That's why "why isn't inferctl just a gateway?" has a clean answer: a gateway *i
 ## Zoom in
 
 For a head-to-head of inferctl against the two tools it's most often confused with — Ollama CLI and llama-swap — see [Comparison](/docs/comparison/).
+
+For source-dated comparisons of inference runtimes, request gateways, and
+control planes, see the [Inference Control-Plane Landscape](/docs/comparisons/inference-control-plane-landscape/).
