@@ -17,6 +17,8 @@ gates are cleared.
   capability evidence, requirement-aware selection, and a redacted execution
   handoff. Callers now use the handoff to make their own requests. inferctl
   does not send inference or model lifecycle requests.
+- Added a v0.6 `secure_store` credential source for macOS Keychain generic
+  passwords. Other platforms return a documented unsupported-platform result.
 
 ### Changed
 
