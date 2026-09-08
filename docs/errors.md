@@ -51,6 +51,7 @@ Generated from `internal/contract/capabilities.golden.json`. Regenerate with `go
 | `E_NO_BACKENDS_CONFIGURED` | v0.1 | 3 | false | config at <path> defines no backends | `#/schemas/error_details/E_NO_BACKENDS_CONFIGURED` |
 | `E_NO_ROUTE_AVAILABLE` | v0.1 | 4 | true | no candidate model for task '<task>' is reachable | `#/schemas/error_details/E_NO_ROUTE_AVAILABLE` |
 | `E_PREFLIGHT_POLICY_BLOCKED` | v0.2 | 5 | false | preflight policy blocks task '<task>': <reason> | `#/schemas/error_details/E_PREFLIGHT_POLICY_BLOCKED` |
+| `E_ROUTE_REQUIREMENTS_UNSATISFIED` | v0.2 | 5 | false | no route satisfies the requested capabilities | `#/schemas/error_details/E_ROUTE_REQUIREMENTS_UNSATISFIED` |
 | `E_UNKNOWN_BACKEND` | v0.1 | 1 | false | no backend named '<backend>' in config | `#/schemas/error_details/E_UNKNOWN_BACKEND` |
 | `E_UNKNOWN_FLAG` | v0.1 | 1 | false | unknown flag '<flag>' for verb '<verb>' | `#/schemas/error_details/E_UNKNOWN_FLAG` |
 | `E_UNKNOWN_MODEL` | v0.1 | 1 | false | model '<model>' not found on any reachable backend | `#/schemas/error_details/E_UNKNOWN_MODEL` |

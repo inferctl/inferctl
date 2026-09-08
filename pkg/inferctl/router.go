@@ -2,6 +2,46 @@ package inferctl
 
 import "context"
 
+const RouteRequirementsVersionV1 = "v1"
+
+// RouteRequirements is the versioned, caller-owned selection request. Each
+// named capability must have supported evidence on the selected candidate.
+type RouteRequirements struct {
+	Version              string   `json:"version"`
+	RequiredCapabilities []string `json:"required_capabilities"`
+	AllowFallback        bool     `json:"allow_fallback"`
+	RequireReady         bool     `json:"require_ready"`
+}
+
+type RouteSelectionRefusal struct {
+	Code              string `json:"code"`
+	Capability        string `json:"capability,omitempty"`
+	RecommendedAction string `json:"recommended_action"`
+}
+
+// SelectRouteCandidate applies the same deterministic requirements to every
+// caller. It has no backend operations.
+func SelectRouteCandidate(candidates []RouteCandidate, requirements RouteRequirements) (*RouteCandidate, *RouteSelectionRefusal) {
+	for index := range candidates {
+		candidate := &candidates[index]
+		if !candidate.Available || (!requirements.AllowFallback && candidate.Role == "fallback") || (requirements.RequireReady && !candidate.Loaded) {
+			continue
+		}
+		for _, capability := range requirements.RequiredCapabilities {
+			evidence, ok := candidate.Capabilities[capability]
+			if !ok || evidence.Status != "supported" {
+				goto next
+			}
+		}
+		return candidate, nil
+	next:
+	}
+	for _, capability := range requirements.RequiredCapabilities {
+		return nil, &RouteSelectionRefusal{Code: "E_ROUTE_REQUIREMENTS_UNSATISFIED", Capability: capability, RecommendedAction: "inferctl config explain --key models.<alias>.capabilities.<capability>.status --json"}
+	}
+	return nil, &RouteSelectionRefusal{Code: "E_NO_ROUTE_AVAILABLE", RecommendedAction: "inferctl doctor --json"}
+}
+
 type Router interface {
 	Backends(ctx context.Context) ([]BackendStatus, error)
 	Models(ctx context.Context) ([]ModelInfo, error)

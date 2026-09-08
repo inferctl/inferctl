@@ -62,6 +62,12 @@
       "current_loaded_count": 1,
       "allow_premium": false,
       "selected_is_premium": null
+    },
+    "requirements": {
+      "version": "v1",
+      "required_capabilities": null,
+      "allow_fallback": true,
+      "require_ready": false
     }
   },
   "route_decision": {

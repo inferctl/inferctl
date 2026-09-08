@@ -45,6 +45,7 @@ const (
 	EModelCapabilitySourceInvalid                   = "E_MODEL_CAPABILITY_SOURCE_INVALID"
 	EModelCapabilityStatusInvalid                   = "E_MODEL_CAPABILITY_STATUS_INVALID"
 	EModelCapabilityUnknown                         = "E_MODEL_CAPABILITY_UNKNOWN"
+	ERouteRequirementsUnsatisfied                   = "E_ROUTE_REQUIREMENTS_UNSATISFIED"
 	WBackendUnreachable                             = "W_BACKEND_UNREACHABLE"
 	WBackendBackoff                                 = "W_BACKEND_BACKOFF"
 	WBackendDegraded                                = "W_BACKEND_DEGRADED"
@@ -87,6 +88,7 @@ var ActiveErrorCodes = []string{
 	EConfigValidationFailed,
 	ECredentialReferenceConflict, ECredentialReferenceEnvironmentEmpty, ECredentialReferenceEnvironmentMissing, ECredentialReferenceEnvironmentVariableInvalid, ECredentialReferenceEnvironmentVariableRequired, ECredentialReferenceHeaderNameRequired, ECredentialReferenceLiteralRequired, ECredentialReferenceSourceFieldConflict, ECredentialReferenceSourceRequired, ECredentialReferenceSourceUnsupported, ECredentialReferenceUnsupportedBackend, ECredentialReferenceValueUnusable, ECredentialReferenceVersionRequired, ECredentialReferenceVersionUnsupported,
 	EModelAliasBackendConflict, EModelAliasBackendUnknown, EModelAliasTargetRequired, EModelCapabilityEvidenceConflict, EModelCapabilitySourceInvalid, EModelCapabilityStatusInvalid, EModelCapabilityUnknown,
+	ERouteRequirementsUnsatisfied,
 }
 
 var ReservedErrorCodes = []string{}

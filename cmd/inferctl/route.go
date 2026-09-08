@@ -14,11 +14,12 @@ import (
 )
 
 type routeReport struct {
-	Task        string                    `json:"task"`
-	Input       routeInput                `json:"input"`
-	Decision    inferctl.RouteDecision    `json:"decision"`
-	Candidates  []inferctl.RouteCandidate `json:"candidates"`
-	Constraints inferctl.RouteConstraints `json:"constraints"`
+	Task         string                     `json:"task"`
+	Input        routeInput                 `json:"input"`
+	Decision     inferctl.RouteDecision     `json:"decision"`
+	Candidates   []inferctl.RouteCandidate  `json:"candidates"`
+	Constraints  inferctl.RouteConstraints  `json:"constraints"`
+	Requirements inferctl.RouteRequirements `json:"requirements"`
 }
 
 type routeInput struct {
@@ -38,6 +39,7 @@ func newRouteCommand(jsonFlag *bool) *cobra.Command {
 	var prefer string
 	var explain bool
 	var quiet bool
+	var requiredCapabilities []string
 	cmd := &cobra.Command{
 		Use:   "route <task>",
 		Short: "Select and explain a configured model route",
@@ -89,7 +91,8 @@ func newRouteCommand(jsonFlag *bool) *cobra.Command {
 			if errObj := firstFatalBackendReadError(context.Background(), entries); errObj != nil {
 				return writeError(cmd, *jsonFlag, *errObj)
 			}
-			report, warnings, commands, noRoute := buildRouteReport(context.Background(), result.Config, args[0], routeCfg, entries, input)
+			requirements := inferctl.RouteRequirements{Version: inferctl.RouteRequirementsVersionV1, RequiredCapabilities: requiredCapabilities, AllowFallback: true}
+			report, warnings, commands, noRoute := buildRouteReportWithRequirements(context.Background(), result.Config, args[0], routeCfg, entries, input, requirements)
 			if noRoute != nil {
 				mode := render.SelectMode(render.Options{JSONFlag: *jsonFlag, Env: envMap()})
 				if mode != render.ModeJSON {
@@ -112,6 +115,7 @@ func newRouteCommand(jsonFlag *bool) *cobra.Command {
 	cmd.Flags().StringVar(&prefer, "prefer", "default", "routing preference: default, speed, or quality")
 	cmd.Flags().BoolVar(&explain, "explain", true, "include route explanation in human output")
 	cmd.Flags().BoolVar(&quiet, "quiet", false, "only print the selected route in human output")
+	cmd.Flags().StringSliceVar(&requiredCapabilities, "require-capability", nil, "require capability evidence with status=supported; repeat or use commas")
 	return cmd
 }
 
@@ -128,17 +132,18 @@ func readRouteInput(cmd *cobra.Command, opts routePromptOptions) (routeInput, *e
 }
 
 func buildRouteReport(ctx context.Context, cfg config.Config, task string, routeCfg config.RoutingConfig, entries []backendEntry, input routeInput) (routeReport, []envelope.Warning, []envelope.Command, *envelope.Error) {
+	return buildRouteReportWithRequirements(ctx, cfg, task, routeCfg, entries, input, inferctl.RouteRequirements{Version: inferctl.RouteRequirementsVersionV1, AllowFallback: true})
+}
+
+func buildRouteReportWithRequirements(ctx context.Context, cfg config.Config, task string, routeCfg config.RoutingConfig, entries []backendEntry, input routeInput, requirements inferctl.RouteRequirements) (routeReport, []envelope.Warning, []envelope.Command, *envelope.Error) {
 	state := probeRouteBackends(ctx, entries)
 	candidates := routeCandidates(cfg, routeCfg)
 	var warnings []envelope.Warning
-	var selected *inferctl.RouteCandidate
 	for i := range candidates {
 		candidate := evaluateRouteCandidate(candidates[i], routeCfg, entries, state)
 		candidates[i] = candidate
-		if candidate.Available && selected == nil {
-			selected = &candidates[i]
-		}
 	}
+	selected, refusal := inferctl.SelectRouteCandidate(candidates, requirements)
 	for _, entry := range entries {
 		if err, ok := state.reachableErrors[entry.name]; ok {
 			warnings = append(warnings, backendWarning("W_BACKEND_UNREACHABLE", entry.name, "backend '"+entry.name+"' is unreachable", err))
@@ -147,10 +152,14 @@ func buildRouteReport(ctx context.Context, cfg config.Config, task string, route
 	constraints := routeConstraints(cfg, input, state.loadedCount)
 	if selected == nil {
 		report := routeReport{
-			Task:        task,
-			Input:       input,
-			Candidates:  candidates,
-			Constraints: constraints,
+			Task:         task,
+			Input:        input,
+			Candidates:   candidates,
+			Constraints:  constraints,
+			Requirements: requirements,
+		}
+		if refusal != nil && refusal.Code == "E_ROUTE_REQUIREMENTS_UNSATISFIED" {
+			return report, warnings, routeCommands(report), routeRequirementsUnsatisfiedError(task, requirements, *refusal)
 		}
 		return report, warnings, routeCommands(report), noRouteAvailableError(task, candidates)
 	}
@@ -186,13 +195,18 @@ func buildRouteReport(ctx context.Context, cfg config.Config, task string, route
 		Reason:                routeDecisionReason(selected, routeCfg),
 	}
 	report := routeReport{
-		Task:        task,
-		Input:       input,
-		Decision:    decision,
-		Candidates:  candidates,
-		Constraints: constraints,
+		Task:         task,
+		Input:        input,
+		Decision:     decision,
+		Candidates:   candidates,
+		Constraints:  constraints,
+		Requirements: requirements,
 	}
 	return report, warnings, routeCommands(report), nil
+}
+
+func routeRequirementsUnsatisfiedError(task string, requirements inferctl.RouteRequirements, refusal inferctl.RouteSelectionRefusal) *envelope.Error {
+	return &envelope.Error{Code: refusal.Code, Message: "no route satisfies the requested capabilities", DidYouMean: stringPtr(refusal.RecommendedAction), ExitCode: 5, Retryable: false, Details: map[string]any{"task": task, "requirements": requirements, "capability": refusal.Capability}}
 }
 
 type routeBackendState struct {

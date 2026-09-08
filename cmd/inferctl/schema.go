@@ -6,6 +6,7 @@ import (
 
 	"github.com/inferctl/inferctl/internal/config"
 	"github.com/inferctl/inferctl/internal/contract"
+	"github.com/inferctl/inferctl/pkg/inferctl"
 	"github.com/spf13/cobra"
 )
 
@@ -518,12 +519,15 @@ func modelDetailSchema() map[string]any {
 }
 
 func routeExplanationSchema() map[string]any {
-	return objectSchema([]string{"task", "input", "decision", "candidates", "constraints"}, map[string]any{
+	return objectSchema([]string{"task", "input", "decision", "candidates", "constraints", "requirements"}, map[string]any{
 		"task":        map[string]any{"type": "string"},
 		"input":       map[string]any{"type": "object"},
 		"decision":    map[string]any{"type": "object"},
 		"candidates":  arrayOf(map[string]any{"type": "object"}),
 		"constraints": map[string]any{"type": "object"},
+		"requirements": objectSchema([]string{"version", "required_capabilities", "allow_fallback", "require_ready"}, map[string]any{
+			"version": map[string]any{"const": inferctl.RouteRequirementsVersionV1}, "required_capabilities": arrayOf(map[string]any{"type": "string"}), "allow_fallback": map[string]any{"type": "boolean"}, "require_ready": map[string]any{"type": "boolean"},
+		}),
 	})
 }
 

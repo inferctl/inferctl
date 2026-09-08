@@ -1446,6 +1446,13 @@
       "retryable": false,
       "message_template": "model capability is not recognized",
       "details_schema_ref": "#/schemas/error_details/E_MODEL_CAPABILITY_UNKNOWN"
+    },
+    "E_ROUTE_REQUIREMENTS_UNSATISFIED": {
+      "status": "v0.2",
+      "exit_code": 5,
+      "retryable": false,
+      "message_template": "no route satisfies the requested capabilities",
+      "details_schema_ref": "#/schemas/error_details/E_ROUTE_REQUIREMENTS_UNSATISFIED"
     }
   },
   "warning_codes": {
