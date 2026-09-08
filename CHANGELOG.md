@@ -8,6 +8,18 @@ gates are cleared.
 
 ## [Unreleased]
 
+### Added
+
+- Added typed local-backend credential references with literal and environment
+  sources, public configuration fingerprints, and bounded control-plane-only
+  credential resolution.
+
+### Changed
+
+- Kept the legacy `auth_header_value` configuration form compatible through
+  v0.6. `config validate --json` reports its migration warning and the
+  documented replacement.
+
 ## [0.3.0] - 2026-09-03
 
 ### Added
