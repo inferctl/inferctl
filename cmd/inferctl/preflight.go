@@ -56,6 +56,7 @@ type preflightOptions struct {
 	allowFallback bool
 	requireReady  bool
 	format        string
+	fields        []string
 }
 
 func newPreflightCommand(jsonFlag *bool) *cobra.Command {
@@ -91,11 +92,18 @@ Policy flags: --allow-fallback permits fallback routes; --require-ready blocks u
 			if !slices.Contains([]string{"human", "markdown"}, opts.format) {
 				return writeError(cmd, *jsonFlag, invalidArg("--format", opts.format, "one of human, markdown", []string{"human", "markdown"}))
 			}
+			if _, err := sparsePreflightFields(opts.fields); err != nil {
+				return writeError(cmd, *jsonFlag, invalidArg("--field", strings.Join(opts.fields, ","), err.Error(), nil))
+			}
 			report, warnings, commands, errObj := runPreflight(cmd.Context(), cmd, args[0], opts)
 			if errObj != nil {
 				return writePreflightResult(cmd, *jsonFlag, opts.format, report, warnings, commands, *errObj)
 			}
-			return writeDataWithDiagnostics(cmd, *jsonFlag, report, warnings, commands, func() error {
+			data := any(report)
+			if len(opts.fields) > 0 {
+				data = sparsePreflight(report, opts.fields)
+			}
+			return writeDataWithDiagnostics(cmd, *jsonFlag, data, warnings, commands, func() error {
 				return writePreflightHuman(cmd, report, opts.format)
 			})
 		},
@@ -106,7 +114,45 @@ Policy flags: --allow-fallback permits fallback routes; --require-ready blocks u
 	cmd.Flags().BoolVar(&opts.allowFallback, "allow-fallback", false, "allow automation to proceed when the selected route is a fallback")
 	cmd.Flags().BoolVar(&opts.requireReady, "require-ready", false, "require the selected model to already be loaded")
 	cmd.Flags().StringVar(&opts.format, "format", "human", "human output format: human or markdown")
+	cmd.Flags().StringSliceVar(&opts.fields, "field", nil, "return one public field in JSON output; repeat or use commas")
 	return cmd
+}
+
+func sparsePreflightFields(fields []string) ([]string, error) {
+	allowed := map[string]bool{"handoff": true, "requirements": true, "route_decision": true, "runnable": true, "runnability": true, "runnability_status": true, "task": true}
+	seen := map[string]bool{}
+	for _, field := range fields {
+		if !allowed[field] {
+			return nil, fmt.Errorf("field is not supported")
+		}
+		if seen[field] {
+			return nil, fmt.Errorf("field is duplicated")
+		}
+		seen[field] = true
+	}
+	return fields, nil
+}
+func sparsePreflight(report preflightReport, fields []string) map[string]any {
+	out := map[string]any{}
+	for _, field := range fields {
+		switch field {
+		case "handoff":
+			out[field] = report.Handoff
+		case "requirements":
+			out[field] = report.Route.Requirements
+		case "route_decision":
+			out[field] = report.RouteDecision
+		case "runnable":
+			out[field] = report.Runnable
+		case "runnability":
+			out[field] = report.Runnability
+		case "runnability_status":
+			out[field] = report.RunnabilityStatus
+		case "task":
+			out[field] = report.Task
+		}
+	}
+	return out
 }
 
 func runPreflight(ctx context.Context, cmd *cobra.Command, task string, opts preflightOptions) (preflightReport, []envelope.Warning, []envelope.Command, *envelope.Error) {
